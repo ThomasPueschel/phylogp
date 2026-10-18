@@ -70,6 +70,7 @@ fit
 loo(fit)                      # PSIS-LOO from exact conditional densities
 
 loo_refit(fit)                # exact LOO for influential species
+phylo_gp_trees(brain ~ body, d, trees, k_lambda())   # over a sample of trees
 predict(fit, newdata = new)   # species without data (kriging on the tree)
 
 ml <- phylo_gp(brain ~ body, data = d, tree = tr,
@@ -110,8 +111,8 @@ to have the vignettes locally.
 
 ## Status
 
-Version 0.2.0, under development. Planned: fitting across a sample of
-trees, multivariate kernels and non-Gaussian traits.
+Version 0.2.0, under development. Planned: multivariate kernels and
+non-Gaussian traits.
 
 ## Citation
 

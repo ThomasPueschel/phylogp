@@ -35,6 +35,7 @@ reference:
     desc: Fit a phylogenetic Gaussian process and compare models.
     contents:
       - phylo_gp
+      - phylo_gp_trees
       - loo.phylogp_fit
       - loo_refit
       - stancode

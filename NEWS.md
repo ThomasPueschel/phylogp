@@ -5,6 +5,9 @@
   searches over all parameters of the second for the smallest
   Kullback-Leibler divergence, comparing contrasts when the mean is unknown.
   It flags best-fitting parameters that sit at their bounds.
+* `phylo_gp_trees()` fits a model across a sample of trees and pools the
+  posterior (or collects maximum-likelihood estimates), reporting how much of
+  the uncertainty comes from the phylogeny; `loo()` works on the pooled fit.
 * Tree matrices (incidence, shared path lengths, distances) are cached per
   `tree_info()` object.
 
