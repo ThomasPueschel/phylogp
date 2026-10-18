@@ -1,0 +1,75 @@
+url: https://thomaspueschel.github.io/phylogp/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#4F6D8F"
+    link-color: "#3C5A7D"
+    code-color: "#A8322A"
+    base_font: {google: "Source Sans 3"}
+    heading_font: {google: "Source Sans 3"}
+    code_font: {google: "JetBrains Mono"}
+
+home:
+  title: "phylogp: phylogenetic comparative models as Gaussian processes"
+  description: >
+    Build models of trait evolution by combining kernels, check that they
+    are valid on your tree, and fit them in Stan with linear-time
+    likelihoods.
+
+navbar:
+  structure:
+    left: [intro, articles, reference, news]
+    right: [search, github]
+
+articles:
+  - title: Tutorials
+    navbar: ~
+    contents:
+      - phylogp
+      - kernel-design
+
+reference:
+  - title: Fitting models
+    desc: Fit a phylogenetic Gaussian process and compare models.
+    contents:
+      - phylo_gp
+      - loo.phylogp_fit
+      - stancode
+  - title: Classical kernels
+    desc: >
+      Brownian motion, Pagel's transformations, early burst,
+      Ornstein-Uhlenbeck and residual variance. Combine them with `+`.
+    contents:
+      - classical-kernels
+      - kernel-sum
+  - title: Kernel extensions
+    desc: Kernels for variable rates, distances and your own models.
+    contents:
+      - k_relaxed
+      - k_rate_time
+      - k_dist
+      - k_edge
+  - title: Designing and checking kernels
+    desc: Look at a kernel, simulate from it and check that it is valid on a tree.
+    contents:
+      - kernel_check
+      - kernel_plot
+      - kernel_matrix
+      - kernel_simulate
+      - kernel_loglik
+  - title: Rates of evolution
+    desc: Summaries and plots of estimated rates.
+    contents:
+      - edge_rates
+      - plot_edge_rates
+      - plot_tree_rates
+      - rate_through_time
+  - title: Stan code and data
+    contents:
+      - make_stancode
+      - make_standata
+      - tree_info
+  - title: internal
+    contents:
+      - reexports

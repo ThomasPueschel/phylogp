@@ -18,12 +18,22 @@ k_edge("pow(len, kappa) .* exp(beta * he)", # your own branch-wise kernel
        pars = list(kappa = c(0, 1), beta = c(-5, 5)))
 ```
 
+<img src="man/figures/README-gallery.png" alt="Correlation between species implied by six kernels on the same tree" width="100%">
+
+*The same tree seen through six kernels: Brownian motion, Pagel's λ, early
+burst, Ornstein–Uhlenbeck, relaxed rates and a squared-exponential kernel.*
+
 `phylogp` writes the Stan program for the kernel, compiles it once and fits
 it with [cmdstanr](https://mc-stan.org/cmdstanr/), by maximum likelihood or
 HMC. Whenever every component has the branch-wise form (variance
 accumulated along edges), the likelihood is evaluated by the O(N) pruning
 recursion and leave-one-out predictive densities by an O(N) two-pass
 message passing; otherwise it falls back to dense algebra.
+
+<img src="man/figures/README-rates.png" alt="True and estimated rates of evolution on a tree" width="100%">
+
+*A relaxed-rate kernel finds a clade evolving 8 times faster, without being
+told where it is (from `vignette("phylogp")`).*
 
 ## Designing kernels
 
