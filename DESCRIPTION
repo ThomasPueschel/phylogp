@@ -1,0 +1,36 @@
+Package: phylogp
+Title: Phylogenetic Comparative Models as Gaussian Processes
+Version: 0.1.0
+Authors@R:
+    person("Thomas A.", "Püschel", , "thomas.puschel@anthro.ox.ac.uk",
+           role = c("aut", "cre"))
+Description: Fits phylogenetic comparative models for continuous traits as
+    Gaussian processes on a tree. Models are built by adding kernels
+    (Brownian motion, Pagel's lambda, kappa and delta, early burst,
+    Ornstein-Uhlenbeck, relaxed rates, rate through time, distance-based
+    kernels and user-defined branch-wise kernels). The package writes the
+    corresponding 'Stan' program, uses a linear-time pruning likelihood
+    whenever the kernel has a branch-wise form, and computes leave-one-out
+    predictive densities in linear time. Tools check whether a kernel is a
+    valid covariance on a given tree and plot the correlations it implies.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1)
+Imports:
+    ape,
+    stats,
+    graphics,
+    grDevices,
+    loo,
+    tools,
+    utils
+Suggests:
+    cmdstanr (>= 0.8.0),
+    posterior,
+    phylolm,
+    testthat (>= 3.0.0)
+Additional_repositories: https://stan-dev.r-universe.dev
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1
