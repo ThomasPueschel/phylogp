@@ -47,7 +47,7 @@ pick a clade of about 20 species.
 
 ```{r tree}
 library(phylogp)
-set.seed(42)
+set.seed(13)
 
 tr <- ape::rphylo(100, birth = 1, death = 0)     # a pure-birth tree
 tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
@@ -138,8 +138,10 @@ knitr::kable(data.frame(
 ), digits = 2)
 ```
 
-The slope estimate depends on the kernel (the true value is 0.7), and none
-of these models can represent a rate that differs between clades.
+All four overestimate the slope (the true value is 0.7): none of them can
+represent a rate that differs between clades, so the large residuals of the
+fast clade, whose species sit at the upper end of body size, pull the
+regression line upwards.
 
 ## A kernel whose rate evolves
 

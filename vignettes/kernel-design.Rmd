@@ -25,7 +25,7 @@ from one optional fit, nothing here needs Stan.
 
 ```{r}
 library(phylogp)
-set.seed(7)
+set.seed(12)
 tr <- ape::rphylo(30, birth = 1, death = 0)      # a pure-birth tree
 tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
 ```
@@ -96,6 +96,7 @@ trait_plot <- function(tree, y, main, col) {
   lp <- get("last_plot.phylo", envir = ape::.PlotPhyloEnv)
   tips <- seq_along(tree$tip.label)
   x0 <- 1.38 * H
+  y <- y - mean(y)                      # deviations from the mean
   v <- y[tree$tip.label] / max(abs(y)) * 0.33 * H
   segments(x0, lp$yy[tips], x0 + v, lp$yy[tips], lwd = 3.5, lend = 1,
            col = ifelse(v > 0, col, adjustcolor(col, 0.45)))
