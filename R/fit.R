@@ -42,11 +42,13 @@ phylo_gp <- function(formula, data, tree, kernel,
   method <- match.arg(method)
   kernel <- as_kernel(kernel)
   check_cmdstanr()
-  md <- match_data(formula, data, tree, species, se)
+  md <- match_data(formula, data, tree, species, c(se, slope_columns(kernel)), se = se)
+  kernel <- resolve_slopes(kernel, md$data)
   ti <- tree_info(md$tree)
   L <- kernel_layout(kernel, ti)
   if (method == "optimize" && L$latent)
-    stop("Kernels with latent rates need method = \"sample\".", call. = FALSE)
+    stop("Kernels with latent values (k_relaxed(), k_rate_time(), latent slopes, ",
+         "k_white(df = )) need method = \"sample\".", call. = FALSE)
 
   code <- make_stancode(kernel, ti$tree)
   standata <- make_standata(kernel, ti, md$y, md$X, md$se,
@@ -105,13 +107,13 @@ compile_phylogp <- function(code) {
 }
 
 # Match data rows to tips; drop species missing from either, or with NAs
-match_data <- function(formula, data, tree, species, se) {
+match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NULL) {
   data <- as.data.frame(data)
   sp <- if (is.null(species)) rownames(data) else as.character(data[[species]])
   if (is.null(sp) || anyDuplicated(sp))
     stop("Species names (row names or `species`) must be present and unique.", call. = FALSE)
   rownames(data) <- sp
-  vars <- unique(c(all.vars(formula), se))
+  vars <- unique(c(all.vars(formula), extra_vars))
   ok <- stats::complete.cases(data[, vars, drop = FALSE])
   keep <- intersect(tree$tip.label, sp[ok])
   n_drop_tree <- length(setdiff(tree$tip.label, keep))
@@ -139,7 +141,7 @@ fit_par_names <- function(x) {
     cmp <- L$kernel$components[[j]]
     id <- L$ids[j]
     c(paste0(id, "_sigma"), if (length(cmp$pars)) paste0(id, "_", names(cmp$pars)),
-      if (cmp$latent) paste0(id, "_tau"))
+      if (length(cmp$hyper)) paste0(id, "_", cmp$hyper))
   }))
   c(b, cp)
 }

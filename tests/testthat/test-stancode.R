@@ -20,7 +20,9 @@ test_that("OU is branch-wise on ultrametric trees and dense otherwise", {
 test_that("relaxed rates integrate the left-out tip's rate", {
   code <- make_stancode(k_relaxed() + k_white())
   expect_match(code, "log_sum_exp(lp)", fixed = TRUE)
-  expect_error(make_stancode(k_relaxed() + k_dist()), "cannot yet be combined")
+  dense <- make_stancode(k_relaxed() + k_dist())
+  expect_match(dense, "gaussian_loo_moments", fixed = TRUE)
+  expect_error(make_stancode(k_relaxed() + k_white(df = 4)), "At most one")
 })
 
 test_that("standata carries bounds and prior scales for every component", {

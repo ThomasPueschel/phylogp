@@ -27,7 +27,7 @@ k_ou(
   upper = function(ti, cmp) 50/ti$Tmax
 )
 
-k_white()
+k_white(df = NULL)
 }
 \arguments{
 \item{lower, upper}{Bounds of the kernel parameter. They may be numbers or
@@ -35,6 +35,12 @@ functions of the tree information (see \code{\link[=tree_info]{tree_info()}}); t
 those of \code{phylolm}.}
 
 \item{root}{For \code{k_ou()}, \code{"random"} (stationary) or \code{"fixed"} root.}
+
+\item{df}{For \code{k_white()}: degrees of freedom of a Student-t residual
+(heavy tails, robust to outlying species). \code{NULL} (default) gives Gaussian
+residuals. The t residual is a scale mixture: each species gets a latent
+variance multiplier with an inverse-gamma(df/2, df/2) prior, so the model
+needs \code{method = "sample"}.}
 }
 \value{
 A kernel component.

@@ -15,9 +15,15 @@ new_component <- function(name, label, pars = list(), form = function(ti) "edge"
                           stan_data = NULL, stan_pars = NULL, stan_tpars = NULL,
                           stan_latent_prior = NULL, stan_prior = NULL,
                           stan_tip_loo = NULL, standata = NULL,
-                          tip_z = NULL, dense_alias = NULL,
+                          tip_z = NULL, dense_alias = NULL, white_expr = NULL,
+                          stan_shift = NULL, tip_loo = NULL, hyper = character(),
+                          draw_pars = NULL,
                           r_eval = NULL, defaults = NULL, validity = NULL,
                           base_var = function(ti) ti$Tmax, extra = list()) {
+  # tip_loo: how leave-one-out treats the left-out species' own latent values:
+  #   list(kind = "closed", r = <added to r_i>, v = <added to variance>)
+  #   list(kind = "gh" | "laguerre", cur = <current tip variance>,
+  #        node = <tip variance at quadrature node g>, setup = <code>)
   structure(c(list(
     name = name, label = label, pars = pars, form = form,
     edge = edge, root = root, dense = dense, white = white,
@@ -25,7 +31,8 @@ new_component <- function(name, label, pars = list(), form = function(ti) "edge"
     stan_data = stan_data, stan_pars = stan_pars, stan_tpars = stan_tpars,
     stan_latent_prior = stan_latent_prior, stan_prior = stan_prior,
     stan_tip_loo = stan_tip_loo, standata = standata,
-    tip_z = tip_z, dense_alias = dense_alias,
+    tip_z = tip_z, dense_alias = dense_alias, white_expr = white_expr,
+    stan_shift = stan_shift, tip_loo = tip_loo, hyper = hyper, draw_pars = draw_pars,
     r_eval = r_eval, defaults = defaults, validity = validity,
     base_var = base_var
   ), extra), class = "phylogp_component")
@@ -75,7 +82,7 @@ print.phylogp_kernel <- function(x, ...) {
       paste(vapply(x$components, `[[`, "", "label"), collapse = " + "), "\n")
   for (j in seq_along(x$components)) {
     cmp <- x$components[[j]]
-    pn <- c("sigma", names(cmp$pars), if (cmp$latent) c("tau", "(latent rates)"))
+    pn <- c("sigma", names(cmp$pars), cmp$hyper, if (cmp$latent) "(latent values)")
     cat(sprintf("  %-10s %-28s parameters: %s\n", ids[j], cmp$label,
                 paste(pn, collapse = ", ")))
   }
@@ -255,15 +262,51 @@ k_ou <- function(root = c("random", "fixed"),
 }
 
 #' @rdname classical-kernels
+#' @param df For `k_white()`: degrees of freedom of a Student-t residual
+#'   (heavy tails, robust to outlying species). `NULL` (default) gives Gaussian
+#'   residuals. The t residual is a scale mixture: each species gets a latent
+#'   variance multiplier with an inverse-gamma(df/2, df/2) prior, so the model
+#'   needs `method = "sample"`.
 #' @export
-k_white <- function() {
+k_white <- function(df = NULL) {
+  if (is.null(df)) {
+    return(new_component(
+      name = "white", label = "white()", white = TRUE,
+      form = function(ti) "white",
+      r_eval = function(ti, p, form = "white") list(t2 = rep(p$sigma^2, ti$N)),
+      defaults = function(ti) list(sigma = 1),
+      validity = function(ti, form) list(guaranteed = TRUE,
+        reason = "independent tip variance"),
+      base_var = function(ti) 1
+    ))
+  }
+  if (!is.numeric(df) || length(df) != 1 || df <= 0) stop("`df` must be a positive number.", call. = FALSE)
   new_component(
-    name = "white", label = "white()", white = TRUE,
+    name = "white", label = sprintf("white(df = %g)", df), white = TRUE, latent = TRUE,
     form = function(ti) "white",
-    r_eval = function(ti, p, form = "white") list(t2 = rep(p$sigma^2, ti$N)),
+    white_expr = "ID_lam",
+    stan_data = "real<lower=0> ID_df;",
+    stan_pars = "vector<lower=0>[N] ID_lam;     // variance multipliers (Student-t)",
+    stan_latent_prior = "ID_lam ~ inv_gamma(0.5 * ID_df, 0.5 * ID_df);",
+    standata = function(ti, id, cmp) stats::setNames(list(cmp$df), paste0(id, "_df")),
+    # leave-one-out: integrate the species' own variance multiplier against
+    # its inverse-gamma prior by quadrature on log(lam)
+    tip_loo = list(kind = "lam", setup = character(),
+                   cur = "square(ID_sigma) * ID_lam[i]",
+                   node = "square(ID_sigma) * lq_lam[g]"),
+    draw_pars = function(p, row, id, ti) {
+      p$lam <- unname(row[paste0(id, "_lam[", seq_len(ti$N), "]")])
+      p
+    },
+    r_eval = function(ti, p, form = "white") {
+      if (!is.null(p$lam)) return(list(t2 = p$sigma^2 * p$lam))
+      # marginal variance of a t residual (used for plots and checks)
+      list(t2 = rep(p$sigma^2 * if (df > 2) df / (df - 2) else 1, ti$N))
+    },
     defaults = function(ti) list(sigma = 1),
     validity = function(ti, form) list(guaranteed = TRUE,
-      reason = "independent tip variance"),
-    base_var = function(ti) 1
+      reason = "independent (Student-t) tip variance"),
+    base_var = function(ti) 1,
+    extra = list(df = df)
   )
 }

@@ -22,7 +22,7 @@
 #' @export
 k_relaxed <- function(tau_scale = 1) {
   new_component(
-    name = "relaxed", label = "relaxed()", latent = TRUE, tip_latent = TRUE,
+    name = "relaxed", label = "relaxed()", latent = TRUE,
     stan_data = "real<lower=0> ID_tau_scale;",
     stan_pars = c("real<lower=0> ID_tau;", "vector[E] ID_eta;"),
     stan_tpars = c(
@@ -36,8 +36,12 @@ k_relaxed <- function(tau_scale = 1) {
     stan_latent_prior = "ID_eta ~ std_normal();",
     stan_prior = "ID_tau ~ normal(0, ID_tau_scale);",
     # tip-edge variance as a function of the tip's own log rate `zi` (edge e)
-    stan_tip_loo = "square(ID_sigma) * exp(0.5 * (ID_z[anc[e]] + zi)) * len[e]",
-    tip_z = c(parent = "ID_z[anc[e]]", sd = "ID_tau * sqrt(len[e])"),
+    hyper = "tau",
+    # leave-one-out: integrate the tip's own log rate zi ~ N(z_parent, tau^2 len)
+    tip_loo = list(kind = "gh",
+                   setup = c("real zp = ID_z[anc[e]];", "real sdz = ID_tau * sqrt(len[e]);"),
+                   cur = "square(ID_sigma) * exp(0.5 * (zp + ID_z[i])) * len[e]",
+                   node = "square(ID_sigma) * exp(0.5 * (zp + zp + sqrt2() * sdz * gh_x[g])) * len[e]"),
     standata = function(ti, id, cmp) stats::setNames(list(cmp$tau_scale),
                                                      paste0(id, "_tau_scale")),
     r_eval = function(ti, p, form = "edge") {
@@ -86,6 +90,7 @@ k_rate_time <- function(n_bins = 20, tau_scale = 0.5) {
     edge = "ID_O * exp(ID_lograte)",
     stan_latent_prior = "ID_eps ~ std_normal();",
     stan_prior = "ID_tau ~ normal(0, ID_tau_scale);",
+    hyper = "tau",
     standata = function(ti, id, cmp) stats::setNames(
       list(cmp$n_bins, bin_overlap(ti, cmp$n_bins), cmp$tau_scale),
       paste0(id, c("_M", "_O", "_tau_scale"))),

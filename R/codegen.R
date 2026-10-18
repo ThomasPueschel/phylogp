@@ -21,15 +21,16 @@ kernel_layout <- function(kernel, ti = NULL) {
   kernel <- as_kernel(kernel)
   forms <- component_forms(kernel, ti)
   ids <- component_ids(kernel)
-  tip_latent <- vapply(kernel$components, `[[`, NA, "tip_latent")
+  kinds <- vapply(kernel$components, function(cmp) cmp$tip_loo$kind %||% "", "")
+  quad <- which(kinds %in% c("gh", "lam"))
+  if (length(quad) > 1)
+    stop("At most one component whose leave-one-out needs quadrature ",
+         "(k_relaxed(), k_white(df = )) is supported.", call. = FALSE)
   dense <- any(forms == "dense")
-  if (sum(tip_latent) > 1)
-    stop("At most one component with tip-specific latent rates (k_relaxed()) is supported.", call. = FALSE)
-  if (any(tip_latent) && dense)
-    stop("k_relaxed() cannot yet be combined with dense components.", call. = FALSE)
   needs <- unique(unlist(lapply(kernel$components[forms == "dense"], `[[`, "needs")))
   list(kernel = kernel, forms = forms, ids = ids, dense = dense, needs = needs,
-       tip_latent = which(tip_latent),
+       quad = quad, quad_kind = if (length(quad)) kinds[quad] else "",
+       closed = which(kinds == "closed"),
        latent = any(vapply(kernel$components, `[[`, NA, "latent")))
 }
 
@@ -68,7 +69,8 @@ make_stancode <- function(kernel, tree = NULL) {
     if ("Dtree" %in% L$needs) "matrix[N, N] Dtree;                   // patristic distances d_ij",
     "int<lower=0, upper=1> use_prior;      // 0: posterior mode = maximum likelihood",
     "real<lower=0> prior_beta_scale;",
-    if (length(L$tip_latent)) c("int<lower=1> n_gh;", "vector[n_gh] gh_x;", "vector[n_gh] gh_w;"))
+    if (L$quad_kind == "gh") c("int<lower=1> n_gh;", "vector[n_gh] gh_x;", "vector[n_gh] gh_w;"),
+    if (L$quad_kind == "lam") c("int<lower=1> n_lq;", "vector<lower=0>[n_lq] lq_lam;", "vector<lower=0>[n_lq] lq_w;"))
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
     data <- c(data, sprintf("// %s: %s", id, cmp$label),
@@ -96,7 +98,8 @@ make_stancode <- function(kernel, tree = NULL) {
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
     if (L$forms[j] == "white") {
-      asm <- c(asm, sprintf("t2 += square(%s_sigma);", id))
+      asm <- c(asm, if (is.null(cmp$white_expr)) sprintf("t2 += square(%s_sigma);", id) else
+        sprintf("t2 += square(%s_sigma) * (%s);", id, sub_id(cmp$white_expr, id)))
     } else if (L$forms[j] == "edge") {
       code <- sprintf("w += square(%s_sigma) * (%s);", id, sub_id(cmp$edge, id))
       if (!is.null(cmp$root))
@@ -113,7 +116,8 @@ make_stancode <- function(kernel, tree = NULL) {
                with_aliases(id, cmp, code, extra = sub_id(cmp$dense_alias, id)))
     }
   }
-  asm <- c(asm, "vector[N] r = y - X * coefs;")
+  asm <- c(asm, "vector[N] r = y - X * coefs;",
+           unlist(lapply(seq_along(comps), function(j) sub_id(comps[[j]]$stan_shift, L$ids[j]))))
 
   # ---- model ----
   lik <- if (L$dense)
@@ -131,32 +135,34 @@ make_stancode <- function(kernel, tree = NULL) {
              "if (use_prior == 1) {", ind(priors), "}")
 
   # ---- generated quantities: leave-one-out densities p(y_i | y_-i, theta) ----
-  if (L$dense) {
-    loo <- "log_lik = gaussian_loo_lpd(r, K);"
-  } else {
-    loo <- c("matrix[N, 2] mo = tree_loo_moments(r, w, rv, t2, anc, des, n_nodes, root);",
-             "for (i in 1:N) log_lik[i] = normal_lpdf(r[i] | mo[i, 1], sqrt(mo[i, 2] + t2[i]));")
-    if (length(L$tip_latent)) {
-      j <- L$tip_latent; cmp <- comps[[j]]; id <- L$ids[j]
-      tip_w <- sub_id(cmp$stan_tip_loo, id)
-      loo <- c(loo,
-        "// integrate the left-out tip's own latent log rate against its conditional prior",
-        "for (i in 1:N) {",
-        ind(c("int e = tip_edge[i];",
-              sprintf("real zi = %s;", sub_id("ID_z[i]", id)),
-              sprintf("real w_tip = %s;", tip_w),
-              "real v_out = mo[i, 2] - w_tip;",
-              sprintf("real zp = %s;", sub_id(cmp$tip_z[["parent"]], id)),
-              sprintf("real sdz = %s;", sub_id(cmp$tip_z[["sd"]], id)),
-              "vector[n_gh] lp;",
-              "for (g in 1:n_gh) {",
-              ind(c("zi = zp + sqrt2() * sdz * gh_x[g];",
-                    sprintf("lp[g] = normal_lpdf(r[i] | mo[i, 1], sqrt(v_out + %s + t2[i])) + log(gh_w[g]) - 0.5 * log(pi());", tip_w))),
-              "}",
-              "log_lik[i] = log_sum_exp(lp);")),
-        "}")
-    }
+  # mo: mean and variance of r_i given the other species. A left-out species'
+  # own latent values (its slope or rate on the tip edge) are informed only by
+  # y_i, so they are integrated out against their conditional prior: in closed
+  # form (latent slopes) or by quadrature (relaxed rates, heavy-tailed residuals).
+  loo <- c(if (L$dense) "matrix[N, 2] mo = gaussian_loo_moments(r, K);" else
+             "matrix[N, 2] mo = tree_loo_moments(r, w, rv, t2, anc, des, n_nodes, root);",
+           "for (i in 1:N) {")
+  body <- c("int e = tip_edge[i];", "real ri = r[i];",
+            if (L$dense) "real vi = mo[i, 2];" else "real vi = mo[i, 2] + t2[i];")
+  for (j in L$closed) {
+    tl <- comps[[j]]$tip_loo; id <- L$ids[j]
+    body <- c(body, sprintf("ri += %s;", sub_id(tl$r, id)), sprintf("vi += %s;", sub_id(tl$v, id)))
   }
+  if (length(L$quad)) {
+    j <- L$quad; tl <- comps[[j]]$tip_loo; id <- L$ids[j]
+    ng <- if (L$quad_kind == "gh") "n_gh" else "n_lq"
+    wt <- if (L$quad_kind == "gh") "log(gh_w[g]) - 0.5 * log(pi())" else "log(lq_w[g])"
+    body <- c(body, sub_id(tl$setup, id),
+              sprintf("vector[%s] lp;", ng),
+              sprintf("vi -= %s;", sub_id(tl$cur, id)),
+              sprintf("for (g in 1:%s)", ng),
+              sprintf("  lp[g] = normal_lpdf(ri | mo[i, 1], sqrt(vi + %s)) + %s;",
+                      sub_id(tl$node, id), wt),
+              "log_lik[i] = log_sum_exp(lp);")
+  } else {
+    body <- c(body, "log_lik[i] = normal_lpdf(ri | mo[i, 1], sqrt(vi));")
+  }
+  loo <- c(loo, ind(body), "}")
   gq <- c("vector[N] log_lik;", "{", ind(c(asm, loo)), "}")
 
   fun_file <- system.file("stan", "phylogp_functions.stan", package = "phylogp")
@@ -211,14 +217,20 @@ make_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
   if (L$dense) d$B <- tree_B(ti)
   if ("tC" %in% L$needs) d$tC <- tree_C(ti)
   if ("Dtree" %in% L$needs) d$Dtree <- tree_D(ti)
-  if (length(L$tip_latent)) {
+  if (L$quad_kind == "gh") {
     gh <- gauss_hermite(30)
     d <- c(d, list(n_gh = 30L, gh_x = gh$x, gh_w = gh$w))
   }
+  if (L$quad_kind == "lam") {
+    cmp <- L$kernel$components[[L$quad]]
+    lq <- lambda_nodes(cmp$df)
+    d <- c(d, list(n_lq = length(lq$lam), lq_lam = lq$lam, lq_w = lq$w))
+  }
   for (j in seq_along(L$kernel$components)) {
     cmp <- L$kernel$components[[j]]; id <- L$ids[j]
-    d[[paste0(id, "_sigma_scale")]] <- prior_sigma_scale %||%
-      (2 * sdy / sqrt(cmp$base_var(ti)))
+    bv <- cmp$base_var(ti)
+    if (!is.null(cmp$scale)) bv <- bv * mean(slope_values(cmp, ti)^2)
+    d[[paste0(id, "_sigma_scale")]] <- prior_sigma_scale %||% (2 * sdy / sqrt(bv))
     for (p in names(cmp$pars)) {
       b <- resolve_bounds(cmp$pars[[p]], ti, cmp)
       d[[paste0(id, "_", p, "_lb")]] <- b[1]
@@ -237,4 +249,17 @@ gauss_hermite <- function(n) {
   J[cbind(2:n, 1:(n - 1))] <- b
   e <- eigen(J, symmetric = TRUE)
   list(x = e$values, w = sqrt(pi) * e$vectors[1, ]^2)
+}
+
+# Quadrature for a variance multiplier lam ~ inverse-gamma(df/2, df/2):
+# trapezoid rule on log(lam) between extreme quantiles (smooth, decaying
+# integrand, so the rule converges quickly). Returns nodes and weights that
+# sum to one.
+lambda_nodes <- function(df, n = 100) {
+  b <- df / 2
+  t <- seq(log(1 / stats::qgamma(1 - 1e-14, b, b)), log(1 / stats::qgamma(1e-14, b, b)),
+           length.out = n)
+  lam <- exp(t)
+  w <- stats::dgamma(1 / lam, b, b) / lam      # density of log(lam)
+  list(lam = lam, w = w / sum(w))
 }

@@ -114,3 +114,18 @@
     }
     return out;
   }
+
+  // Mean and variance of r_i given r_{-i} for every i, dense Gaussian model
+  // (the variance includes all diagonal terms of K)
+  matrix gaussian_loo_moments(vector r, matrix K) {
+    int N = num_elements(r);
+    matrix[N, N] Kinv = inverse_spd(K);
+    vector[N] g = Kinv * r;
+    matrix[N, 2] out;
+    for (i in 1:N) {
+      real s2 = 1 / Kinv[i, i];
+      out[i, 1] = r[i] - g[i] * s2;
+      out[i, 2] = s2;
+    }
+    return out;
+  }

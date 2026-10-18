@@ -192,7 +192,10 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
   L <- object$layout
   if (length(new_sp) && L$latent)
     stop("Predicting species that were not fitted is not yet available for kernels ",
-         "with latent rates (k_relaxed(), k_rate_time()).", call. = FALSE)
+         "with latent values (k_relaxed(), k_rate_time(), latent slopes, k_white(df = )).",
+         call. = FALSE)
+  kernel <- object$kernel
+  if (length(new_sp) && !is.null(newdata)) kernel <- extend_slopes(kernel, newdata, targets)
   ti <- if (length(new_sp)) {
     keep <- union(obs_sp, new_sp)
     tree_info(ape::drop.tip(full, setdiff(full$tip.label, keep)))
@@ -200,7 +203,7 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
   if (length(new_sp) && abs(ti$Tmax - tree_info(object$tree)$Tmax) > 1e-8 * ti$Tmax)
     warning("Adding the new species changes the tree height; kernels that use it ",
             "(delta, early burst, OU) are evaluated on the extended tree.", call. = FALSE)
-  L <- kernel_layout(object$kernel, ti)
+  L <- kernel_layout(kernel, ti)
   o <- match(obs_sp, ti$labels)
   t_idx <- match(targets, ti$labels)
   D <- fit_draws(object, ndraws, seed)
@@ -211,11 +214,11 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
     beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
     kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
     r <- rep(NA_real_, ti$N)
-    r[o] <- y_obs - as.numeric(X_obs %*% beta)
+    r[o] <- y_obs - as.numeric(X_obs %*% beta) - kp$shift[o]
     t2 <- kp$t2
     t2[o] <- t2[o] + se_obs^2
     cm <- condition_tips(ti, kp, r, t2, t_idx)
-    m <- cm$mean; v <- cm$var
+    m <- cm$mean + kp$shift[t_idx]; v <- cm$var
     if (type == "response") v <- v + kp$t2[t_idx]
     M[s, ] <- m + as.numeric(X_t %*% beta)
     V[s, ] <- pmax(v, 0)
@@ -261,6 +264,8 @@ ancestral <- function(object, ndraws = 500, probs = c(0.05, 0.95), tips = FALSE,
   is_ou <- nm == "ou"
   if (any(is_ou) && !all(nm[!is_ou] == "white"))
     stop("Ancestral states with OU are available for k_ou() alone or k_ou() + k_white().", call. = FALSE)
+  if (any(L$forms == "slope"))
+    stop("Ancestral states are not available for models with varying slopes.", call. = FALSE)
   if (!any(is_ou) && L$dense)
     stop("Ancestral states need a kernel that is a process along the tree ",
          "(no dense components such as k_dist()).", call. = FALSE)

@@ -56,7 +56,7 @@ loo_refit <- function(fit, loo = NULL, k_threshold = 0.7, ...) {
       row <- D[s, ]
       beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
       kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
-      r <- y - as.numeric(X %*% beta)
+      r <- y - as.numeric(X %*% beta) - kp$shift
       t2 <- kp$t2 + se^2
       r_i <- r[i]
       r[i] <- NA

@@ -26,7 +26,7 @@ resolve_pars <- function(L, ti, pars = NULL) {
 kernel_parts <- function(kernel, ti, pars = NULL) {
   L <- kernel_layout(kernel, ti)
   P <- resolve_pars(L, ti, pars)
-  w <- numeric(ti$E); rv <- 0; t2 <- numeric(ti$N); Kd <- NULL
+  w <- numeric(ti$E); rv <- 0; t2 <- numeric(ti$N); Kd <- NULL; shift <- numeric(ti$N)
   for (j in seq_along(L$ids)) {
     cmp <- L$kernel$components[[j]]
     ev <- cmp$r_eval(ti, P[[j]], form = L$forms[j])
@@ -34,8 +34,10 @@ kernel_parts <- function(kernel, ti, pars = NULL) {
     if (!is.null(ev$rv)) rv <- rv + ev$rv
     if (!is.null(ev$t2)) t2 <- t2 + ev$t2
     if (!is.null(ev$K)) Kd <- if (is.null(Kd)) ev$K else Kd + ev$K
+    if (!is.null(ev$shift)) shift <- shift + ev$shift
   }
-  list(w = w, rv = rv, t2 = t2, K = Kd, layout = L, pars = P)
+  # shift: mean contributed by latent slope values (only when they are given)
+  list(w = w, rv = rv, t2 = t2, K = Kd, shift = shift, layout = L, pars = P)
 }
 
 #' Covariance matrix implied by a kernel
