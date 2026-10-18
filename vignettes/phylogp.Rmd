@@ -1,0 +1,240 @@
+---
+title: "Getting started with phylogp"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Getting started with phylogp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5,
+                      fig.height = 4.2, fig.retina = 2, out.width = "100%",
+                      fig.align = "center")
+# Model fitting needs cmdstanr and CmdStan; without them those chunks are shown
+# but not run.
+has_stan <- requireNamespace("cmdstanr", quietly = TRUE) &&
+  !is.null(tryCatch(cmdstanr::cmdstan_path(), error = function(e) NULL))
+pal <- c(fast = "#C8553D", other = "#4F6D8F", grey = "#8C8C8C")
+```
+
+Every Gaussian model of continuous trait evolution, from Brownian motion
+and Pagel's λ to Ornstein–Uhlenbeck, early-burst and multi-rate models,
+says the same thing about the data:
+
+$$ y \sim \mathcal{N}(X\beta,\; K), $$
+
+and the models differ only in the covariance matrix $K$, the **kernel**.
+In `phylogp` you build a model by adding kernel components, and the package
+writes, compiles and fits the corresponding Stan program.
+
+This tutorial walks through a complete analysis of simulated data in which
+one clade evolves much faster than the rest of the tree. We will
+
+1. look at what different kernels assume,
+2. fit the classical models by maximum likelihood,
+3. fit a *relaxed-rate* kernel that lets the rate of evolution itself
+   evolve along the tree, and compare models by leave-one-out
+   cross-validation, and
+4. map the estimated rates back onto the tree.
+
+## Simulated data: a clade that evolves fast
+
+We simulate a time-calibrated tree of 100 species, scaled to height 1, and
+pick a clade of about 20 species.
+
+```{r tree}
+library(phylogp)
+set.seed(42)
+
+tr <- ape::rphylo(100, birth = 1, death = 0)     # a pure-birth tree
+tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
+
+N <- ape::Ntip(tr)
+clade_sizes <- lengths(ape::prop.part(tr))       # tips below each internal node
+fast_node <- N + which.min(abs(clade_sizes - 20))
+
+descendants <- function(node) {
+  kids <- tr$edge[tr$edge[, 1] == node, 2]
+  c(node, unlist(lapply(kids, descendants)))
+}
+in_clade <- descendants(fast_node)
+fast_tips <- tr$tip.label[intersect(in_clade, seq_len(N))]
+length(fast_tips)
+```
+
+Within that clade, a trait evolves 8 times faster than elsewhere. We
+express this with the log-rate path `z` used by `k_relaxed()`: the rate of
+an edge is `exp((z_start + z_end) / 2)`, so setting `z = log(8)` on every
+node of the clade gives an 8-fold rate inside it.
+
+The response, say brain size, scales with body size (slope 0.7) and has a
+residual that evolves with these rates, plus a little species-level noise.
+
+```{r simulate}
+z <- numeric(N + tr$Nnode)
+z[in_clade] <- log(8)
+true_rates <- exp(0.5 * (z[tr$edge[, 1]] + z[tr$edge[, 2]]))
+
+body  <- kernel_simulate(k_bm(), tr, pars = list(bm1 = list(sigma = 1.5)))[, 1]
+resid <- kernel_simulate(k_relaxed() + k_white(), tr,
+                         pars = list(relaxed1 = list(sigma = 1, z = z),
+                                     white1   = list(sigma = 0.1)))[, 1]
+d <- data.frame(body = body, brain = 0.5 + 0.7 * body + resid[names(body)])
+head(d)
+```
+
+```{r plot-data, fig.height = 4.6}
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+plot_tree_rates(tr, true_rates, lim = 3, main = "True rate of evolution")
+fast <- rownames(d) %in% fast_tips
+plot(brain ~ body, data = d, pch = 21, cex = 1.2,
+     bg = adjustcolor(ifelse(fast, pal["fast"], pal["other"]), 0.75),
+     col = "white", las = 1, bty = "l", xlab = "log body size",
+     ylab = "log brain size", main = "Species data", font.main = 1)
+legend("topleft", c("fast clade", "other species"), pt.bg = pal[1:2],
+       pch = 21, col = "white", pt.cex = 1.2, bty = "n")
+par(op)
+```
+
+## What does a kernel assume?
+
+Before fitting anything, `kernel_plot()` shows the correlation between
+species that a kernel implies. Tips are in the same order in the tree and in
+the matrix, so clades appear as blocks.
+
+```{r kernel-bm, fig.height = 4.6}
+kernel_plot(k_bm() + k_white(), tr,
+            pars = list(white1 = list(sigma = 0.5)),
+            main = "Brownian motion + residual")
+```
+
+An Ornstein–Uhlenbeck kernel with strong selection forgets deep history:
+only close relatives remain correlated.
+
+```{r kernel-ou, fig.height = 4.6}
+kernel_plot(k_ou(), tr, pars = list(ou1 = list(alpha = 4)),
+            main = "Ornstein-Uhlenbeck (alpha = 4)")
+```
+
+## Classical models by maximum likelihood
+
+With `method = "optimize"`, `phylo_gp()` finds maximum-likelihood
+estimates; for the classical kernels these agree with `phylolm` to
+numerical precision.
+
+```{r ml, eval = has_stan, message = FALSE}
+classical <- list(BM = k_bm(), "Pagel's lambda" = k_lambda(),
+                  OU = k_ou(), "Early burst" = k_eb())
+ml <- lapply(classical, function(k)
+  phylo_gp(brain ~ body, data = d, tree = tr, kernel = k, method = "optimize"))
+
+knitr::kable(data.frame(
+  logLik = sapply(ml, function(f) as.numeric(logLik(f))),
+  AIC    = sapply(ml, AIC),
+  slope  = sapply(ml, function(f) coef(f)[["body"]])
+), digits = 2)
+```
+
+The slope estimate depends on the kernel (the true value is 0.7), and none
+of these models can represent a rate that differs between clades.
+
+## A kernel whose rate evolves
+
+`k_relaxed()` lets the log rate of evolution follow a Brownian motion along
+the tree, without being told where any shift lies. Its rates are latent
+variables, so it is fitted by Hamiltonian Monte Carlo. We compare it with
+the Bayesian version of the Pagel's λ model (BM plus residual).
+
+```{r bayes, eval = has_stan, message = FALSE}
+fit_bm      <- phylo_gp(brain ~ body, data = d, tree = tr,
+                        kernel = k_bm() + k_white(), seed = 1)
+fit_relaxed <- phylo_gp(brain ~ body, data = d, tree = tr,
+                        kernel = k_relaxed() + k_white(), seed = 1)
+fit_relaxed
+```
+
+`relaxed1_tau`, the standard deviation of log-rate change, is clearly above
+zero: the data favour variable rates.
+
+Leave-one-out cross-validation asks which model predicts each species
+better from all the others. `phylogp` computes the exact conditional
+densities $p(y_i \mid y_{-i}, \theta)$ in linear time, and `loo()` combines
+them across posterior draws.
+
+```{r loo, eval = has_stan}
+loo::loo_compare(list("BM + residual"      = loo(fit_bm),
+                      "relaxed + residual" = loo(fit_relaxed)))
+```
+
+The relaxed-rate kernel predicts left-out species clearly better, and its
+slope estimate is close to the true 0.7. The flags report species with
+Pareto $\hat k > 0.7$, for which the importance-sampling approximation is
+unreliable; these are influential species, often in the fast clade. In a
+real analysis, recompute their contributions exactly by refitting without
+them before drawing conclusions.
+
+## Where did the rate change?
+
+`plot_edge_rates()` colours every branch by its posterior median rate,
+relative to a typical branch.
+
+```{r rates, eval = has_stan, fig.height = 4.8}
+op <- par(mfrow = c(1, 2))
+plot_tree_rates(tr, true_rates, lim = 3, main = "True rates")
+plot_edge_rates(fit_relaxed, lim = 3, main = "Estimated rates (posterior median)")
+par(op)
+```
+
+The fast clade is recovered without any prior information about its
+location. `edge_rates()` returns the numbers, with 90% intervals:
+
+```{r rates-ci, eval = has_stan, fig.height = 4}
+er <- edge_rates(fit_relaxed)
+ft <- fit_relaxed$tree
+er$fast <- er$child %in% in_clade
+er <- er[order(er$median), ]
+
+op <- par(mar = c(4, 4.5, 1, 1))
+plot(seq_len(nrow(er)), er$median, log = "y", type = "n", las = 1, bty = "l",
+     ylim = range(er$q5, er$q95), xlab = "branches, ordered by estimated rate",
+     ylab = "relative rate (log scale)")
+segments(seq_len(nrow(er)), er$q5, y1 = er$q95,
+         col = adjustcolor(ifelse(er$fast, pal["fast"], pal["other"]), 0.5), lwd = 2)
+points(seq_len(nrow(er)), er$median, pch = 19, cex = 0.7,
+       col = ifelse(er$fast, pal["fast"], pal["other"]))
+abline(h = 1, lty = 2, col = pal["grey"])
+legend("topleft", c("branches in the fast clade", "other branches"),
+       col = pal[1:2], pch = 19, lwd = 2, bty = "n")
+par(op)
+```
+
+The autocorrelated prior smooths an abrupt shift, so the size of the
+change is underestimated (the truth is 8-fold) even though its location is
+found. This is the expected behaviour of the model, and the reason to
+read the estimated ratio as conservative.
+
+## Under the hood
+
+Each kernel component adds its contribution to the variance accumulated
+along every branch. When all components have this branch-wise form, the
+likelihood is evaluated by the linear-time pruning recursion. You can
+inspect, and edit, the generated program:
+
+```{r code, eval = has_stan}
+code <- strsplit(stancode(fit_relaxed), "\n")[[1]]
+cat(code[grep("^model", code):(grep("^generated", code) - 1)], sep = "\n")
+```
+
+`make_stancode()` produces the same program without fitting, and
+`make_standata()` the matching data, so a model can be taken further in
+`cmdstanr` directly.
+
+## Next steps
+
+* `vignette("kernel-design", package = "phylogp")` shows how to build and
+  check your own kernels, including when a kernel is or is not a valid
+  covariance on a tree with fossil tips.
+* `?classical-kernels` lists the built-in components.

@@ -4,3 +4,7 @@
 .DS_Store
 *.tar.gz
 phylogp.Rcheck/
+inst/doc
+doc
+Meta
+/vignettes/*.html

@@ -111,13 +111,16 @@ par_grid <- function(cmp, ti, n) {
 #' @param labels Show tip labels? By default only for trees with at most 40
 #'   tips.
 #' @param main Title.
+#' @param show_tree Draw the tree next to the matrix? With `FALSE` only the
+#'   matrix is drawn, into the current plotting region (useful for panels).
 #' @return The correlation matrix, invisibly.
 #' @examples
 #' tr <- ape::rcoal(24)
 #' kernel_plot(k_bm() + k_white(), tr)
 #' kernel_plot(k_ou(), tr, pars = list(ou1 = list(alpha = 5)))
 #' @export
-kernel_plot <- function(kernel, tree, pars = NULL, labels = NULL, main = NULL) {
+kernel_plot <- function(kernel, tree, pars = NULL, labels = NULL, main = NULL,
+                        show_tree = TRUE) {
   ti <- tree_info(tree)
   K <- kernel_matrix(kernel, ti, pars)
   R <- stats::cov2cor(K)
@@ -125,13 +128,15 @@ kernel_plot <- function(kernel, tree, pars = NULL, labels = NULL, main = NULL) {
   ord <- tr$tip.label[tr$edge[tr$edge[, 2] <= ti$N, 2]]
   R <- R[ord, ord]
   labels <- labels %||% (ti$N <= 40)
-  op <- graphics::par(no.readonly = TRUE)
-  on.exit(graphics::par(op))
-  graphics::layout(matrix(1:2, 1), widths = c(1, 1.6))
-  graphics::par(mar = c(1, 1, 3, 0))
-  ape::plot.phylo(tr, show.tip.label = labels, cex = 0.6, no.margin = FALSE,
-                  y.lim = c(0.5, ti$N + 0.5))
-  graphics::par(mar = c(1, 0, 3, 4))
+  if (show_tree) {
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(op))
+    graphics::layout(matrix(1:2, 1), widths = c(1, 1.6))
+    graphics::par(mar = c(1, 1, 3, 0))
+    ape::plot.phylo(tr, show.tip.label = labels, cex = 0.6, no.margin = FALSE,
+                    y.lim = c(0.5, ti$N + 0.5))
+    graphics::par(mar = c(1, 0, 3, 4))
+  }
   cols <- grDevices::hcl.colors(50, "YlGnBu", rev = TRUE)
   # tip k of `ord` is drawn at height k by plot.phylo, so row/column k of R
   # lines up with it
@@ -140,8 +145,10 @@ kernel_plot <- function(kernel, tree, pars = NULL, labels = NULL, main = NULL) {
                   xlab = "", ylab = "", useRaster = TRUE)
   graphics::box()
   graphics::title(main %||% paste(vapply(as_kernel(kernel)$components, `[[`, "", "label"),
-                                  collapse = " + "), cex.main = 0.9)
-  graphics::mtext("correlation between tips (light 0, dark 1)", side = 3,
-                  line = 0.3, cex = 0.7)
+                                  collapse = " + "), cex.main = 0.95, font.main = 1,
+                  line = if (show_tree) 1.5 else 0.6)
+  if (show_tree)
+    graphics::mtext("correlation between tips (light 0, dark 1)", side = 3,
+                    line = 0.3, cex = 0.7)
   invisible(R)
 }

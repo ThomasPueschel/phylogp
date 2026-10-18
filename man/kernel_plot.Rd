@@ -4,7 +4,14 @@
 \alias{kernel_plot}
 \title{Plot the correlations implied by a kernel}
 \usage{
-kernel_plot(kernel, tree, pars = NULL, labels = NULL, main = NULL)
+kernel_plot(
+  kernel,
+  tree,
+  pars = NULL,
+  labels = NULL,
+  main = NULL,
+  show_tree = TRUE
+)
 }
 \arguments{
 \item{kernel}{A kernel, e.g. \code{k_bm() + k_white()}.}
@@ -21,6 +28,9 @@ from the prior unless supplied (\code{z} or \code{lograte}).}
 tips.}
 
 \item{main}{Title.}
+
+\item{show_tree}{Draw the tree next to the matrix? With \code{FALSE} only the
+matrix is drawn, into the current plotting region (useful for panels).}
 }
 \value{
 The correlation matrix, invisibly.

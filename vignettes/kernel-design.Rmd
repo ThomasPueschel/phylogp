@@ -1,0 +1,296 @@
+---
+title: "Designing kernels"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Designing kernels}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5,
+                      fig.height = 4.2, fig.retina = 2, out.width = "100%",
+                      fig.align = "center")
+has_stan <- requireNamespace("cmdstanr", quietly = TRUE) &&
+  !is.null(tryCatch(cmdstanr::cmdstan_path(), error = function(e) NULL))
+cols <- c("#4F6D8F", "#C8553D", "#E0A458", "#5B8E7D")
+```
+
+In `phylogp` a model of trait evolution *is* its kernel: the covariance it
+implies between species. This vignette shows how to look at kernels, build
+new ones, and check that they are valid before fitting anything. Apart
+from one optional fit, nothing here needs Stan.
+
+```{r}
+library(phylogp)
+set.seed(7)
+tr <- ape::rphylo(30, birth = 1, death = 0)      # a pure-birth tree
+tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
+```
+
+## The building blocks
+
+| Component | Kernel (before scaling by `sigma^2`) | Form |
+|---|---|---|
+| `k_bm()` | shared path length $t_{ij}$ | branch-wise |
+| `k_lambda()` | $\lambda t_{ij}$, tip variance kept | branch-wise |
+| `k_kappa()` | branch lengths raised to $\kappa$ | branch-wise |
+| `k_delta()` | $T^{1-\delta} t_{ij}^{\delta}$ | branch-wise |
+| `k_eb()` | $(e^{r t_{ij}} - 1)/r$ | branch-wise |
+| `k_ou()` | $e^{-\alpha d_{ij}}/2\alpha$ (random root) | branch-wise on ultrametric trees |
+| `k_relaxed()` | rate evolves by BM along the tree | branch-wise, latent rates |
+| `k_rate_time()` | rate a smooth function of time | branch-wise, latent rates |
+| `k_white()` | independent tip variance | tip |
+| `k_dist()` | $\phi(D_{ij}/\ell)$ on any distance | dense |
+| `k_edge()` | **your own** edge variances | branch-wise |
+
+Components are added with `+`. A sum describes independent processes
+acting together, for example phylogeny, space and residual variation:
+
+```{r}
+k_bm() + k_dist(phi = "exponential") + k_white()
+```
+
+*Branch-wise* components add variance along the edges of the tree. Any sum
+of them keeps the linear-time pruning likelihood; adding a dense component
+switches the model to dense linear algebra.
+
+## A gallery of kernels
+
+The same tree seen through six kernels. Each matrix shows the correlation
+between species, with tips in tree order, so clades show up as blocks.
+
+```{r gallery, fig.height = 5.6}
+# a clade of about 8 species evolving 5 times faster, for k_relaxed()
+clade <- 30 + which.min(abs(lengths(ape::prop.part(tr)) - 8))
+below <- function(node) c(node, unlist(lapply(tr$edge[tr$edge[, 1] == node, 2], below)))
+z <- numeric(30 + tr$Nnode)
+z[below(clade)] <- log(5)
+gallery <- list(
+  "Brownian motion"         = list(k_bm(), NULL),
+  "Pagel's lambda = 0.5"    = list(k_lambda(), list(lambda1 = list(lambda = 0.5))),
+  "Early burst (r = -3)"    = list(k_eb(), list(eb1 = list(rate = -3))),
+  "OU (alpha = 3)"          = list(k_ou(), list(ou1 = list(alpha = 3))),
+  "Relaxed rates"           = list(k_relaxed(), list(relaxed1 = list(z = z))),
+  "Squared exponential"     = list(k_dist(phi = "sqexp"), list(dist1 = list(ell = 0.5)))
+)
+op <- par(mfrow = c(2, 3), mar = c(0.5, 0.5, 2, 0.5))
+for (nm in names(gallery))
+  kernel_plot(gallery[[nm]][[1]], tr, pars = gallery[[nm]][[2]],
+              main = nm, show_tree = FALSE)
+par(op)
+```
+
+## Simulating from a kernel
+
+`kernel_simulate()` draws traits from a kernel: a quick way to see what
+data a model expects (a prior predictive check).
+
+```{r simulate, fig.height = 4.4}
+trait_plot <- function(tree, y, main, col) {
+  H <- max(ape::node.depth.edgelength(tree))
+  ape::plot.phylo(tree, show.tip.label = FALSE, x.lim = c(0, 1.75 * H),
+                  edge.color = "grey45", main = main, cex.main = 1, font.main = 1)
+  lp <- get("last_plot.phylo", envir = ape::.PlotPhyloEnv)
+  tips <- seq_along(tree$tip.label)
+  x0 <- 1.38 * H
+  v <- y[tree$tip.label] / max(abs(y)) * 0.33 * H
+  segments(x0, lp$yy[tips], x0 + v, lp$yy[tips], lwd = 3.5, lend = 1,
+           col = ifelse(v > 0, col, adjustcolor(col, 0.45)))
+  segments(x0, 0.5, x0, length(tips) + 0.5, col = "grey60")
+}
+set.seed(11)
+op <- par(mfrow = c(1, 3), mar = c(0.5, 0.5, 2.5, 0.5))
+trait_plot(tr, kernel_simulate(k_bm(), tr)[, 1], "Brownian motion", cols[1])
+trait_plot(tr, kernel_simulate(k_eb(), tr, list(eb1 = list(rate = -5)))[, 1],
+           "Early burst", cols[2])
+trait_plot(tr, kernel_simulate(k_ou(), tr, list(ou1 = list(alpha = 6)))[, 1],
+           "Ornstein-Uhlenbeck", cols[4])
+par(op)
+```
+
+Under an early burst, differences arise deep in the tree and whole clades
+differ; under strong OU selection, close relatives can differ as much as
+distant ones.
+
+## Writing your own kernel
+
+Most new models of trait evolution are just a new rule for how much
+variance each branch accumulates. `k_edge()` takes that rule as a Stan
+expression of the edge length `len`, the heights of the start and end of the
+edge `hs` and `he`, the indicator `is_tip`, the tree height `Tmax`, and your
+own parameters. Here is Pagel's κ combined with a rate that changes
+exponentially through time:
+
+```{r custom}
+k_trend <- k_edge("pow(len, kappa) .* exp(beta * he)",
+                  pars = list(kappa = c(0, 1), beta = c(-5, 5)),
+                  name = "trend")
+k_trend
+```
+
+A kernel of this branch-wise form is a valid covariance on *every* tree, as
+long as its edge variances are non-negative. `kernel_check()` verifies this
+over a grid of parameter values:
+
+```{r custom-check}
+kernel_check(k_trend, tr)
+```
+
+A careless rule is caught:
+
+```{r custom-bad}
+kernel_check(k_edge("len + beta * he", pars = list(beta = c(-5, 5))), tr)
+```
+
+The custom kernel goes into the generated Stan program unchanged, so it
+keeps the linear-time likelihood:
+
+```{r custom-code}
+code <- strsplit(make_stancode(k_trend + k_white()), "\n")[[1]]
+cat(code[grep("= trend1_kappa;", code, fixed = TRUE)[1] + (-2:3)], sep = "\n")
+```
+
+and it can be fitted like any built-in kernel:
+
+```{r custom-fit, eval = has_stan, message = FALSE}
+big <- ape::rcoal(150)
+big$edge.length <- big$edge.length / max(ape::node.depth.edgelength(big))
+y <- kernel_simulate(k_trend, big,
+                     pars = list(trend1 = list(kappa = 0.6, beta = -3)))[, 1]
+fit <- phylo_gp(y ~ 1, data = data.frame(y = y, row.names = names(y)),
+                tree = big, kernel = k_trend, method = "optimize")
+fit
+```
+
+## Is my kernel valid?
+
+A kernel must be positive semi-definite on the tips of the tree, or it is
+not a covariance at all. It is tempting to plug patristic distances into
+the squared-exponential kernel that most Gaussian-process software uses by
+default. Whether that works depends on the tree:
+
+* On an **ultrametric** tree any non-increasing function of patristic
+  distance is valid: it is just another tree transformation.
+* On trees with **fossil tips**, or phylograms without a clock, only
+  *completely monotone* functions are guaranteed, such as the exponential,
+  which is the Ornstein–Uhlenbeck kernel. Squared-exponential and Matérn
+  kernels can fail.
+
+The smallest eigenvalue of the kernel matrix tells us directly. Below,
+three trees: ultrametric, ultrametric with some tips shortened to make them
+"fossils", and a random tree without a clock.
+
+```{r validity, fig.height = 3.8}
+set.seed(3)
+ultra <- ape::rphylo(60, birth = 1, death = 0)
+fossil <- ape::rphylo(60, birth = 1, death = 0.6, fossils = TRUE)  # keeps extinct lineages
+noclock <- ape::rtree(60)
+trees <- list("ultrametric" = ultra, "with fossil tips" = fossil,
+              "no clock" = noclock)
+sapply(trees, ape::Ntip)
+
+phis <- c("exponential", "matern32", "matern52", "sqexp")
+ells <- 10^seq(-2, 1, length.out = 40)
+min_eig <- function(tree, phi, ell) {
+  K <- kernel_matrix(k_dist(phi = phi), tree, list(dist1 = list(ell = ell)))
+  min(eigen(K, symmetric = TRUE, only.values = TRUE)$values)
+}
+
+op <- par(mfrow = c(1, 3), mar = c(4, 4, 2.5, 0.5), mgp = c(2.4, 0.7, 0))
+for (nm in names(trees)) {
+  H <- max(ape::node.depth.edgelength(trees[[nm]]))
+  ev <- sapply(phis, function(p) sapply(ells * H, function(l) min_eig(trees[[nm]], p, l)))
+  matplot(ells, ev, type = "l", lty = 1, lwd = 2.2, col = cols, log = "x",
+          ylim = c(min(-0.1, ev), 0.15), las = 1, bty = "l", main = nm, font.main = 1,
+          xlab = "length-scale (tree heights)",
+          ylab = if (nm == "ultrametric") "smallest eigenvalue" else "")
+  abline(h = 0, lty = 2, col = "grey40")
+  if (nm == "ultrametric")
+    legend("bottomleft", c("exponential (OU)", "Matern 3/2", "Matern 5/2",
+                           "squared exp."), col = cols, lwd = 2.2, bty = "n", cex = 0.85)
+}
+par(op)
+```
+
+`kernel_check()` applies these rules for you, and checks numerically where
+validity is not guaranteed:
+
+```{r validity-check}
+kernel_check(k_bm() + k_dist(phi = "sqexp") + k_white(), fossil)
+kernel_check(k_bm() + k_dist(phi = "exponential") + k_white(), fossil)
+```
+
+An invalid "kernel" should be replaced, not rescued by adding jitter to the
+diagonal, which silently changes the model being fitted.
+
+## When two kernels are the same model
+
+Different processes can imply exactly the same distribution for the tips.
+On an ultrametric tree, a single-optimum OU process with a fixed root has
+the same kernel as an *accelerating* early-burst (ACDC) model with rate
+$r = 2\alpha$. With extant species alone the two cannot be told apart, but
+fossil tips separate them.
+
+```{r equivalence, fig.height = 3.8}
+alpha <- 1.5
+pair <- function(tree) {
+  H <- max(ape::node.depth.edgelength(tree))
+  list(ou = kernel_matrix(k_ou(root = "fixed"), tree,
+                          list(ou1 = list(alpha = alpha))),
+       eb = kernel_matrix(k_eb(upper = 10), tree,
+                          list(eb1 = list(sigma = exp(-alpha * H), rate = 2 * alpha))))
+}
+m_ultra <- pair(ultra)
+m_fossil <- pair(fossil)
+max(abs(m_ultra$ou - m_ultra$eb))      # identical on the ultrametric tree
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2.5, 1), mgp = c(2.4, 0.7, 0))
+for (x in list(list(m_ultra, "ultrametric tree"), list(m_fossil, "with fossil tips"))) {
+  plot(x[[1]]$eb, x[[1]]$ou, pch = 16, cex = 0.5, las = 1, bty = "l",
+       col = adjustcolor(cols[1], 0.35), main = x[[2]], font.main = 1,
+       xlab = "accelerating early burst (r = 2 alpha)", ylab = "OU, fixed root")
+  abline(0, 1, col = cols[2], lwd = 1.5)
+}
+par(op)
+```
+
+## Why branch-wise kernels scale
+
+Branch-wise kernels never need the $N \times N$ matrix: the likelihood is
+evaluated by a single pass over the edges, and leave-one-out densities by
+two. Even with the pruning loop in plain R, and the dense Cholesky in
+optimised linear-algebra libraries, the difference is large beyond a few
+hundred species:
+
+```{r timing, fig.height = 4.2}
+# average over repeated evaluations, so that fast calls are measurable
+time_it <- function(f, n = 10) system.time(for (i in seq_len(n)) f())[["elapsed"]] / n
+sizes <- c(100, 200, 400, 800, 1600, 3200)
+timing <- t(sapply(sizes, function(n) {
+  tree <- ape::rcoal(n)
+  y <- rnorm(n)
+  names(y) <- tree$tip.label
+  dense <- if (n <= 1600) {
+    K <- kernel_matrix(k_bm() + k_white(), tree)
+    yy <- y[rownames(K)]
+    time_it(function() { U <- chol(K); backsolve(U, yy, transpose = TRUE) })
+  } else NA
+  c(pruning = time_it(function() kernel_loglik(k_bm() + k_white(), tree, y)),
+    dense = dense)
+}))
+op <- par(mar = c(4.5, 5, 1, 1), mgp = c(3.2, 0.7, 0))
+matplot(sizes, timing * 1000, log = "xy", type = "b", pch = 19, yaxt = "n",
+        lty = 1, lwd = 2, col = cols[c(1, 2)], bty = "l",
+        xlab = "number of species", ylab = "time per likelihood (ms)")
+axis(2, at = 10^(-1:3), labels = c("0.1", "1", "10", "100", "1000"), las = 1)
+legend("topleft", c("pruning, O(N)", "dense Cholesky, O(N^3)"),
+       col = cols[c(1, 2)], lwd = 2, pch = 19, bty = "n")
+par(op)
+```
+
+In the compiled Stan programs that `phylo_gp()` generates, the same
+algorithm keeps each gradient evaluation linear in the number of species,
+which is what makes kernels with thousands of latent rates practical.

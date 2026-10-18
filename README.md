@@ -79,6 +79,16 @@ cmdstanr::install_cmdstan()
 Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
 `kernel_simulate()`, `kernel_loglik()`, `make_stancode()`) work without Stan.
 
+## Learn more
+
+* `vignette("phylogp")`: getting started, a complete analysis of simulated
+  data with a fast-evolving clade.
+* `vignette("kernel-design")`: building your own kernels, checking that they
+  are valid on your tree, and when two kernels are the same model.
+
+Install with `remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)`
+to have the vignettes locally.
+
 ## Status
 
 Version 0.1.0, under development. Planned: products of kernels (e.g.
