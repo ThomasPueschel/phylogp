@@ -69,7 +69,7 @@ numerical precision; this comparison is part of the test suite.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("<github-user>/phylogp")
+remotes::install_github("ThomasPueschel/phylogp")
 
 # fitting needs cmdstanr and CmdStan
 install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
