@@ -95,3 +95,21 @@ test_that("predict() for unobserved species equals dense kriging", {
   expect_equal(pr$sd, unname(sqrt(diag(K[held, held] - A %*% K[o, held]))), tolerance = 1e-6)
   expect_false(any(pr$observed))
 })
+
+test_that("loo_refit() agrees with PSIS where PSIS is reliable", {
+  skip_if_no_cmdstan()
+  set.seed(10)
+  tr <- ape::rcoal(30)
+  k <- k_bm() + k_white()
+  y <- kernel_simulate(k, tr, list(white1 = list(sigma = 0.5)))[, 1]
+  d <- data.frame(y = y, row.names = names(y))
+  fit <- phylo_gp(y ~ 1, d, tr, k, chains = 2, iter_warmup = 300, iter_sampling = 500)
+  lo <- suppressWarnings(loo(fit))
+  fake <- lo
+  fake$diagnostics$pareto_k[c(3, 17)] <- 1    # pretend two species are influential
+  lr <- suppressMessages(loo_refit(fit, loo = fake))
+  expect_equal(lr$pointwise[c(3, 17), "elpd_loo"], lo$pointwise[c(3, 17), "elpd_loo"],
+               tolerance = 0.05)
+  expect_equal(attr(lr, "refitted"), fit$tree$tip.label[c(3, 17)])
+  expect_equal(unname(lr$estimates["elpd_loo", "Estimate"]), sum(lr$pointwise[, "elpd_loo"]))
+})

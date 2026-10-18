@@ -76,7 +76,10 @@ phylo_gp <- function(formula, data, tree, kernel,
   structure(list(fit = fit, method = method, kernel = kernel, layout = L,
                  code = code, standata = standata, tree = ti$tree, tree_full = tree,
                  formula = formula, terms = md$terms, xlevels = md$xlevels,
-                 species = species, data = md$data, coef_names = colnames(md$X)),
+                 species = species, data = md$data, coef_names = colnames(md$X),
+                 sampler = list(chains = chains, iter_warmup = iter_warmup,
+                                iter_sampling = iter_sampling,
+                                adapt_delta = adapt_delta, seed = seed)),
             class = "phylogp_fit")
 }
 

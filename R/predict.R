@@ -60,6 +60,23 @@ tree_posterior <- function(ti, r, w, rv, t2, a = rep(1, ti$E)) {
   list(mean = pm, var = pv, out_mean = om, out_var = ov)
 }
 
+# Moments of the latent process at tips `idx` given the observed residuals
+# r (NA = unobserved): linear-time for branch-wise kernels, dense otherwise.
+condition_tips <- function(ti, kp, r, t2, idx) {
+  if (is.null(kp$K)) {
+    post <- tree_posterior(ti, r, kp$w, kp$rv, t2)
+    return(list(mean = post$mean[idx], var = post$var[idx]))
+  }
+  o <- which(!is.na(r))
+  Kp <- edge_matrix(ti, kp$w, kp$rv, rep(0, ti$N)) + kp$K
+  Koo <- Kp[o, o]
+  diag(Koo) <- diag(Koo) + t2[o]
+  U <- chol(Koo)
+  A <- t(backsolve(U, backsolve(U, t(Kp[idx, o, drop = FALSE]), transpose = TRUE)))
+  list(mean = as.numeric(A %*% r[o]),
+       var = diag(Kp)[idx] - rowSums(A * Kp[idx, o, drop = FALSE]))
+}
+
 # Parameter draws of a fit as a matrix (one row per draw)
 fit_draws <- function(fit, ndraws = NULL, seed = 1) {
   if (fit$method == "optimize") {
@@ -197,18 +214,8 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
     r[o] <- y_obs - as.numeric(X_obs %*% beta)
     t2 <- kp$t2
     t2[o] <- t2[o] + se_obs^2
-    if (is.null(kp$K)) {
-      post <- tree_posterior(ti, r, kp$w, kp$rv, t2)
-      m <- post$mean[t_idx]; v <- post$var[t_idx]
-    } else {
-      Kp <- edge_matrix(ti, kp$w, kp$rv, rep(0, ti$N)) + kp$K
-      Koo <- Kp[o, o]
-      diag(Koo) <- diag(Koo) + t2[o]
-      U <- chol(Koo)
-      A <- t(backsolve(U, backsolve(U, t(Kp[t_idx, o, drop = FALSE]), transpose = TRUE)))
-      m <- as.numeric(A %*% r[o])
-      v <- diag(Kp)[t_idx] - rowSums(A * Kp[t_idx, o, drop = FALSE])
-    }
+    cm <- condition_tips(ti, kp, r, t2, t_idx)
+    m <- cm$mean; v <- cm$var
     if (type == "response") v <- v + kp$t2[t_idx]
     M[s, ] <- m + as.numeric(X_t %*% beta)
     V[s, ] <- pmax(v, 0)
