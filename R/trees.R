@@ -67,7 +67,7 @@ summary.phylogp_trees <- function(object, probs = c(0.05, 0.95), ...) {
   pn <- fit_par_names(f1)
   lab <- pn
   lab[seq_along(f1$coef_names)] <- f1$coef_names
-  per_tree <- coef(object)
+  per_tree <- stats::coef(object)
   if (object$method == "optimize") {
     out <- data.frame(parameter = lab, mean = colMeans(per_tree),
                       between_tree_sd = apply(per_tree, 2, stats::sd),
@@ -91,7 +91,7 @@ summary.phylogp_trees <- function(object, probs = c(0.05, 0.95), ...) {
 
 #' @export
 coef.phylogp_trees <- function(object, ...) {
-  m <- t(vapply(object$fits, coef, numeric(length(fit_par_names(object$fits[[1]])))))
+  m <- t(vapply(object$fits, stats::coef, numeric(length(fit_par_names(object$fits[[1]])))))
   rownames(m) <- paste0("tree", object$tree_index)
   m
 }
