@@ -74,8 +74,9 @@ phylo_gp <- function(formula, data, tree, kernel,
     fit <- fits[[which.max(lp)]]
   }
   structure(list(fit = fit, method = method, kernel = kernel, layout = L,
-                 code = code, standata = standata, tree = ti$tree,
-                 formula = formula, data = md$data, coef_names = colnames(md$X)),
+                 code = code, standata = standata, tree = ti$tree, tree_full = tree,
+                 formula = formula, terms = md$terms, xlevels = md$xlevels,
+                 species = species, data = md$data, coef_names = colnames(md$X)),
             class = "phylogp_fit")
 }
 
@@ -123,6 +124,7 @@ match_data <- function(formula, data, tree, species, se) {
   mf <- stats::model.frame(formula, data)
   list(tree = ti$tree, data = data, y = stats::model.response(mf),
        X = stats::model.matrix(formula, mf),
+       terms = attr(mf, "terms"), xlevels = stats::.getXlevels(attr(mf, "terms"), mf),
        se = if (is.null(se)) NULL else data[[se]])
 }
 

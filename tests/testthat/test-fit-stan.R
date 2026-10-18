@@ -59,3 +59,39 @@ test_that("leave-one-out densities from Stan match the R recursion", {
                unname(unlist(dr[paste0("log_lik[", 1:40, "]")])), tolerance = 1e-6)
   expect_s3_class(loo(fit), "loo")
 })
+
+test_that("ancestral states reproduce phytools::fastAnc under BM", {
+  skip_if_no_cmdstan()
+  skip_if_not_installed("phytools")
+  set.seed(8)
+  tr <- ape::rcoal(30)
+  y <- kernel_simulate(k_bm(), tr)[, 1] + 2
+  d <- data.frame(y = y, row.names = names(y))
+  fit <- phylo_gp(y ~ 1, d, tr, k_bm(), method = "optimize")
+  anc <- ancestral(fit)
+  fa <- phytools::fastAnc(fit$tree, y[fit$tree$tip.label])
+  expect_equal(anc$mean, unname(fa[as.character(anc$node)]), tolerance = 1e-5)
+})
+
+test_that("predict() for unobserved species equals dense kriging", {
+  skip_if_no_cmdstan()
+  set.seed(9)
+  tr <- ape::rcoal(40)
+  k <- k_lambda()
+  x <- kernel_simulate(k_bm(), tr)[, 1]
+  y <- 1 + 0.5 * x + kernel_simulate(k, tr, list(lambda1 = list(lambda = 0.7)))[, 1]
+  d <- data.frame(y = y, x = x, row.names = names(y))
+  held <- names(y)[1:5]
+  fit <- suppressMessages(phylo_gp(y ~ x, d[setdiff(names(y), held), ], tr, k,
+                                   method = "optimize"))
+  pr <- predict(fit, newdata = d[held, "x", drop = FALSE])
+  est <- fit$fit$mle()
+  K <- kernel_matrix(k, tr, list(lambda1 = list(sigma = est[["lambda1_sigma"]],
+                                                lambda = est[["lambda1_lambda"]])))
+  o <- setdiff(names(y), held)
+  mu <- est[["coefs[1]"]] + est[["coefs[2]"]] * x
+  A <- K[held, o] %*% solve(K[o, o])
+  expect_equal(pr$mean, as.numeric(mu[held] + A %*% (y[o] - mu[o])), tolerance = 1e-6)
+  expect_equal(pr$sd, unname(sqrt(diag(K[held, held] - A %*% K[o, held]))), tolerance = 1e-6)
+  expect_false(any(pr$observed))
+})
