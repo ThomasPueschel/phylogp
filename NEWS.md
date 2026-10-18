@@ -8,6 +8,10 @@
 * `phylo_gp_trees()` fits a model across a sample of trees and pools the
   posterior (or collects maximum-likelihood estimates), reporting how much of
   the uncertainty comes from the phylogeny; `loo()` works on the pooled fit.
+* `loo_group()` does leave-clade-out (or any leave-group-out)
+  cross-validation: refits without each group and scores the group's joint
+  predictive density, in linear time for branch-wise kernels. Returns a
+  `kfold` object for `loo::loo_compare()`.
 * Tree matrices (incidence, shared path lengths, distances) are cached per
   `tree_info()` object.
 

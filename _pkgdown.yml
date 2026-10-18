@@ -38,6 +38,7 @@ reference:
       - phylo_gp_trees
       - loo.phylogp_fit
       - loo_refit
+      - loo_group
       - stancode
   - title: Prediction and ancestral states
     desc: Predict species without data and reconstruct internal nodes.
