@@ -28,7 +28,8 @@ tree_info <- function(tree) {
     tip_edge = match(seq_len(N), des),
     first_child = as.integer(!duplicated(anc)),
     ultrametric = ape::is.ultrametric(tree, tol = 1e-6),
-    labels = tree$tip.label
+    labels = tree$tip.label,
+    cache = new.env(parent = emptyenv())   # B, C and D, computed on first use
   ), class = "phylogp_tree")
 }
 
@@ -41,7 +42,7 @@ print.phylogp_tree <- function(x, ...) {
 
 # N x E tip-by-edge incidence matrix: B[i, e] = 1 if edge e lies on the path
 # from the root to tip i.
-tree_B <- function(ti) {
+tree_B <- function(ti) cached(ti, "B", function() {
   B <- matrix(0, ti$N, ti$E)
   parent_edge <- integer(ti$n_nodes)
   parent_edge[ti$des] <- seq_len(ti$E)
@@ -54,18 +55,26 @@ tree_B <- function(ti) {
     }
   }
   B
-}
+})
 
 # Shared path length from the root to the MRCA of each pair of tips (t_ij)
-tree_C <- function(ti) {
+tree_C <- function(ti) cached(ti, "C", function() {
   C <- ape::vcv.phylo(ti$tree)
   unname(C[ti$labels, ti$labels])
-}
+})
 
 # Patristic distances between tips (d_ij)
-tree_D <- function(ti) {
+tree_D <- function(ti) cached(ti, "D", function() {
   D <- ape::cophenetic.phylo(ti$tree)
   unname(D[ti$labels, ti$labels])
+})
+
+# Compute a tree matrix once per tree_info() object
+cached <- function(ti, key, f) {
+  env <- ti$cache
+  if (is.null(env)) return(f())
+  if (is.null(env[[key]])) env[[key]] <- f()
+  env[[key]]
 }
 
 # Data block shared by every generated Stan program

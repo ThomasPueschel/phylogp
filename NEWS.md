@@ -1,3 +1,13 @@
+# phylogp (development version)
+
+* `kernel_equivalent()` checks whether one kernel can reproduce the tip
+  distribution of another: for each parameter setting of the first it
+  searches over all parameters of the second for the smallest
+  Kullback-Leibler divergence, comparing contrasts when the mean is unknown.
+  It flags best-fitting parameters that sit at their bounds.
+* Tree matrices (incidence, shared path lengths, distances) are cached per
+  `tree_info()` object.
+
 # phylogp 0.2.0
 
 * `predict()` gives posterior predictions for fitted species and for species

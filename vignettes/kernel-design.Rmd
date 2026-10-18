@@ -260,6 +260,48 @@ for (x in list(list(m_ultra, "ultrametric tree"), list(m_fossil, "with fossil ti
 par(op)
 ```
 
+`kernel_equivalent()` asks the same question for any pair of kernels. For
+each parameter setting of the first kernel it searches over *all*
+parameters of the second for the closest tip distribution, and reports the
+Kullback–Leibler divergence: the expected log-likelihood ratio in favour of
+the first kernel for one data set simulated from it. With the mean unknown
+(the default), only contrasts between species are compared, as in REML.
+
+```{r equivalent}
+kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), ultra, n_grid = 4)
+```
+
+The early-burst rate it finds is exactly $2\alpha$. On the tree with fossil
+tips the answer depends on how strong selection is:
+
+```{r equivalent-curve, fig.height = 3.8}
+alphas <- 10^seq(-1, 1.2, length.out = 10)
+kl_curve <- function(tree) {
+  H <- max(ape::node.depth.edgelength(tree))
+  sapply(alphas, function(a) kernel_equivalent(
+    k_ou(root = "fixed"), k_eb(upper = 100), tree,
+    pars = list(ou1 = list(alpha = a / H)))$KL)
+}
+kl <- cbind(ultrametric = kl_curve(ultra), "with fossil tips" = kl_curve(fossil))
+op <- par(mar = c(4, 4.5, 1, 1), mgp = c(2.6, 0.7, 0))
+matplot(alphas, pmax(kl, 1e-8), log = "xy", type = "b", pch = 19, lty = 1, lwd = 2,
+        col = cols[c(1, 2)], las = 1, bty = "l", yaxt = "n",
+        xlab = "OU selection strength (alpha x tree height)",
+        ylab = "KL to the best early burst")
+axis(2, at = 10^c(-8, -4, 0), labels = c("1e-8", "1e-4", "1"), las = 1)
+abline(h = 1, lty = 2, col = "grey50")
+legend("topleft", colnames(kl), col = cols[c(1, 2)], lwd = 2, pch = 19, bty = "n")
+par(op)
+```
+
+On the ultrametric tree the two models coincide for every strength of
+selection (KL at numerical zero). With fossil tips they separate once
+selection is strong; above the dashed line one data set of this size gives,
+on average, more than one log-likelihood unit of evidence for the true
+model. The search is numerical, so a large KL means only that no
+equivalent parameter values were found; check that the best parameters of
+the second kernel are not at their bounds (the `k2_at_bound` column).
+
 ## Why branch-wise kernels scale
 
 Branch-wise kernels never need the $N \times N$ matrix: the likelihood is

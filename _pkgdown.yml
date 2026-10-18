@@ -67,6 +67,7 @@ reference:
       - kernel_matrix
       - kernel_simulate
       - kernel_loglik
+      - kernel_equivalent
   - title: Rates, slopes and tree plots
     desc: Summaries of estimated rates and slopes, and trees coloured by them.
     contents:

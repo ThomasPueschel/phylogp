@@ -49,6 +49,7 @@ kernel_check(k_dist(phi = "sqexp"), tr)      # squared exponential: can fail her
 kernel_check(k_dist(phi = "exponential"), tr) # exponential (= OU): always valid
 
 kernel_plot(k_ou(), tr, pars = list(ou1 = list(alpha = 3)))
+kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), tr)  # same model at the tips?
 y <- kernel_simulate(k_relaxed() + k_white(), tr)   # prior predictive draws
 cat(make_stancode(k_bm() + k_white()))       # the generated Stan program
 ```
@@ -109,9 +110,7 @@ to have the vignettes locally.
 
 ## Status
 
-Version 0.2.0, under development. Planned: `kernel_equivalent()` to detect
-kernels that imply the same distribution for the tips (such as OU and
-accelerating-rate models on ultrametric trees), fitting across a sample of
+Version 0.2.0, under development. Planned: fitting across a sample of
 trees, multivariate kernels and non-Gaussian traits.
 
 ## Citation
