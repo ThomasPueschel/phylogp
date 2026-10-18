@@ -8,11 +8,7 @@ plot_tree_rates(
   tree,
   rates,
   lim = NULL,
-  type = "phylogram",
-  show.tip.label = NULL,
-  edge.width = 2.5,
   main = "Relative rate of evolution",
-  legend = TRUE,
   ...
 )
 }
@@ -24,17 +20,9 @@ plot_tree_rates(
 \item{lim}{Colour range on the log2 scale (rates from \code{2^-lim} to \code{2^lim});
 by default symmetric around 1 and wide enough for all rates.}
 
-\item{type}{Tree layout, passed to \code{ape::plot.phylo()}.}
-
-\item{show.tip.label}{Show tip labels? Default: only for small trees.}
-
-\item{edge.width}{Branch width.}
-
 \item{main}{Title.}
 
-\item{legend}{Draw a colour key?}
-
-\item{...}{Further arguments to \code{ape::plot.phylo()}.}
+\item{...}{Further arguments to \code{\link[=plot_tree_values]{plot_tree_values()}}.}
 }
 \value{
 \code{NULL}, invisibly.

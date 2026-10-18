@@ -56,23 +56,50 @@ plot_edge_rates <- function(fit, ...) {
 #' @param rates Positive rates, one per edge in the order of `tree$edge`.
 #' @param lim Colour range on the log2 scale (rates from `2^-lim` to `2^lim`);
 #'   by default symmetric around 1 and wide enough for all rates.
+#' @param main Title.
+#' @param ... Further arguments to [plot_tree_values()].
+#' @return `NULL`, invisibly.
+#' @export
+plot_tree_rates <- function(tree, rates, lim = NULL,
+                            main = "Relative rate of evolution", ...) {
+  lr <- log2(rates)
+  lim <- lim %||% max(1, ceiling(max(abs(lr))))
+  plot_tree_values(tree, lr, center = 0, lim = lim, main = main,
+                   key_labels = c(paste0("1/", signif(2^lim, 2), "x"), "1x",
+                                  paste0(signif(2^lim, 2), "x")), ...)
+}
+
+#' Plot a tree with branches coloured by a value
+#'
+#' Colours every branch on a diverging scale (blue below `center`, red
+#' above), e.g. by estimated slopes from [varying_slopes()] or by ancestral
+#' states.
+#'
+#' @param tree A `phylo` tree.
+#' @param values One value per edge, in the order of `tree$edge`.
+#' @param center Value shown in the neutral colour.
+#' @param lim Half-width of the colour range around `center`; values beyond
+#'   it get the extreme colours. Default: the largest deviation.
 #' @param type Tree layout, passed to `ape::plot.phylo()`.
 #' @param show.tip.label Show tip labels? Default: only for small trees.
 #' @param edge.width Branch width.
 #' @param main Title.
 #' @param legend Draw a colour key?
+#' @param key_labels Labels for the low end, centre and high end of the key.
 #' @param ... Further arguments to `ape::plot.phylo()`.
 #' @return `NULL`, invisibly.
 #' @export
-plot_tree_rates <- function(tree, rates, lim = NULL, type = "phylogram",
-                            show.tip.label = NULL, edge.width = 2.5,
-                            main = "Relative rate of evolution", legend = TRUE, ...) {
-  if (length(rates) != nrow(tree$edge)) stop("`rates` needs one value per edge.", call. = FALSE)
-  lr <- log2(rates)
-  lim <- lim %||% max(1, ceiling(max(abs(lr))))
+plot_tree_values <- function(tree, values, center = stats::median(values), lim = NULL,
+                             type = "phylogram", show.tip.label = NULL,
+                             edge.width = 2.5, main = NULL, legend = TRUE,
+                             key_labels = NULL, ...) {
+  if (length(values) != nrow(tree$edge)) stop("`values` needs one value per edge.", call. = FALSE)
+  dev <- values - center
+  lim <- lim %||% max(abs(dev))
+  if (lim <= 0) lim <- 1
   pal <- grDevices::colorRampPalette(c("#24527A", "#7FA7C9", "#ECE7DF",
                                        "#E39A7A", "#A8322A"))(101)
-  col <- pal[round(50 * pmax(-1, pmin(1, lr / lim))) + 51]
+  col <- pal[round(50 * pmax(-1, pmin(1, dev / lim))) + 51]
   # per-edge widths and line types: ape needs them as long as the colours
   ape::plot.phylo(tree, type = type, edge.color = col,
                   edge.width = rep_len(edge.width, nrow(tree$edge)),
@@ -85,12 +112,47 @@ plot_tree_rates <- function(tree, rates, lim = NULL, type = "phylogram",
     y0 <- usr[3] + 0.05 * diff(usr[3:4])
     xs <- seq(x0, x1, length.out = 102)
     graphics::rect(xs[-102], y0, xs[-1], y0 + 0.025 * diff(usr[3:4]), col = pal, border = NA)
-    ticks <- c(-lim, 0, lim)
-    labs <- c(paste0("1/", signif(2^lim, 2), "x"), "1x", paste0(signif(2^lim, 2), "x"))
-    graphics::text(x0 + (ticks + lim) / (2 * lim) * (x1 - x0), y0,
-                   labels = labs, pos = 1, cex = 0.7, xpd = TRUE)
+    labs <- key_labels %||% signif(c(center - lim, center, center + lim), 2)
+    graphics::text(c(x0, (x0 + x1) / 2, x1), y0, labels = labs, pos = 1, cex = 0.7, xpd = TRUE)
   }
   invisible(NULL)
+}
+
+#' Species- and node-level slopes from a varying-slope fit
+#'
+#' Posterior summaries of the regression slope at every node of the tree,
+#' `beta + v`, from a model with a latent `k_slope(x) * k` term. The mean slope
+#' `beta` is the coefficient of `x` in the model formula.
+#'
+#' @param fit A Bayesian `phylogp_fit` with a `k_slope(x) * ...` term fitted
+#'   with `latent = TRUE`.
+#' @param probs Quantiles to report.
+#' @return A data frame with one row per node of `fit$tree` (tips first):
+#'   node number, tip label (`NA` for internal nodes), posterior mean, standard
+#'   deviation and quantiles of the slope.
+#' @export
+varying_slopes <- function(fit, probs = c(0.05, 0.95)) {
+  if (!inherits(fit, "phylogp_fit") || fit$method != "sample")
+    stop("`fit` must be a Bayesian phylogp_fit.", call. = FALSE)
+  j <- which(fit$layout$forms == "slope")
+  if (!length(j)) stop("The kernel has no latent k_slope() term.", call. = FALSE)
+  j <- j[1]
+  id <- fit$layout$ids[j]
+  xname <- fit$kernel$components[[j]]$scale$x_label
+  k <- match(xname, fit$coef_names)
+  if (is.na(k)) stop("`", xname, "` is not in the model formula, so the mean slope is 0; ",
+                     "add it to the formula.", call. = FALSE)
+  ti <- tree_info(fit$tree)
+  v <- posterior::as_draws_matrix(fit$fit$draws(paste0(id, "_v")))
+  b <- as.numeric(posterior::as_draws_matrix(fit$fit$draws(sprintf("coefs[%d]", k))))
+  sl <- unclass(v) + b
+  q <- t(apply(sl, 2, stats::quantile, probs = probs, names = FALSE))
+  out <- data.frame(node = seq_len(ti$n_nodes),
+                    label = c(ti$labels, rep(NA, ti$n_nodes - ti$N)),
+                    mean = colMeans(sl), sd = apply(sl, 2, stats::sd))
+  for (m in seq_along(probs)) out[[sprintf("q%g", 100 * probs[m])]] <- q[, m]
+  rownames(out) <- NULL
+  out
 }
 
 #' Rate of evolution through time

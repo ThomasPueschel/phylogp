@@ -28,6 +28,7 @@ articles:
     contents:
       - phylogp
       - kernel-design
+      - slopes-prediction
 
 reference:
   - title: Fitting models
@@ -35,7 +36,13 @@ reference:
     contents:
       - phylo_gp
       - loo.phylogp_fit
+      - loo_refit
       - stancode
+  - title: Prediction and ancestral states
+    desc: Predict species without data and reconstruct internal nodes.
+    contents:
+      - predict.phylogp_fit
+      - ancestral
   - title: Classical kernels
     desc: >
       Brownian motion, Pagel's transformations, early burst,
@@ -50,6 +57,8 @@ reference:
       - k_rate_time
       - k_dist
       - k_edge
+      - k_slope
+      - kernel-product
   - title: Designing and checking kernels
     desc: Look at a kernel, simulate from it and check that it is valid on a tree.
     contents:
@@ -58,13 +67,15 @@ reference:
       - kernel_matrix
       - kernel_simulate
       - kernel_loglik
-  - title: Rates of evolution
-    desc: Summaries and plots of estimated rates.
+  - title: Rates, slopes and tree plots
+    desc: Summaries of estimated rates and slopes, and trees coloured by them.
     contents:
       - edge_rates
       - plot_edge_rates
       - plot_tree_rates
       - rate_through_time
+      - varying_slopes
+      - plot_tree_values
   - title: Stan code and data
     contents:
       - make_stancode

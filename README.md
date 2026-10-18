@@ -14,6 +14,8 @@ k_ou(root = "fixed")                        # Ornstein-Uhlenbeck
 k_relaxed() + k_white()                     # autocorrelated (relaxed) rates
 k_rate_time(n_bins = 20) + k_white()        # rate as a smooth function of time
 k_bm() + k_dist(geo_dist) + k_white()       # phylogeny + geography
+k_bm() + k_slope("body") * k_bm() + k_white()   # slopes that evolve along the tree
+k_bm() + k_white(df = 4)                    # Student-t residuals
 k_edge("pow(len, kappa) .* exp(beta * he)", # your own branch-wise kernel
        pars = list(kappa = c(0, 1), beta = c(-5, 5)))
 ```
@@ -66,6 +68,9 @@ fit <- phylo_gp(brain ~ body, data = d, tree = tr,
 fit
 loo(fit)                      # PSIS-LOO from exact conditional densities
 
+loo_refit(fit)                # exact LOO for influential species
+predict(fit, newdata = new)   # species without data (kriging on the tree)
+
 ml <- phylo_gp(brain ~ body, data = d, tree = tr,
                kernel = k_lambda(), method = "optimize")
 logLik(ml); AIC(ml)
@@ -95,16 +100,19 @@ Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
   data with a fast-evolving clade.
 * `vignette("kernel-design")`: building your own kernels, checking that they
   are valid on your tree, and when two kernels are the same model.
+* `vignette("slopes-prediction")`: slopes that evolve along the tree,
+  influential species, predicting species without data, ancestral states,
+  and robust residuals.
 
 Install with `remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)`
 to have the vignettes locally.
 
 ## Status
 
-Version 0.1.0, under development. Planned: products of kernels (e.g.
-phylogenetically varying regression slopes), `kernel_equivalent()` to detect
+Version 0.2.0, under development. Planned: `kernel_equivalent()` to detect
 kernels that imply the same distribution for the tips (such as OU and
-accelerating-rate models on ultrametric trees), and multivariate kernels.
+accelerating-rate models on ultrametric trees), fitting across a sample of
+trees, multivariate kernels and non-Gaussian traits.
 
 ## Citation
 

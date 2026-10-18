@@ -42,11 +42,13 @@ tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
 | `k_ou()` | $e^{-\alpha d_{ij}}/2\alpha$ (random root) | branch-wise on ultrametric trees |
 | `k_relaxed()` | rate evolves by BM along the tree | branch-wise, latent rates |
 | `k_rate_time()` | rate a smooth function of time | branch-wise, latent rates |
-| `k_white()` | independent tip variance | tip |
+| `k_white()` | independent tip variance; `df =` for Student-t | tip |
+| `k_slope(x) * k` | slope on `x` evolving under `k`: $x_i x_j k(i, j)$ | latent (linear) or dense |
 | `k_dist()` | $\phi(D_{ij}/\ell)$ on any distance | dense |
 | `k_edge()` | **your own** edge variances | branch-wise |
 
-Components are added with `+`. A sum describes independent processes
+Components are added with `+`, and a branch-wise component can be multiplied
+by a covariate with `k_slope()` (see `vignette("slopes-prediction")`). A sum describes independent processes
 acting together, for example phylogeny, space and residual variation:
 
 ```{r}

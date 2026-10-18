@@ -1,3 +1,22 @@
+# phylogp 0.2.0
+
+* `predict()` gives posterior predictions for fitted species and for species
+  in the tree without data (kriging on the tree).
+* `ancestral()` reconstructs ancestral states in linear time; for OU it uses
+  the OU process itself rather than its tip kernel.
+* `loo_refit()` replaces the PSIS-LOO contribution of influential species
+  (high Pareto k) by an exact refit.
+* Varying slopes: `k_slope(x) * k_bm()` (or another branch-wise kernel) for
+  slopes that evolve along the tree, fitted with latent node values in linear
+  time or with the dense marginal kernel; `k_slope(x) * k_white()` as the
+  heteroscedastic control. `varying_slopes()` summarises the slopes.
+* `k_white(df = )`: Student-t residuals for data with outlying species.
+* Leave-one-out integrates each species' own latent values (slopes, rates,
+  variance multipliers); `k_relaxed()` can now be combined with dense
+  components.
+* `plot_tree_values()` colours a tree by any value.
+* New vignette: "Slopes, prediction and robust residuals".
+
 # phylogp 0.1.0
 
 * First version.
