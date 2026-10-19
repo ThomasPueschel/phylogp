@@ -360,10 +360,10 @@ kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), ultra, n_grid = 4)
 #> 60 tips, ultrametric tree, unknown (contrasts compared) mean
 #> 
 #>  k1.ou1.sigma k1.ou1.alpha       KL k2.eb1.sigma k2.eb1.rate k2_at_bound
-#>             1       0.0108 1.07e-07     9.51e-01      0.0218       FALSE
+#>             1       0.0108 1.22e-07     9.51e-01      0.0218       FALSE
 #>             1       0.1080 1.23e-08     6.06e-01      0.2170       FALSE
-#>             1       1.0800 2.39e-07     6.73e-03      2.1700       FALSE
-#>             1      10.8000 1.44e-06     2.08e-22     21.6000       FALSE
+#>             1       1.0800 1.83e-07     6.73e-03      2.1700       FALSE
+#>             1      10.8000 1.43e-06     2.07e-22     21.6000       FALSE
 #>           verdict
 #>         identical
 #>         identical

@@ -118,12 +118,15 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ThomasPueschel/phylogp"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># fitting needs cmdstanr and CmdStan (install these first so the vignettes can run)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"remotes"</span>, <span class="st">"cmdstanr"</span><span class="op">)</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://stan-dev.r-universe.dev"</span>, <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"repos"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">cmdstanr</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/cmdstanr/reference/install_cmdstan.html" class="external-link">install_cmdstan</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># fitting needs cmdstanr and CmdStan</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"cmdstanr"</span>, repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://stan-dev.r-universe.dev"</span>, <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"repos"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">cmdstanr</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/cmdstanr/reference/install_cmdstan.html" class="external-link">install_cmdstan</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># the package, with its vignettes (takes a few minutes: they fit Stan models)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ThomasPueschel/phylogp"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"phylogp"</span><span class="op">)</span></span></code></pre></div>
+<p>For a quicker install without the vignettes, drop <code>build_vignettes = TRUE</code>; the tutorials are also on the <a href="https://thomaspueschel.github.io/phylogp/articles/">package website</a>.</p>
 <p>Kernel design tools (<code><a href="reference/kernel_matrix.html">kernel_matrix()</a></code>, <code><a href="reference/kernel_check.html">kernel_check()</a></code>, <code><a href="reference/kernel_plot.html">kernel_plot()</a></code>, <code><a href="reference/kernel_simulate.html">kernel_simulate()</a></code>, <code><a href="reference/kernel_loglik.html">kernel_loglik()</a></code>, <code><a href="reference/make_stancode.html">make_stancode()</a></code>) work without Stan.</p>
 </div>
 <div class="section level2">
@@ -137,7 +140,6 @@
 <li>
 <code><a href="articles/slopes-prediction.html">vignette("slopes-prediction")</a></code>: slopes that evolve along the tree, influential species, predicting species without data, ancestral states, and robust residuals.</li>
 </ul>
-<p>Install with <code>remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)</code> to have the vignettes locally.</p>
 </div>
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>

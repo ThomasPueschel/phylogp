@@ -95,13 +95,19 @@ suite.
 
 ``` r
 
-# install.packages("remotes")
-remotes::install_github("ThomasPueschel/phylogp")
-
-# fitting needs cmdstanr and CmdStan
-install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
+# fitting needs cmdstanr and CmdStan (install these first so the vignettes can run)
+install.packages(c("remotes", "cmdstanr"),
+                 repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
 cmdstanr::install_cmdstan()
+
+# the package, with its vignettes (takes a few minutes: they fit Stan models)
+remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)
+browseVignettes("phylogp")
 ```
+
+For a quicker install without the vignettes, drop
+`build_vignettes = TRUE`; the tutorials are also on the [package
+website](https://thomaspueschel.github.io/phylogp/articles/).
 
 Kernel design tools
 ([`kernel_matrix()`](https://thomaspueschel.github.io/phylogp/reference/kernel_matrix.md),
@@ -123,10 +129,6 @@ work without Stan.
 - [`vignette("slopes-prediction")`](https://thomaspueschel.github.io/phylogp/articles/slopes-prediction.md):
   slopes that evolve along the tree, influential species, predicting
   species without data, ancestral states, and robust residuals.
-
-Install with
-`remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)`
-to have the vignettes locally.
 
 ## Status
 
