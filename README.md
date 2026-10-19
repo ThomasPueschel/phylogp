@@ -116,6 +116,5 @@ non-Gaussian traits.
 
 ## Citation
 
-Püschel, T. A. Phylogenetic comparative methods as Gaussian processes: a
-kernel framework for organising and extending models of trait evolution. In
-preparation.
+Püschel, T. A. Gaussian processes on phylogenies: a kernel framework for
+building, checking and comparing models of trait evolution. In preparation.
