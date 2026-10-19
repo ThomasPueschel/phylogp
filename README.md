@@ -85,13 +85,18 @@ numerical precision; this comparison is part of the test suite.
 ## Installation
 
 ```r
-# install.packages("remotes")
-remotes::install_github("ThomasPueschel/phylogp")
-
-# fitting needs cmdstanr and CmdStan
-install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
+# fitting needs cmdstanr and CmdStan (install these first so the vignettes can run)
+install.packages(c("remotes", "cmdstanr"),
+                 repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
 cmdstanr::install_cmdstan()
+
+# the package, with its vignettes (takes a few minutes: they fit Stan models)
+remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)
+browseVignettes("phylogp")
 ```
+
+For a quicker install without the vignettes, drop `build_vignettes = TRUE`;
+the tutorials are also on the [package website](https://thomaspueschel.github.io/phylogp/articles/).
 
 Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
 `kernel_simulate()`, `kernel_loglik()`, `make_stancode()`) work without Stan.
@@ -105,9 +110,6 @@ Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
 * `vignette("slopes-prediction")`: slopes that evolve along the tree,
   influential species, predicting species without data, ancestral states,
   and robust residuals.
-
-Install with `remotes::install_github("ThomasPueschel/phylogp", build_vignettes = TRUE)`
-to have the vignettes locally.
 
 ## Status
 
