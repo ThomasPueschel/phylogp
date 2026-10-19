@@ -1,4 +1,4 @@
-# phylogp (development version)
+# phylogp 0.2.0
 
 * `kernel_equivalent()` checks whether one kernel can reproduce the tip
   distribution of another: for each parameter setting of the first it
@@ -15,7 +15,6 @@
 * Tree matrices (incidence, shared path lengths, distances) are cached per
   `tree_info()` object.
 
-# phylogp 0.2.0
 
 * `predict()` gives posterior predictions for fitted species and for species
   in the tree without data (kriging on the tree).

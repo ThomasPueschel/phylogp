@@ -111,7 +111,7 @@ to have the vignettes locally.
 
 ## Status
 
-Version 0.2.0, under development. Planned: multivariate kernels and
+Version 0.2.0. Planned: multivariate kernels and
 non-Gaussian traits.
 
 ## Citation
