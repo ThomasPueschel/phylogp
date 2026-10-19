@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/ThomasPueschel/phylogp/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/ThomasPueschel/phylogp/blob/v0.2.0/DESCRIPTION)
 
 Püschel T (2026). *phylogp: Phylogenetic Comparative Models as Gaussian
 Processes*. R package version 0.2.0,
