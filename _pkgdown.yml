@@ -39,7 +39,6 @@ reference:
       - loo.phylogp_fit
       - loo_refit
       - loo_group
-      - stancode
   - title: Prediction and ancestral states
     desc: Predict species without data and reconstruct internal nodes.
     contents:
@@ -81,8 +80,8 @@ reference:
       - plot_tree_values
   - title: Stan code and data
     contents:
-      - make_stancode
-      - make_standata
+      - kernel_stancode
+      - kernel_standata
       - tree_info
   - title: internal
     contents:

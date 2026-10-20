@@ -1,3 +1,11 @@
+# phylogp (development version)
+
+* `make_stancode()`, `make_standata()` and `stancode()` are renamed
+  `kernel_stancode()` and `kernel_standata()`, so that phylogp and brms can be
+  loaded together without masking each other's functions.
+  `kernel_stancode()` takes a kernel or a fitted model (replacing
+  `stancode(fit)`).
+
 # phylogp 0.2.0
 
 * `kernel_equivalent()` checks whether one kernel can reproduce the tip

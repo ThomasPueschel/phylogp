@@ -226,12 +226,12 @@ likelihood is evaluated by the linear-time pruning recursion. You can
 inspect, and edit, the generated program:
 
 ```{r code, eval = has_stan}
-code <- strsplit(stancode(fit_relaxed), "\n")[[1]]
+code <- strsplit(kernel_stancode(fit_relaxed), "\n")[[1]]
 cat(code[grep("^model", code):(grep("^generated", code) - 1)], sep = "\n")
 ```
 
-`make_stancode()` produces the same program without fitting, and
-`make_standata()` the matching data, so a model can be taken further in
+Called on a kernel instead of a fit, `kernel_stancode()` produces the same program without fitting, and
+`kernel_standata()` the matching data, so a model can be taken further in
 `cmdstanr` directly.
 
 ## Next steps

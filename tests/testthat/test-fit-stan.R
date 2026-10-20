@@ -25,7 +25,7 @@ test_that("maximum likelihood reproduces phylolm for the classical models", {
   for (s in specs) {
     e <- kernel_simulate(s[[1]], tr, s[[3]])[, 1]
     d <- data.frame(y = 1 + 0.5 * x + e, x = x, row.names = names(e))
-    sd <- make_standata(s[[1]], tr, d$y)
+    sd <- kernel_standata(s[[1]], tr, d$y)
     args <- list(y ~ x, data = d, phy = tr, model = s[[2]])
     lb <- grep("_lb$", names(sd))
     if (length(lb)) {

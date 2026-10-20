@@ -6,7 +6,7 @@
 #' distribution for the species at the tips of a tree, and then no amount of
 #' extant data can tell them apart. On an ultrametric tree, for example, an
 #' Ornstein-Uhlenbeck process with a fixed root has the same kernel as an
-#' early-burst model with an accelerating rate `r = 2 alpha`.
+#' early-burst model whose accelerating rate is twice the OU `alpha`.
 #'
 #' For each of several parameter settings of `k1`, `kernel_equivalent()`
 #' searches over all parameters of `k2` (including the scales `sigma`) for the

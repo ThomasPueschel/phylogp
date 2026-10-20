@@ -3,7 +3,7 @@
 #' Fit a phylogenetic Gaussian-process model
 #'
 #' Fits `y ~ N(X beta, K)` where `K` is the covariance implied by `kernel` on
-#' `tree`. The Stan program is written by [make_stancode()], compiled once
+#' `tree`. The Stan program is written by [kernel_stancode()], compiled once
 #' (and cached), and run with `cmdstanr`.
 #'
 #' @param formula Model formula, e.g. `brain ~ body`.
@@ -18,7 +18,7 @@
 #' @param se Optional name of a column with known measurement-error standard
 #'   deviations.
 #' @param prior_sigma_scale,prior_beta_scale Prior scales; see
-#'   [make_standata()].
+#'   [kernel_standata()].
 #' @param chains,iter_warmup,iter_sampling,adapt_delta,seed Passed to
 #'   `cmdstanr`'s `$sample()`.
 #' @param n_starts Number of optimisation starts for `method = "optimize"`.
@@ -50,8 +50,8 @@ phylo_gp <- function(formula, data, tree, kernel,
     stop("Kernels with latent values (k_relaxed(), k_rate_time(), latent slopes, ",
          "k_white(df = )) need method = \"sample\".", call. = FALSE)
 
-  code <- make_stancode(kernel, ti$tree)
-  standata <- make_standata(kernel, ti, md$y, md$X, md$se,
+  code <- kernel_stancode(kernel, ti$tree)
+  standata <- kernel_standata(kernel, ti, md$y, md$X, md$se,
                             use_prior = as.integer(method == "sample"),
                             prior_sigma_scale = prior_sigma_scale,
                             prior_beta_scale = prior_beta_scale)
@@ -220,8 +220,3 @@ loo.phylogp_fit <- function(x, ...) {
 #' @export
 loo::loo
 
-#' Stan code of a fitted model
-#' @param x A `phylogp_fit`.
-#' @return The Stan program.
-#' @export
-stancode <- function(x) x$code

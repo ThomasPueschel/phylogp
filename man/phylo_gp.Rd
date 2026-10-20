@@ -43,7 +43,7 @@ rates (\code{k_relaxed()}, \code{k_rate_time()}) need \code{"sample"}.}
 deviations.}
 
 \item{prior_sigma_scale, prior_beta_scale}{Prior scales; see
-\code{\link[=make_standata]{make_standata()}}.}
+\code{\link[=kernel_standata]{kernel_standata()}}.}
 
 \item{chains, iter_warmup, iter_sampling, adapt_delta, seed}{Passed to
 \code{cmdstanr}'s \verb{$sample()}.}
@@ -57,7 +57,7 @@ An object of class \code{phylogp_fit}.
 }
 \description{
 Fits \verb{y ~ N(X beta, K)} where \code{K} is the covariance implied by \code{kernel} on
-\code{tree}. The Stan program is written by \code{\link[=make_stancode]{make_stancode()}}, compiled once
+\code{tree}. The Stan program is written by \code{\link[=kernel_stancode]{kernel_stancode()}}, compiled once
 (and cached), and run with \code{cmdstanr}.
 }
 \examples{

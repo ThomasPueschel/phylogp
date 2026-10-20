@@ -34,21 +34,27 @@ kernel_layout <- function(kernel, ti = NULL) {
        latent = any(vapply(kernel$components, `[[`, NA, "latent")))
 }
 
-#' Stan code for a kernel
+#' Stan code for a kernel or a fitted model
 #'
 #' Writes the complete Stan program that [phylo_gp()] compiles for a kernel.
 #' The program can be inspected, edited and run directly with `cmdstanr`
-#' together with the data from [make_standata()].
+#' together with the data from [kernel_standata()]. Given a fitted model, it
+#' returns the program that was fitted.
 #'
-#' @param kernel A kernel, e.g. `k_bm() + k_white()`.
+#' The name differs from the `make_stancode` and `stancode` functions of
+#' brms, so that both packages can be loaded together.
+#'
+#' @param kernel A kernel, e.g. `k_bm() + k_white()`, or a `phylogp_fit`.
 #' @param tree Optional tree. It decides whether components such as
 #'   `k_ou()` can use the branch-wise form (ultrametric trees) or need dense
-#'   algebra. Without a tree an ultrametric tree is assumed.
+#'   algebra. Without a tree an ultrametric tree is assumed. Ignored for a
+#'   fitted model.
 #' @return A character string with class `phylogp_stancode`.
 #' @examples
-#' cat(make_stancode(k_bm() + k_white()))
+#' cat(kernel_stancode(k_bm() + k_white()))
 #' @export
-make_stancode <- function(kernel, tree = NULL) {
+kernel_stancode <- function(kernel, tree = NULL) {
+  if (inherits(kernel, "phylogp_fit")) return(kernel$code)
   ti <- if (is.null(tree)) NULL else tree_info(tree)
   L <- kernel_layout(kernel, ti)
   comps <- L$kernel$components
@@ -189,6 +195,8 @@ print.phylogp_stancode <- function(x, ...) {
 
 #' Data for the Stan program of a kernel
 #'
+#' The data list for the program written by [kernel_stancode()].
+#'
 #' @param kernel A kernel.
 #' @param tree A `phylo` tree, or the output of [tree_info()].
 #' @param y Response vector in the tip order of `tree`.
@@ -201,7 +209,7 @@ print.phylogp_stancode <- function(x, ...) {
 #'   regression coefficients.
 #' @return A named list.
 #' @export
-make_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
+kernel_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
                           prior_sigma_scale = NULL, prior_beta_scale = NULL) {
   ti <- tree_info(tree)
   L <- kernel_layout(kernel, ti)

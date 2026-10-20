@@ -51,7 +51,7 @@ kernel_check(k_dist(phi = "exponential"), tr) # exponential (= OU): always valid
 kernel_plot(k_ou(), tr, pars = list(ou1 = list(alpha = 3)))
 kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), tr)  # same model at the tips?
 y <- kernel_simulate(k_relaxed() + k_white(), tr)   # prior predictive draws
-cat(make_stancode(k_bm() + k_white()))       # the generated Stan program
+cat(kernel_stancode(k_bm() + k_white()))       # the generated Stan program
 ```
 
 `kernel_check()` uses the theory first: branch-wise kernels are valid
@@ -99,7 +99,7 @@ For a quicker install without the vignettes, drop `build_vignettes = TRUE`;
 the tutorials are also on the [package website](https://thomaspueschel.github.io/phylogp/articles/).
 
 Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
-`kernel_simulate()`, `kernel_loglik()`, `make_stancode()`) work without Stan.
+`kernel_simulate()`, `kernel_loglik()`, `kernel_stancode()`) work without Stan.
 
 ## Learn more
 
