@@ -1,5 +1,16 @@
 # Changelog
 
+## phylogp (development version)
+
+- `make_stancode()`, `make_standata()` and `stancode()` are renamed
+  [`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md)
+  and
+  [`kernel_standata()`](https://thomaspueschel.github.io/phylogp/reference/kernel_standata.md),
+  so that phylogp and brms can be loaded together without masking each
+  other’s functions.
+  [`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md)
+  takes a kernel or a fitted model (replacing `stancode(fit)`).
+
 ## phylogp 0.2.0
 
 - [`kernel_equivalent()`](https://thomaspueschel.github.io/phylogp/reference/kernel_equivalent.md)
@@ -86,7 +97,7 @@
   [`kernel_matrix()`](https://thomaspueschel.github.io/phylogp/reference/kernel_matrix.md),
   [`kernel_simulate()`](https://thomaspueschel.github.io/phylogp/reference/kernel_simulate.md),
   [`kernel_loglik()`](https://thomaspueschel.github.io/phylogp/reference/kernel_loglik.md),
-  [`make_stancode()`](https://thomaspueschel.github.io/phylogp/reference/make_stancode.md).
+  `make_stancode()`.
 - Rate summaries:
   [`edge_rates()`](https://thomaspueschel.github.io/phylogp/reference/edge_rates.md),
   [`plot_edge_rates()`](https://thomaspueschel.github.io/phylogp/reference/plot_edge_rates.md),

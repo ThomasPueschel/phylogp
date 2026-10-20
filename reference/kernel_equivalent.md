@@ -4,7 +4,7 @@ Different evolutionary processes can imply exactly, or nearly, the same
 distribution for the species at the tips of a tree, and then no amount
 of extant data can tell them apart. On an ultrametric tree, for example,
 an Ornstein-Uhlenbeck process with a fixed root has the same kernel as
-an early-burst model with an accelerating rate `r = 2 alpha`.
+an early-burst model whose accelerating rate is twice the OU `alpha`.
 
 ## Usage
 

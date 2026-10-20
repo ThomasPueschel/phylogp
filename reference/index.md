@@ -15,8 +15,6 @@ Fit a phylogenetic Gaussian process and compare models.
   : Exact leave-one-out for species with high Pareto k
 - [`loo_group()`](https://thomaspueschel.github.io/phylogp/reference/loo_group.md)
   : Leave-clade-out cross-validation
-- [`stancode()`](https://thomaspueschel.github.io/phylogp/reference/stancode.md)
-  : Stan code of a fitted model
 
 ## Prediction and ancestral states
 
@@ -99,9 +97,9 @@ Summaries of estimated rates and slopes, and trees coloured by them.
 
 ## Stan code and data
 
-- [`make_stancode()`](https://thomaspueschel.github.io/phylogp/reference/make_stancode.md)
-  : Stan code for a kernel
-- [`make_standata()`](https://thomaspueschel.github.io/phylogp/reference/make_standata.md)
+- [`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md)
+  : Stan code for a kernel or a fitted model
+- [`kernel_standata()`](https://thomaspueschel.github.io/phylogp/reference/kernel_standata.md)
   : Data for the Stan program of a kernel
 - [`tree_info()`](https://thomaspueschel.github.io/phylogp/reference/tree_info.md)
   : Pre-compute the tree quantities used by phylogp

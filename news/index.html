@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">phylogp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="phylogp-development-version">phylogp (development version)<a class="anchor" aria-label="anchor" href="#phylogp-development-version"></a></h2>
+<ul><li>
+<code>make_stancode()</code>, <code>make_standata()</code> and <code>stancode()</code> are renamed <code><a href="../reference/kernel_stancode.html">kernel_stancode()</a></code> and <code><a href="../reference/kernel_standata.html">kernel_standata()</a></code>, so that phylogp and brms can be loaded together without masking each other’s functions. <code><a href="../reference/kernel_stancode.html">kernel_stancode()</a></code> takes a kernel or a fitted model (replacing <code>stancode(fit)</code>).</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="phylogp-020">phylogp 0.2.0<a class="anchor" aria-label="anchor" href="#phylogp-020"></a></h2>
 <ul><li><p><code><a href="../reference/kernel_equivalent.html">kernel_equivalent()</a></code> checks whether one kernel can reproduce the tip distribution of another: for each parameter setting of the first it searches over all parameters of the second for the smallest Kullback-Leibler divergence, comparing contrasts when the mean is unknown. It flags best-fitting parameters that sit at their bounds.</p></li>
 <li><p><code><a href="../reference/phylo_gp_trees.html">phylo_gp_trees()</a></code> fits a model across a sample of trees and pools the posterior (or collects maximum-likelihood estimates), reporting how much of the uncertainty comes from the phylogeny; <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> works on the pooled fit.</p></li>
@@ -59,7 +64,7 @@
 <li>Kernel grammar: classical kernels (<code><a href="../reference/classical-kernels.html">k_bm()</a></code>, <code><a href="../reference/classical-kernels.html">k_lambda()</a></code>, <code><a href="../reference/classical-kernels.html">k_kappa()</a></code>, <code><a href="../reference/classical-kernels.html">k_delta()</a></code>, <code><a href="../reference/classical-kernels.html">k_eb()</a></code>, <code><a href="../reference/classical-kernels.html">k_ou()</a></code>, <code><a href="../reference/classical-kernels.html">k_white()</a></code>), extensions (<code><a href="../reference/k_relaxed.html">k_relaxed()</a></code>, <code><a href="../reference/k_rate_time.html">k_rate_time()</a></code>, <code><a href="../reference/k_dist.html">k_dist()</a></code>) and user-defined branch-wise kernels (<code><a href="../reference/k_edge.html">k_edge()</a></code>), combined with <code>+</code>.</li>
 <li>
 <code><a href="../reference/phylo_gp.html">phylo_gp()</a></code> writes, compiles and fits the Stan program by maximum likelihood or HMC, with an O(N) pruning likelihood and O(N) leave-one-out densities for branch-wise kernels.</li>
-<li>Design tools: <code><a href="../reference/kernel_check.html">kernel_check()</a></code>, <code><a href="../reference/kernel_plot.html">kernel_plot()</a></code>, <code><a href="../reference/kernel_matrix.html">kernel_matrix()</a></code>, <code><a href="../reference/kernel_simulate.html">kernel_simulate()</a></code>, <code><a href="../reference/kernel_loglik.html">kernel_loglik()</a></code>, <code><a href="../reference/make_stancode.html">make_stancode()</a></code>.</li>
+<li>Design tools: <code><a href="../reference/kernel_check.html">kernel_check()</a></code>, <code><a href="../reference/kernel_plot.html">kernel_plot()</a></code>, <code><a href="../reference/kernel_matrix.html">kernel_matrix()</a></code>, <code><a href="../reference/kernel_simulate.html">kernel_simulate()</a></code>, <code><a href="../reference/kernel_loglik.html">kernel_loglik()</a></code>, <code>make_stancode()</code>.</li>
 <li>Rate summaries: <code><a href="../reference/edge_rates.html">edge_rates()</a></code>, <code><a href="../reference/plot_edge_rates.html">plot_edge_rates()</a></code>, <code><a href="../reference/plot_tree_rates.html">plot_tree_rates()</a></code>, <code><a href="../reference/rate_through_time.html">rate_through_time()</a></code>.</li>
 <li>Vignettes: “Getting started with phylogp” and “Designing kernels”.</li>
 </ul></div>

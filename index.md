@@ -57,7 +57,7 @@ kernel_check(k_dist(phi = "exponential"), tr) # exponential (= OU): always valid
 kernel_plot(k_ou(), tr, pars = list(ou1 = list(alpha = 3)))
 kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), tr)  # same model at the tips?
 y <- kernel_simulate(k_relaxed() + k_white(), tr)   # prior predictive draws
-cat(make_stancode(k_bm() + k_white()))       # the generated Stan program
+cat(kernel_stancode(k_bm() + k_white()))       # the generated Stan program
 ```
 
 [`kernel_check()`](https://thomaspueschel.github.io/phylogp/reference/kernel_check.md)
@@ -115,7 +115,7 @@ Kernel design tools
 [`kernel_plot()`](https://thomaspueschel.github.io/phylogp/reference/kernel_plot.md),
 [`kernel_simulate()`](https://thomaspueschel.github.io/phylogp/reference/kernel_simulate.md),
 [`kernel_loglik()`](https://thomaspueschel.github.io/phylogp/reference/kernel_loglik.md),
-[`make_stancode()`](https://thomaspueschel.github.io/phylogp/reference/make_stancode.md))
+[`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md))
 work without Stan.
 
 ## Learn more

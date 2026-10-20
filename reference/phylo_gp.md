@@ -2,7 +2,7 @@
 
 Fits `y ~ N(X beta, K)` where `K` is the covariance implied by `kernel`
 on `tree`. The Stan program is written by
-[`make_stancode()`](https://thomaspueschel.github.io/phylogp/reference/make_stancode.md),
+[`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md),
 compiled once (and cached), and run with `cmdstanr`.
 
 ## Usage
@@ -67,7 +67,7 @@ phylo_gp(
 - prior_sigma_scale, prior_beta_scale:
 
   Prior scales; see
-  [`make_standata()`](https://thomaspueschel.github.io/phylogp/reference/make_standata.md).
+  [`kernel_standata()`](https://thomaspueschel.github.io/phylogp/reference/kernel_standata.md).
 
 - chains, iter_warmup, iter_sampling, adapt_delta, seed:
 

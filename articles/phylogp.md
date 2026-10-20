@@ -288,7 +288,7 @@ inspect, and edit, the generated program:
 
 ``` r
 
-code <- strsplit(stancode(fit_relaxed), "\n")[[1]]
+code <- strsplit(kernel_stancode(fit_relaxed), "\n")[[1]]
 cat(code[grep("^model", code):(grep("^generated", code) - 1)], sep = "\n")
 #> model {
 #>   {
@@ -313,9 +313,10 @@ cat(code[grep("^model", code):(grep("^generated", code) - 1)], sep = "\n")
 #> }
 ```
 
-[`make_stancode()`](https://thomaspueschel.github.io/phylogp/reference/make_stancode.md)
+Called on a kernel instead of a fit,
+[`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md)
 produces the same program without fitting, and
-[`make_standata()`](https://thomaspueschel.github.io/phylogp/reference/make_standata.md)
+[`kernel_standata()`](https://thomaspueschel.github.io/phylogp/reference/kernel_standata.md)
 the matching data, so a model can be taken further in `cmdstanr`
 directly.
 

@@ -178,7 +178,7 @@ keeps the linear-time likelihood:
 
 ``` r
 
-code <- strsplit(make_stancode(k_trend + k_white()), "\n")[[1]]
+code <- strsplit(kernel_stancode(k_trend + k_white()), "\n")[[1]]
 cat(code[grep("= trend1_kappa;", code, fixed = TRUE)[1] + (-2:3)], sep = "\n")
 #>     // edge("pow(len, kappa) .* exp(beta * he)")
 #>     {

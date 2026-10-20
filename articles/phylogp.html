@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">phylogp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -331,7 +331,7 @@ accumulated along every branch. When all components have this
 branch-wise form, the likelihood is evaluated by the linear-time pruning
 recursion. You can inspect, and edit, the generated program:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="fu"><a href="../reference/stancode.html">stancode</a></span><span class="op">(</span><span class="va">fit_relaxed</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="fu"><a href="../reference/kernel_stancode.html">kernel_stancode</a></span><span class="op">(</span><span class="va">fit_relaxed</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">code</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^model"</span>, <span class="va">code</span><span class="op">)</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^generated"</span>, <span class="va">code</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">]</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; model {</span></span>
 <span><span class="co">#&gt;   {</span></span>
@@ -354,9 +354,10 @@ recursion. You can inspect, and edit, the generated program:</p>
 <span><span class="co">#&gt;     white1_sigma ~ normal(0, white1_sigma_scale);</span></span>
 <span><span class="co">#&gt;   }</span></span>
 <span><span class="co">#&gt; }</span></span></code></pre></div>
-<p><code><a href="../reference/make_stancode.html">make_stancode()</a></code> produces the same program without
-fitting, and <code><a href="../reference/make_standata.html">make_standata()</a></code> the matching data, so a model
-can be taken further in <code>cmdstanr</code> directly.</p>
+<p>Called on a kernel instead of a fit, <code><a href="../reference/kernel_stancode.html">kernel_stancode()</a></code>
+produces the same program without fitting, and
+<code><a href="../reference/kernel_standata.html">kernel_standata()</a></code> the matching data, so a model can be
+taken further in <code>cmdstanr</code> directly.</p>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
