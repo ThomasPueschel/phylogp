@@ -182,6 +182,10 @@ summarise_moments <- function(M, V, probs, names, n_rep = 4) {
 #' fit <- phylo_gp(y ~ x, d, tree, k_bm() + k_white())
 #' predict(fit, newdata = data.frame(x = 1.2, row.names = "missing_species"))
 #' }
+#' @references
+#' Garland T. Jr., Ives A.R. 2000. Using the past to predict the present: Confidence intervals for regression equations in phylogenetic comparative methods. The American Naturalist. 155:346–364.
+#'
+#' Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
 #' @export
 predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
                                 type = c("response", "latent"), ndraws = 500,
@@ -271,6 +275,10 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
 #' @param seed Random seed.
 #' @return A data frame with one row per node (numbered as in `object$tree`):
 #'   posterior mean, standard deviation and quantiles.
+#' @references
+#' Schluter D., Price T., Mooers A.Ø., Ludwig D. 1997. Likelihood of ancestor states in adaptive radiation. Evolution. 51:1699–1711.
+#'
+#' Garland T. Jr., Ives A.R. 2000. Using the past to predict the present: Confidence intervals for regression equations in phylogenetic comparative methods. The American Naturalist. 155:346–364.
 #' @export
 ancestral <- function(object, ndraws = 500, probs = c(0.05, 0.95), tips = FALSE, seed = 1) {
   if (!inherits(object, "phylogp_fit")) stop("`object` must be a phylogp_fit.", call. = FALSE)

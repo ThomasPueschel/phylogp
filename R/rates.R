@@ -130,6 +130,10 @@ plot_tree_values <- function(tree, values, center = stats::median(values), lim =
 #' @return A data frame with one row per node of `fit$tree` (tips first):
 #'   node number, tip label (`NA` for internal nodes), posterior mean, standard
 #'   deviation and quantiles of the slope.
+#' @references
+#' Lande R. 1979. Quantitative genetic analysis of multivariate evolution, applied to brain:body size allometry. Evolution. 33:402–416.
+#'
+#' Pagel M.D., Harvey P.H. 1989. Taxonomic differences in the scaling of brain on body weight among mammals. Science. 244:1589–1593.
 #' @export
 varying_slopes <- function(fit, probs = c(0.05, 0.95)) {
   if (!inherits(fit, "phylogp_fit") || fit$method != "sample")

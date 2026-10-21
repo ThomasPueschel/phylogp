@@ -22,3 +22,8 @@ Posterior summaries of the regression slope at every node of the tree,
 \code{beta + v}, from a model with a latent \code{k_slope(x) * k} term. The mean slope
 \code{beta} is the coefficient of \code{x} in the model formula.
 }
+\references{
+Lande R. 1979. Quantitative genetic analysis of multivariate evolution, applied to brain:body size allometry. Evolution. 33:402–416.
+
+Pagel M.D., Harvey P.H. 1989. Taxonomic differences in the scaling of brain on body weight among mammals. Science. 244:1589–1593.
+}

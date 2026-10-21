@@ -40,3 +40,16 @@ kernels can fail. Use \code{\link[=kernel_check]{kernel_check()}} before fitting
 \examples{
 k_dist(phi = "exponential")
 }
+\references{
+Freckleton R.P., Jetz W. 2009. Space versus phylogeny: Disentangling phylogenetic and spatial signals in comparative data. Proceedings of the Royal Society B. 276:21–30.
+
+Guzmán Naranjo M., Becker L. 2022. Statistical bias control in typology. Linguistic Typology. 26:605–670.
+
+Hartmann F., Jäger G. 2023. Gaussian process models for geographic controls in phylogenetic trees. Open Research Europe. 3:57.
+
+Schoenberg I.J. 1938. Metric spaces and positive definite functions. Transactions of the American Mathematical Society. 44:522–536.
+
+Gneiting T. 2013. Strictly and non-strictly positive definite functions on spheres. Bernoulli. 19:1327–1349.
+
+Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
+}

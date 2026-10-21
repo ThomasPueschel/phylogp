@@ -48,6 +48,18 @@
 #' fit
 #' loo(fit)
 #' }
+#' @references
+#' Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
+#'
+#' Carpenter B., Gelman A., Hoffman M.D., Lee D., Goodrich B., Betancourt M., Brubaker M., Guo J., Li P., Riddell A. 2017. Stan: A probabilistic programming language. Journal of Statistical Software. 76:1–32.
+#'
+#' Felsenstein J. 1973. Maximum-likelihood estimation of evolutionary trees from continuous characters. American Journal of Human Genetics. 25:471–492.
+#'
+#' Ho L. si T., Ané C. 2014. A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. Systematic Biology. 63:397–408.
+#'
+#' Ives A.R., Midford P.E., Garland T. 2007. Within-species variation and measurement error in phylogenetic comparative methods. Systematic Biology. 56:252–270.
+#'
+#' Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods for comparative biology: Phylogenies, taxonomies and multi-trait models for continuous and categorical characters. Journal of Evolutionary Biology. 23:494–508.
 #' @export
 phylo_gp <- function(formula, data, tree, kernel,
                      method = c("sample", "optimize"),
@@ -261,6 +273,12 @@ logLik.phylogp_fit <- function(object, ...) {
 #' @return A `loo` object (Bayesian fits) or a vector of pointwise log
 #'   densities (maximum-likelihood fits).
 #' @importFrom loo loo
+#' @references
+#' Sundararajan S., Keerthi S.S. 2001. Predictive approaches for choosing hyperparameters in Gaussian processes. Neural Computation. 13:1103–1118.
+#'
+#' Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.
+#'
+#' Bürkner P.-C., Gabry J., Vehtari A. 2021. Efficient leave-one-out cross-validation for Bayesian non-factorized normal and Student-t models. Computational Statistics. 36:1243–1261.
 #' @exportS3Method
 loo.phylogp_fit <- function(x, ...) {
   if (x$method == "optimize") {

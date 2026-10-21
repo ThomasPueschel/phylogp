@@ -47,3 +47,6 @@ Each tree gets the same number of posterior draws, i.e. trees are weighted
 equally, as in the common practice of repeating an analysis over a tree
 sample. The Stan program is compiled once and reused for every tree.
 }
+\references{
+Villemereuil P. de, Wells J.A., Edwards R.D., Blomberg S.P. 2012. Bayesian models for comparative analysis integrating phylogenetic uncertainty. BMC Evolutionary Biology. 12:102.
+}

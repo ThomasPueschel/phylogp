@@ -19,6 +19,20 @@
 #' @return A kernel component.
 #' @examples
 #' k_relaxed() + k_white()
+#' @references
+#' Thorne J.L., Kishino H. 2002. Divergence time and evolutionary rate estimation with multilocus data. Systematic Biology. 51:689–702.
+#'
+#' O’Meara B.C., Ané C., Sanderson M.J., Wainwright P.C. 2006. Testing for different rates of continuous trait evolution using likelihood. Evolution. 60:922–933.
+#'
+#' Eastman J.M., Alfaro M.E., Joyce P., Hipp A.L., Harmon L.J. 2011. A novel comparative method for identifying shifts in the rate of character evolution on trees. Evolution. 65:3578–3589.
+#'
+#' Venditti C., Meade A., Pagel M. 2011. Multiple routes to mammalian diversity. Nature. 479:393–396.
+#'
+#' Revell L.J. 2021. A variable-rate quantitative trait evolution model using penalized-likelihood. PeerJ. 9:e11997.
+#'
+#' Gill M.S., Ho L.S.T., Baele G., Lemey P., Suchard M.A. 2017. A relaxed directional random walk model for phylogenetic trait evolution. Systematic Biology. 66:299–319.
+#'
+#' Fisher A.A., Ji X., Zhang Z., Lemey P., Suchard M.A. 2021. Relaxed random walks at scale. Systematic Biology. 70:258–267.
 #' @export
 k_relaxed <- function(tau_scale = 1) {
   new_component(
@@ -73,6 +87,12 @@ k_relaxed <- function(tau_scale = 1) {
 #' @return A kernel component.
 #' @examples
 #' k_rate_time(n_bins = 20) + k_white()
+#' @references
+#' Blomberg S.P., Garland T., Ives A.R. 2003. Testing for phylogenetic signal in comparative data: Behavioral traits are more labile. Evolution. 57:717–745.
+#'
+#' Harmon L.J., Losos J.B., Davies T.J., Gillespie R.G., Gittleman J.L., Jennings W.B., others. 2010. Early bursts of body size and shape evolution are rare in comparative data. Evolution. 64:2385–2396.
+#'
+#' Clavel J., Morlon H. 2017. Accelerated body size evolution during cold climatic periods in the Cenozoic. Proceedings of the National Academy of Sciences of the USA. 114:4183–4188.
 #' @export
 k_rate_time <- function(n_bins = 20, tau_scale = 0.5) {
   n_bins <- as.integer(n_bins)
@@ -137,6 +157,18 @@ bin_overlap <- function(ti, M) {
 #' @return A kernel component.
 #' @examples
 #' k_dist(phi = "exponential")
+#' @references
+#' Freckleton R.P., Jetz W. 2009. Space versus phylogeny: Disentangling phylogenetic and spatial signals in comparative data. Proceedings of the Royal Society B. 276:21–30.
+#'
+#' Guzmán Naranjo M., Becker L. 2022. Statistical bias control in typology. Linguistic Typology. 26:605–670.
+#'
+#' Hartmann F., Jäger G. 2023. Gaussian process models for geographic controls in phylogenetic trees. Open Research Europe. 3:57.
+#'
+#' Schoenberg I.J. 1938. Metric spaces and positive definite functions. Transactions of the American Mathematical Society. 44:522–536.
+#'
+#' Gneiting T. 2013. Strictly and non-strictly positive definite functions on spheres. Bernoulli. 19:1327–1349.
+#'
+#' Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
 #' @export
 k_dist <- function(D = NULL, phi = c("exponential", "matern32", "matern52", "sqexp"),
                    lower = 1e-3, upper = 10) {
@@ -234,6 +266,10 @@ cmp_distance <- function(ti, cmp) {
 #' k <- k_edge("pow(len, kappa) .* exp(beta * he)",
 #'             pars = list(kappa = c(0, 1), beta = c(-5, 5)))
 #' k
+#' @references
+#' Hansen T.F., Martins E.P. 1996. Translating between microevolutionary process and macroevolutionary patterns: The correlation structure of interspecific data. Evolution. 50:1404–1417.
+#'
+#' Ho L. si T., Ané C. 2014. A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. Systematic Biology. 63:397–408.
 #' @export
 k_edge <- function(w, pars = list(), defaults = NULL, name = "edge") {
   if (!is.character(w) || length(w) != 1) stop("`w` must be one string.", call. = FALSE)

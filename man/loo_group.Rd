@@ -45,3 +45,6 @@ lco <- loo_group(fit, groups = setNames(d$order, rownames(d)))
 loo::loo_compare(lco_model_a, lco_model_b)
 }
 }
+\references{
+Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.
+}

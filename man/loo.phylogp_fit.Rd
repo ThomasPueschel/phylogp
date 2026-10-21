@@ -26,3 +26,10 @@ For maximum-likelihood fits, the conditional densities at the estimates.
 Check the Pareto-k diagnostics: values above 0.7 flag influential species
 whose contribution should be recomputed by refitting.
 }
+\references{
+Sundararajan S., Keerthi S.S. 2001. Predictive approaches for choosing hyperparameters in Gaussian processes. Neural Computation. 13:1103–1118.
+
+Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.
+
+Bürkner P.-C., Gabry J., Vehtari A. 2021. Efficient leave-one-out cross-validation for Bayesian non-factorized normal and Student-t models. Computational Statistics. 36:1243–1261.
+}

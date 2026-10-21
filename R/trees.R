@@ -22,6 +22,8 @@
 #'   `summary()` gives pooled estimates and the spread of per-tree estimates;
 #'   `loo()` gives leave-one-out cross-validation for the pooled posterior;
 #'   `coef()` gives per-tree estimates.
+#' @references
+#' Villemereuil P. de, Wells J.A., Edwards R.D., Blomberg S.P. 2012. Bayesian models for comparative analysis integrating phylogenetic uncertainty. BMC Evolutionary Biology. 12:102.
 #' @export
 phylo_gp_trees <- function(formula, data, trees, kernel, n_trees = NULL,
                            method = c("sample", "optimize"), species = NULL,

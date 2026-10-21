@@ -22,6 +22,8 @@
 #' @return The `loo` object with the pointwise and total estimates updated for
 #'   the refitted species (their Pareto k set to 0, as in `loo::reloo()`), and
 #'   an attribute `refitted` naming them.
+#' @references
+#' Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.
 #' @export
 loo_refit <- function(fit, loo = NULL, k_threshold = 0.7, ...) {
   if (!inherits(fit, "phylogp_fit") || fit$method != "sample")

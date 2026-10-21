@@ -1,5 +1,7 @@
 ---
 title: "Slopes, prediction and robust residuals"
+bibliography: references.bib
+link-citations: true
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -38,7 +40,7 @@ and CmdStan.
 
 A classic question in comparative biology is whether a scaling
 relationship, such as brain size on body size, is the same across a clade
-or itself evolves. We simulate a tree of 120 species, body sizes evolving by
+or itself evolves [@lande1979; @pagel1989]. We simulate a tree of 120 species, body sizes evolving by
 Brownian motion, and a brain–body slope whose deviation from 0.7 also
 evolves by Brownian motion along the tree.
 
@@ -81,7 +83,9 @@ We compare
 2. the same, plus residual variance that grows with body size, which is
    `k_slope("body") * k_white()`: species-specific slope deviations that
    are *not* phylogenetically structured;
-3. a slope that evolves along the tree, `k_slope("body") * k_bm()`.
+3. a slope that evolves along the tree, `k_slope("body") * k_bm()`, the
+   kernel form of a phylogenetic random slope in a mixed model
+   [@hadfield2010].
 
 Model 2 matters. A varying slope also makes the variance of brain size
 grow with distance from the mean body size, so a varying-slope model could
@@ -118,7 +122,8 @@ slope, not from the variance pattern alone.
 The flags above mean a few species have Pareto $\hat k > 0.7$: removing
 them changes the posterior enough that the importance-sampling estimate of
 their leave-one-out density is unreliable. `loo_refit()` refits the model
-without each of them and replaces their contribution by the exact value.
+without each of them and replaces their contribution by the exact value
+[@vehtari2017].
 
 ```{r refit}
 loo_vary_exact <- loo_refit(f_vary, loo = loo_vary)
@@ -166,7 +171,7 @@ but the pattern along the tree is recovered.
 
 ## Predicting species without data
 
-Gaussian-process prediction on a tree is kriging: a species' value is
+Gaussian-process prediction on a tree is kriging [@garland2000; @rasmussen2006]: a species' value is
 predicted from its relatives through the kernel. Here we hold out 12
 species, fit the model to the rest, and predict them from their body sizes
 and positions in the tree.
@@ -197,7 +202,8 @@ smoothed values that also use the species' own data.
 
 ## Ancestral states
 
-Ancestral states are predictions at the internal nodes of the tree.
+Ancestral states are predictions at the internal nodes of the tree
+[@schluter1997; @garland2000].
 `ancestral()` computes them in linear time, averaged over the posterior.
 Because we simulated the whole history, we can compare them with the
 truth.
@@ -271,3 +277,5 @@ With Student-t residuals the slope estimate is closer to the true 0.7 and
 more precise, and leave-one-out strongly prefers the robust model. For real
 data, both models are worth reporting: the multipliers show which species
 drive the difference.
+
+## References

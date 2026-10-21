@@ -24,3 +24,8 @@ covariance of the sum is the sum of the covariances.
 k <- k_bm() + k_white()    # Brownian motion plus residual variance
 k
 }
+\references{
+Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
+
+Duvenaud D., Lloyd J., Grosse R., Tenenbaum J., Ghahramani Z. 2013. Structure discovery in nonparametric regression through compositional kernel search. Proceedings of the 30th international conference on machine learning. 28:1166–1174.
+}

@@ -1,5 +1,10 @@
 # phylogp (development version)
 
+* References: the help pages of the kernel components and tools, the
+  vignettes and the README now cite the work each model builds on (Brownian
+  motion, the mixed model, Pagel's transformations, early burst, OU, relaxed
+  rates, spatial kernels, varying slopes, within-species variation, kernel
+  validity, leave-one-out and prediction).
 * `plot_effects()` plots the expected response along each predictor, with a
   posterior credible band, over the data (like `brms::conditional_effects()`,
   named differently so both packages can be loaded together), and returns the

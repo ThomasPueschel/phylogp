@@ -1,5 +1,7 @@
 ---
 title: "Getting started with phylogp"
+bibliography: references.bib
+link-citations: true
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -21,8 +23,10 @@ pal <- c(fast = "#C8553D", other = "#4F6D8F", grey = "#8C8C8C")
 ```
 
 Every Gaussian model of continuous trait evolution, from Brownian motion
-and Pagel's λ to Ornstein–Uhlenbeck, early-burst and multi-rate models,
-says the same thing about the data:
+[@felsenstein1985] and Pagel's λ [@pagel1999] to Ornstein–Uhlenbeck
+[@hansen1997; @butler2004], early-burst [@blomberg2003; @harmon2010] and
+multi-rate models [@omeara2006; @eastman2011; @venditti2011], says the
+same thing about the data:
 
 $$ y \sim \mathcal{N}(X\beta,\; K), $$
 
@@ -146,7 +150,11 @@ regression line upwards.
 ## A kernel whose rate evolves
 
 `k_relaxed()` lets the log rate of evolution follow a Brownian motion along
-the tree, without being told where any shift lies. Its rates are latent
+the tree, without being told where any shift lies, much as relaxed-clock
+models let rates of molecular evolution vary [@thorne2002]; related
+approaches for continuous traits include variable-rates models
+[@eastman2011; @venditti2011; @revell2021multirate] and relaxed random walks
+[@fisher2021relaxed]. Its rates are latent
 variables, so it is fitted by Hamiltonian Monte Carlo. We compare it with
 the Bayesian version of the Pagel's λ model (BM plus residual).
 
@@ -161,7 +169,7 @@ fit_relaxed
 `relaxed1_tau`, the standard deviation of log-rate change, is clearly above
 zero: the data favour variable rates.
 
-Leave-one-out cross-validation asks which model predicts each species
+Leave-one-out cross-validation [@vehtari2017] asks which model predicts each species
 better from all the others. `phylogp` computes the exact conditional
 densities $p(y_i \mid y_{-i}, \theta)$ in linear time, and `loo()` combines
 them across posterior draws.
@@ -220,7 +228,7 @@ read the estimated ratio as conservative.
 
 ## Several observations per species
 
-Data often come as individuals rather than species means. Give the column
+Data often come as individuals rather than species means [@ives2007]. Give the column
 of species names in `species` and keep one row per individual: the kernel
 then describes the species, a `k_white()` component becomes the
 non-phylogenetic species effect, and a residual standard deviation within
@@ -250,7 +258,8 @@ Leave-one-out cross-validation then leaves out whole species, and
 
 Each kernel component adds its contribution to the variance accumulated
 along every branch. When all components have this branch-wise form, the
-likelihood is evaluated by the linear-time pruning recursion. You can
+likelihood is evaluated by the linear-time pruning recursion
+[@felsenstein1973; @ho2014]. You can
 inspect, and edit, the generated program:
 
 ```{r code, eval = has_stan}
@@ -270,3 +279,5 @@ Called on a kernel instead of a fit, `kernel_stancode()` produces the same progr
   check your own kernels, including when a kernel is or is not a valid
   covariance on a tree with fossil tips.
 * `?classical-kernels` lists the built-in components.
+
+## References

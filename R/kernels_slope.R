@@ -38,6 +38,14 @@
 #' @examples
 #' k_bm() + k_slope("body") * k_bm() + k_white()      # varying slopes
 #' k_bm() + k_slope("body") * k_white() + k_white()   # heteroscedastic control
+#' @references
+#' Lande R. 1979. Quantitative genetic analysis of multivariate evolution, applied to brain:body size allometry. Evolution. 33:402–416.
+#'
+#' Pagel M.D., Harvey P.H. 1989. Taxonomic differences in the scaling of brain on body weight among mammals. Science. 244:1589–1593.
+#'
+#' Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods for comparative biology: Phylogenies, taxonomies and multi-trait models for continuous and categorical characters. Journal of Evolutionary Biology. 23:494–508.
+#'
+#' Matsuba M., Fukasawa K., Aoki S., Akasaka M., Ishihama F. 2024. Scalable phylogenetic Gaussian process models improve the detectability of environmental signals on local extinctions for many Red List species. Methods in Ecology and Evolution. 15:756–768.
 #' @export
 k_slope <- function(x, center = TRUE, latent = TRUE) {
   if (!(is.character(x) && length(x) == 1) && !(is.numeric(x) && !is.null(names(x))))
@@ -76,6 +84,12 @@ kernel_product <- function(e1, e2) {
 #' See [k_slope()].
 #' @param e1,e2 A [k_slope()] term and one kernel component.
 #' @return A kernel component.
+#' @references
+#' Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.
+#'
+#' Duvenaud D., Lloyd J., Grosse R., Tenenbaum J., Ghahramani Z. 2013. Structure discovery in nonparametric regression through compositional kernel search. Proceedings of the 30th international conference on machine learning. 28:1166–1174.
+#'
+#' Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods for comparative biology: Phylogenies, taxonomies and multi-trait models for continuous and categorical characters. Journal of Evolutionary Biology. 23:494–508.
 #' @name kernel-product
 #' @export
 "*.phylogp_scale" <- kernel_product

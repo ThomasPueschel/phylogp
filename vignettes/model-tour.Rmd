@@ -1,5 +1,7 @@
 ---
 title: "A tour of models: from Brownian motion to phylogeny plus geography"
+bibliography: references.bib
+link-citations: true
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -42,10 +44,11 @@ N <- ape::Ntip(tr)
 
 ## 1. Brownian motion and phylogenetic regression
 
-The simplest model of trait evolution is Brownian motion (BM): changes
+The simplest model of trait evolution is Brownian motion [BM; @felsenstein1985]: changes
 accumulate at a constant rate along every branch, so the covariance of two
 species is proportional to the time they share. Phylogenetic generalised
-least squares (PGLS) is a regression whose residuals follow this process.
+least squares [PGLS; @grafen1989; @martins1997] is a regression whose
+residuals follow this process.
 
 We simulate log brain size that scales with log body size (slope 0.7),
 with a residual that evolves by BM plus some species-level variation that
@@ -61,8 +64,9 @@ head(d1, 3)
 ```
 
 Pure BM (`k_bm()`) is PGLS. Adding `k_white()`, independent variation of
-each species, gives the phylogenetic mixed model, which on a time-calibrated
-tree is the same model as Pagel's $\lambda$. Both can be fitted by maximum
+each species, gives the phylogenetic mixed model [@lynch1991; @housworth2004],
+which on a time-calibrated tree is the same model as Pagel's $\lambda$
+[@pagel1999]. Both can be fitted by maximum
 likelihood:
 
 ```{r ml-bm}
@@ -74,7 +78,8 @@ sapply(list(BM = fit_bm, "BM + white" = fit_bmw), function(f) AIC(logLik(f)))
 
 or in a Bayesian way, which gives the uncertainty of every parameter. The
 proportion of residual variance that is phylogenetic, the *phylogenetic
-signal* (equal to Pagel's $\lambda$ here), is a function of the posterior
+signal* [@pagel1999; @freckleton2002; @blomberg2003] (equal to Pagel's
+$\lambda$ here), is a function of the posterior
 draws:
 
 ```{r bayes-bm}
@@ -88,7 +93,8 @@ quantile(signal, c(0.05, 0.5, 0.95))
 
 The true signal is $0.6^2 / (0.6^2 + 0.3^2) = 0.8$.
 
-`plot_effects()` draws the fitted relationship, the expected brain size at
+`plot_effects()`, like the conditional-effects plots of brms
+[@burkner2017], draws the fitted relationship, the expected brain size at
 each body size, with its 90% credible band over the species values. This is
 the population-level line, averaged over the phylogenetic and species
 effects; the function also returns the values for your own plots.
@@ -99,7 +105,8 @@ plot_effects(fit1, "body")
 
 ## 2. The classical family
 
-Pagel's transformations, early burst (EB) and Ornstein–Uhlenbeck (OU) are
+Pagel's transformations [@pagel1999], early burst [EB; @blomberg2003;
+@harmon2010] and Ornstein–Uhlenbeck [OU; @hansen1997; @butler2004] are
 all kernels too. With `method = "optimize"` they reproduce `phylolm` and
 `geiger` to numerical precision, so a table of the usual models takes a
 few lines:
@@ -118,14 +125,15 @@ The two models with independent species-level variation, "BM + white" and
 Pagel's $\lambda$, fit best and equally well: they are the same model.
 On a time-calibrated tree, an OU model with a single optimum is also the
 same model as an *accelerating* early burst, so their fits cannot be told
-apart from extant species alone; see
+apart from extant species alone [@ho2014intrinsic; @uyeda2015comparative]; see
 `vignette("kernel-design", package = "phylogp")` for how to check whether
 two kernels are the same model.
 
 ## 3. Known measurement error
 
 When each species value is a mean with a known standard error, for example
-from a meta-analysis, the standard errors enter the model through `se`.
+from a meta-analysis, the standard errors enter the model through `se`
+[@ives2007].
 They are added to the variance of each species, so precisely measured
 species count for more.
 
@@ -144,7 +152,7 @@ with somewhat wider intervals.
 
 ## 4. Several individuals per species
 
-Data often come as individuals rather than species means. Keep one row per
+Data often come as individuals rather than species means [@ives2007]. Keep one row per
 individual and give the column of species names in `species`. The kernel
 then describes the species, `k_white()` becomes the non-phylogenetic
 species effect, and a residual standard deviation within species,
@@ -187,10 +195,12 @@ Leave-one-out cross-validation then leaves out whole species, and
 
 ## 5. Rates that change through time
 
-Early burst assumes that the rate of evolution declines exponentially. A
+Early burst assumes that the rate of evolution declines exponentially
+[@harmon2010]. A
 more flexible alternative lets the rate vary smoothly through time:
 `k_rate_time()` divides the height of the tree into bins and gives each a
-log rate with a random-walk prior. We simulate an early burst, in which
+log rate with a random-walk prior, in the spirit of models in which rates
+follow time or an environmental variable [@clavel2017]. We simulate an early burst, in which
 the rate falls 20-fold from the root to the present, and see whether the
 flexible kernel recovers its shape without being told.
 
@@ -231,10 +241,12 @@ truth. For rates that vary among clades rather than through time, see `k_relaxed
 ## 6. Phylogeny and geography
 
 Closely related species are often also close in space, and a trait can
-vary with geography for reasons that have nothing to do with ancestry.
+vary with geography for reasons that have nothing to do with ancestry
+[@freckleton2009].
 `k_dist()` adds a Gaussian process over any distance matrix, here the
 distances between species' range centres, so the phylogenetic and the
-spatial variation are estimated together.
+spatial variation are estimated together, as in Gaussian-process models of
+geography and phylogeny in linguistics [@guzmannaranjo2022; @hartmann2023].
 
 We place the species on a map, with relatives tending to live near each
 other, and simulate a trait with phylogenetic, spatial and independent
@@ -272,7 +284,8 @@ loo::loo_compare(list("phylogeny only" = loo(fit6_phy),
 ```
 
 The exponential kernel used here is valid for any Euclidean distance and
-for great-circle distances on the sphere; `kernel_check()` tests other
+for great-circle distances on the sphere [@schoenberg1938; @gneiting2013];
+`kernel_check()` tests other
 choices on the data at hand.
 
 ## 7. Outlying species
@@ -300,7 +313,7 @@ residuals and on slopes that themselves evolve along the tree.
 
 ## 8. Choosing among models
 
-Leave-one-out cross-validation (LOO) compares models by how well they
+Leave-one-out cross-validation [LOO; @vehtari2017] compares models by how well they
 predict each species from all the others. For branch-wise kernels the
 leave-one-out densities are computed in linear time, and `loo()` returns
 the usual Pareto-smoothed estimate:
@@ -341,7 +354,8 @@ tree.
 ## 9. Prediction and ancestral states
 
 A fitted model predicts species that are in the tree but have no data, by
-conditioning the Gaussian process on the observed species. We leave out
+conditioning the Gaussian process on the observed species [@garland2000].
+We leave out
 five species and predict them from their body size:
 
 ```{r predict}
@@ -353,7 +367,8 @@ cbind(p[, c("species", "mean", "q5", "q95")], true = d1[missing, "brain"])
 ```
 
 For intercept-only models of a process along the whole tree, `ancestral()`
-reconstructs the trait at the internal nodes, again in linear time. Here
+reconstructs the trait at the internal nodes [@schluter1997], again in
+linear time. Here
 we reconstruct body size and colour the tree by the posterior medians:
 
 ```{r ancestral, fig.height = 5}
@@ -374,3 +389,5 @@ plot_tree_values(ft, anc$mean[match(ft$edge[, 2], anc$node)],
   are the same model.
 * `vignette("slopes-prediction", package = "phylogp")`: slopes that evolve
   along the tree, influential species and robust residuals.
+
+## References

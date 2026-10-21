@@ -42,3 +42,8 @@ k <- k_edge("pow(len, kappa) .* exp(beta * he)",
             pars = list(kappa = c(0, 1), beta = c(-5, 5)))
 k
 }
+\references{
+Hansen T.F., Martins E.P. 1996. Translating between microevolutionary process and macroevolutionary patterns: The correlation structure of interspecific data. Evolution. 50:1404–1417.
+
+Ho L. si T., Ané C. 2014. A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. Systematic Biology. 63:397–408.
+}

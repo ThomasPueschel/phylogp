@@ -1,5 +1,7 @@
 ---
 title: "Designing kernels"
+bibliography: references.bib
+link-citations: true
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -32,6 +34,16 @@ tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
 
 ## The building blocks
 
+The components correspond to familiar models: Brownian motion
+[@felsenstein1985], Pagel's transformations [@pagel1999], early burst
+[@blomberg2003; @harmon2010], Ornstein–Uhlenbeck [@hansen1997; @butler2004],
+autocorrelated rates [@thorne2002; @eastman2011; @venditti2011] and
+distance-based kernels as used for spatial structure [@freckleton2009;
+@hartmann2023]. `k_white()` is the species-level variation of the
+phylogenetic mixed model [@lynch1991; @housworth2004]. Kernels are combined
+by sums and products, as is usual for Gaussian processes
+[@rasmussen2006; @duvenaud2013].
+
 | Component | Kernel (before scaling by `sigma^2`) | Form |
 |---|---|---|
 | `k_bm()` | shared path length $t_{ij}$ | branch-wise |
@@ -56,7 +68,8 @@ k_bm() + k_dist(phi = "exponential") + k_white()
 ```
 
 *Branch-wise* components add variance along the edges of the tree. Any sum
-of them keeps the linear-time pruning likelihood; adding a dense component
+of them keeps the linear-time pruning likelihood [@felsenstein1973; @ho2014];
+adding a dense component
 switches the model to dense linear algebra.
 
 ## A gallery of kernels
@@ -176,11 +189,12 @@ the squared-exponential kernel that most Gaussian-process software uses by
 default. Whether that works depends on the tree:
 
 * On an **ultrametric** tree any non-increasing function of patristic
-  distance is valid: it is just another tree transformation.
+  distance is valid: it is just another tree transformation (ultrametric
+  matrices are positive semi-definite; @dellacherie2014).
 * On trees with **fossil tips**, or phylograms without a clock, only
   *completely monotone* functions are guaranteed, such as the exponential,
-  which is the Ornstein–Uhlenbeck kernel. Squared-exponential and Matérn
-  kernels can fail.
+  which is the Ornstein–Uhlenbeck kernel [@schoenberg1938; @feragen2015].
+  Squared-exponential and Matérn kernels can fail.
 
 The smallest eigenvalue of the kernel matrix tells us directly. Below,
 three trees: ultrametric, ultrametric with some tips shortened to make them
@@ -235,7 +249,8 @@ Different processes can imply exactly the same distribution for the tips.
 On an ultrametric tree, a single-optimum OU process with a fixed root has
 the same kernel as an *accelerating* early-burst (ACDC) model with rate
 $r = 2\alpha$. With extant species alone the two cannot be told apart, but
-fossil tips separate them.
+fossil tips separate them. The equivalence has been noted before
+[@ho2014intrinsic; @uyeda2015comparative; @murrell2018].
 
 ```{r equivalence, fig.height = 3.8}
 alpha <- 1.5
@@ -339,3 +354,5 @@ par(op)
 In the compiled Stan programs that `phylo_gp()` generates, the same
 algorithm keeps each gradient evaluation linear in the number of species,
 which is what makes kernels with thousands of latent rates practical.
+
+## References

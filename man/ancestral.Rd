@@ -36,3 +36,8 @@ For OU, reconstructions use the OU process itself, not its branch-wise tip
 kernel: on an ultrametric tree OU and an accelerating early burst have the
 same tip distribution but different ancestral states.
 }
+\references{
+Schluter D., Price T., Mooers A.Ø., Ludwig D. 1997. Likelihood of ancestor states in adaptive radiation. Evolution. 51:1699–1711.
+
+Garland T. Jr., Ives A.R. 2000. Using the past to predict the present: Confidence intervals for regression equations in phylogenetic comparative methods. The American Naturalist. 155:346–364.
+}

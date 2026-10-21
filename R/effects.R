@@ -33,6 +33,8 @@
 #' plot_effects(fit)
 #' plot_effects(fit, "body", probs = c(0.025, 0.975))
 #' }
+#' @references
+#' Bürkner P.-C. 2017. Brms: An R package for Bayesian multilevel models using Stan. Journal of Statistical Software. 80:1–28.
 #' @export
 plot_effects <- function(fit, effect = NULL, probs = c(0.05, 0.95), points = TRUE,
                          n = 100, ndraws = 1000, plot = TRUE, col = "#4F6D8F", ...) {

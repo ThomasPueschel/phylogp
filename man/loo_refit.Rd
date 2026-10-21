@@ -35,3 +35,6 @@ information while the tree, and any latent rates on it, stay the same. Its
 predictive density is then computed in linear time (branch-wise kernels) or
 by dense conditioning.
 }
+\references{
+Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.
+}
