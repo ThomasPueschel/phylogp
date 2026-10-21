@@ -8,13 +8,15 @@
 #'
 #' @param formula Model formula, e.g. `brain ~ body`.
 #' @param data Data frame. Species are matched to tip labels through
-#'   `species` or, if `species` is `NULL`, the row names.
+#'   `species` or, if `species` is `NULL`, the row names. With `species`, a
+#'   species may have several rows (repeated measurements); see Details.
 #' @param tree A `phylo` tree with branch lengths.
 #' @param kernel A kernel, e.g. `k_bm() + k_white()`.
 #' @param method `"sample"` (Bayesian, HMC) or `"optimize"` (maximum
 #'   likelihood: no priors, no Jacobian, several starts). Kernels with latent
 #'   rates (`k_relaxed()`, `k_rate_time()`) need `"sample"`.
-#' @param species Optional name of the column of `data` holding species names.
+#' @param species Optional name of the column of `data` holding species
+#'   names. Needed when species have several rows.
 #' @param se Optional name of a column with known measurement-error standard
 #'   deviations.
 #' @param prior_sigma_scale,prior_beta_scale Prior scales; see
@@ -23,6 +25,20 @@
 #'   `cmdstanr`'s `$sample()`.
 #' @param n_starts Number of optimisation starts for `method = "optimize"`.
 #' @param ... Further arguments to `$sample()` or `$optimize()`.
+#' @details
+#' **Several rows per species.** When some species have more than one row,
+#' the model is
+#' \deqn{y_{ij} = x_{ij}^\top\beta + f_i + \epsilon_{ij}, \quad
+#'   \epsilon_{ij} \sim N(0, \sigma_w^2),}
+#' where \eqn{f} is the Gaussian process given by `kernel` over species and
+#' \eqn{\sigma_w} (`within_sigma`) is the residual standard deviation within
+#' species. A `k_white()` component is then the non-phylogenetic species
+#' effect (the `(1 | species)` term of a mixed model). The likelihood is
+#' exact and keeps its linear cost: it factorises into the species means,
+#' which follow the kernel with an extra tip variance \eqn{\sigma_w^2/n_i},
+#' and the deviations from those means. Predictors may vary within species.
+#' Leave-one-out leaves out whole species. Not yet available with varying
+#' slopes or known measurement error (`se`).
 #' @return An object of class `phylogp_fit`.
 #' @examples
 #' \dontrun{
@@ -43,6 +59,9 @@ phylo_gp <- function(formula, data, tree, kernel,
   kernel <- as_kernel(kernel)
   check_cmdstanr()
   md <- match_data(formula, data, tree, species, c(se, slope_columns(kernel)), se = se)
+  if (!is.null(md$repeated) && any(vapply(kernel$components, function(cmp) !is.null(cmp$scale), TRUE)))
+    stop("Varying slopes (k_slope()) are not yet available with several rows per species.",
+         call. = FALSE)
   kernel <- resolve_slopes(kernel, md$data)
   ti <- tree_info(md$tree)
   L <- kernel_layout(kernel, ti)
@@ -50,11 +69,12 @@ phylo_gp <- function(formula, data, tree, kernel,
     stop("Kernels with latent values (k_relaxed(), k_rate_time(), latent slopes, ",
          "k_white(df = )) need method = \"sample\".", call. = FALSE)
 
-  code <- kernel_stancode(kernel, ti$tree)
+  code <- kernel_stancode(kernel, ti$tree, repeated = !is.null(md$repeated))
   standata <- kernel_standata(kernel, ti, md$y, md$X, md$se,
                             use_prior = as.integer(method == "sample"),
                             prior_sigma_scale = prior_sigma_scale,
-                            prior_beta_scale = prior_beta_scale)
+                            prior_beta_scale = prior_beta_scale,
+                            repeated = md$repeated)
   mod <- compile_phylogp(code)
 
   if (method == "sample") {
@@ -79,6 +99,7 @@ phylo_gp <- function(formula, data, tree, kernel,
                  code = code, standata = standata, tree = ti$tree, tree_full = tree,
                  formula = formula, terms = md$terms, xlevels = md$xlevels,
                  species = species, data = md$data, coef_names = colnames(md$X),
+                 repeated = md$repeated,
                  sampler = list(chains = chains, iter_warmup = iter_warmup,
                                 iter_sampling = iter_sampling,
                                 adapt_delta = adapt_delta, seed = seed)),
@@ -106,31 +127,64 @@ compile_phylogp <- function(code) {
   cmdstanr::cmdstan_model(file, quiet = TRUE)
 }
 
-# Match data rows to tips; drop species missing from either, or with NAs
+# Match data rows to tips; drop species missing from either, or with NAs.
+# With several rows per species (only through `species`), y and X become
+# species means and `repeated` holds what the within-species part of the
+# likelihood needs: rows per species, deviations from the species means and
+# the species of each row.
 match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NULL) {
   data <- as.data.frame(data)
   sp <- if (is.null(species)) rownames(data) else as.character(data[[species]])
-  if (is.null(sp) || anyDuplicated(sp))
-    stop("Species names (row names or `species`) must be present and unique.", call. = FALSE)
-  rownames(data) <- sp
+  if (is.null(sp)) stop("Species names (row names or `species`) must be present.", call. = FALSE)
+  if (anyDuplicated(sp) && is.null(species))
+    stop("Row names must be unique; for several rows per species give the ",
+         "species column in `species`.", call. = FALSE)
   vars <- unique(c(all.vars(formula), extra_vars))
-  ok <- stats::complete.cases(data[, vars, drop = FALSE])
-  keep <- intersect(tree$tip.label, sp[ok])
+  ok <- stats::complete.cases(data[, vars, drop = FALSE]) & !is.na(sp)
+  keep <- intersect(tree$tip.label, unique(sp[ok]))
   n_drop_tree <- length(setdiff(tree$tip.label, keep))
-  n_drop_data <- length(setdiff(sp, keep))
-  if (length(keep) < 3) stop("Fewer than 3 species match the tree.", call. = FALSE)
+  n_drop_rows <- sum(!(ok & sp %in% keep))
+  if (length(keep) < 3)
+    stop("Fewer than 3 species match the tree.",
+         if (is.null(species)) " Species are taken from the row names; give the column of species names in `species`.",
+         call. = FALSE)
   if (n_drop_tree) {
     message(sprintf("Dropping %d tips without data.", n_drop_tree))
     tree <- ape::drop.tip(tree, setdiff(tree$tip.label, keep))
   }
-  if (n_drop_data) message(sprintf("Dropping %d rows not in the tree or with missing values.", n_drop_data))
+  if (n_drop_rows) message(sprintf("Dropping %d rows not in the tree or with missing values.", n_drop_rows))
   ti <- tree_info(tree)
-  data <- data[ti$labels, , drop = FALSE]
-  mf <- stats::model.frame(formula, data)
-  list(tree = ti$tree, data = data, y = stats::model.response(mf),
-       X = stats::model.matrix(formula, mf),
-       terms = attr(mf, "terms"), xlevels = stats::.getXlevels(attr(mf, "terms"), mf),
-       se = if (is.null(se)) NULL else data[[se]])
+  rows <- data[ok & sp %in% keep, , drop = FALSE]
+  sp_rows <- sp[ok & sp %in% keep]
+  mf <- stats::model.frame(formula, rows)
+  terms <- attr(mf, "terms")
+  xlevels <- stats::.getXlevels(terms, mf)
+  y_rows <- stats::model.response(mf)
+  X_rows <- stats::model.matrix(formula, mf)
+  if (!anyDuplicated(sp_rows)) {
+    o <- match(ti$labels, sp_rows)
+    data_sp <- rows[o, , drop = FALSE]
+    rownames(data_sp) <- ti$labels
+    return(list(tree = ti$tree, data = data_sp, y = unname(y_rows[o]),
+                X = X_rows[o, , drop = FALSE], terms = terms, xlevels = xlevels,
+                se = if (is.null(se)) NULL else data_sp[[se]], repeated = NULL))
+  }
+  if (!is.null(se))
+    stop("`se` (known measurement error) cannot be combined with several rows ",
+         "per species; the within-species variance is estimated instead.", call. = FALSE)
+  idx <- match(sp_rows, ti$labels)
+  n <- tabulate(idx, ti$N)
+  y_mean <- as.numeric(rowsum(y_rows, idx, reorder = TRUE)) / n
+  X_mean <- rowsum(X_rows, idx, reorder = TRUE) / n
+  dimnames(X_mean) <- list(ti$labels, colnames(X_rows))
+  data_sp <- rows[match(ti$labels, sp_rows), , drop = FALSE]
+  rownames(data_sp) <- ti$labels
+  list(tree = ti$tree, data = data_sp, y = y_mean, X = X_mean,
+       terms = terms, xlevels = xlevels, se = NULL,
+       repeated = list(n = n, species = idx,
+                       y_dev = as.numeric(y_rows) - y_mean[idx],
+                       X_dev = unname(X_rows - X_mean[idx, , drop = FALSE]),
+                       sd_y = stats::sd(y_rows), rows = rows))
 }
 
 # Names of the parameters that summarise a fit (not latent variables)
@@ -143,7 +197,7 @@ fit_par_names <- function(x) {
     c(paste0(id, "_sigma"), if (length(cmp$pars)) paste0(id, "_", names(cmp$pars)),
       if (length(cmp$hyper)) paste0(id, "_", cmp$hyper))
   }))
-  c(b, cp)
+  c(b, cp, if (!is.null(x$repeated)) "within_sigma")
 }
 
 #' @export
@@ -151,7 +205,8 @@ print.phylogp_fit <- function(x, digits = 3, ...) {
   cat("Phylogenetic Gaussian process\n")
   cat("  Formula:", deparse(x$formula), "\n")
   cat("  Kernel: ", paste(vapply(x$kernel$components, `[[`, "", "label"), collapse = " + "), "\n")
-  cat("  Tips:   ", length(x$tree$tip.label), "\n")
+  cat("  Tips:   ", length(x$tree$tip.label),
+      if (!is.null(x$repeated)) sprintf("(%d rows; within-species sd: within_sigma)", length(x$repeated$species)), "\n")
   cat("  Likelihood:", if (x$layout$dense) "dense" else "pruning (linear time)", "\n")
   cat("  Method: ", if (x$method == "sample") "Bayesian (HMC)" else "maximum likelihood", "\n\n")
   s <- summary(x)

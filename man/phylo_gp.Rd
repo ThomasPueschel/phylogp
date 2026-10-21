@@ -27,7 +27,8 @@ phylo_gp(
 \item{formula}{Model formula, e.g. \code{brain ~ body}.}
 
 \item{data}{Data frame. Species are matched to tip labels through
-\code{species} or, if \code{species} is \code{NULL}, the row names.}
+\code{species} or, if \code{species} is \code{NULL}, the row names. With \code{species}, a
+species may have several rows (repeated measurements); see Details.}
 
 \item{tree}{A \code{phylo} tree with branch lengths.}
 
@@ -37,7 +38,8 @@ phylo_gp(
 likelihood: no priors, no Jacobian, several starts). Kernels with latent
 rates (\code{k_relaxed()}, \code{k_rate_time()}) need \code{"sample"}.}
 
-\item{species}{Optional name of the column of \code{data} holding species names.}
+\item{species}{Optional name of the column of \code{data} holding species
+names. Needed when species have several rows.}
 
 \item{se}{Optional name of a column with known measurement-error standard
 deviations.}
@@ -59,6 +61,21 @@ An object of class \code{phylogp_fit}.
 Fits \verb{y ~ N(X beta, K)} where \code{K} is the covariance implied by \code{kernel} on
 \code{tree}. The Stan program is written by \code{\link[=kernel_stancode]{kernel_stancode()}}, compiled once
 (and cached), and run with \code{cmdstanr}.
+}
+\details{
+\strong{Several rows per species.} When some species have more than one row,
+the model is
+\deqn{y_{ij} = x_{ij}^\top\beta + f_i + \epsilon_{ij}, \quad
+  \epsilon_{ij} \sim N(0, \sigma_w^2),}
+where \eqn{f} is the Gaussian process given by \code{kernel} over species and
+\eqn{\sigma_w} (\code{within_sigma}) is the residual standard deviation within
+species. A \code{k_white()} component is then the non-phylogenetic species
+effect (the \code{(1 | species)} term of a mixed model). The likelihood is
+exact and keeps its linear cost: it factorises into the species means,
+which follow the kernel with an extra tip variance \eqn{\sigma_w^2/n_i},
+and the deviations from those means. Predictors may vary within species.
+Leave-one-out leaves out whole species. Not yet available with varying
+slopes or known measurement error (\code{se}).
 }
 \examples{
 \dontrun{

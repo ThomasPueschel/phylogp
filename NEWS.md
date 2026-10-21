@@ -1,5 +1,16 @@
 # phylogp (development version)
 
+* Several rows per species: with `species = ` given, `phylo_gp()` accepts
+  repeated measurements (e.g. individuals) and adds a within-species residual
+  standard deviation, `within_sigma`. The kernel then describes the species
+  and `k_white()` is the non-phylogenetic species effect, as in
+  `(1 | species)` of a mixed model. The likelihood is exact and keeps its
+  linear cost, because it factorises into the species means and the
+  deviations from them; predictors may vary within species. Leave-one-out,
+  `loo_refit()` and `loo_group()` leave out whole species, `predict()`
+  includes the within-species variation in `type = "response"`, and
+  `ancestral()` works as before. Not yet available with varying slopes or
+  known measurement error (`se`).
 * `make_stancode()`, `make_standata()` and `stancode()` are renamed
   `kernel_stancode()` and `kernel_standata()`, so that phylogp and brms can be
   loaded together without masking each other's functions.

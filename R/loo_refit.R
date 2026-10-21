@@ -47,6 +47,7 @@ loo_refit <- function(fit, loo = NULL, k_threshold = 0.7, ...) {
   for (i in idx) {
     sd_i <- fit$standata
     sd_i$se[i] <- big
+    if (!is.null(fit$repeated)) sd_i$within_include[i] <- 0
     f <- mod$sample(data = sd_i, chains = sm$chains, parallel_chains = sm$chains,
                     iter_warmup = sm$iter_warmup, iter_sampling = sm$iter_sampling,
                     adapt_delta = sm$adapt_delta, seed = sm$seed, refresh = 0,
@@ -57,11 +58,12 @@ loo_refit <- function(fit, loo = NULL, k_threshold = 0.7, ...) {
       beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
       kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
       r <- y - as.numeric(X %*% beta) - kp$shift
-      t2 <- kp$t2 + se^2
+      t2 <- kp$t2 + se^2 + within_t2(fit, row)
       r_i <- r[i]
       r[i] <- NA
       cm <- condition_tips(ti, kp, r, t2, i)
-      stats::dnorm(r_i, cm$mean, sqrt(cm$var + t2[i]), log = TRUE)
+      stats::dnorm(r_i, cm$mean, sqrt(cm$var + t2[i]), log = TRUE) +
+        within_lp(fit, row, beta)[i]
     }, numeric(1))
     elpd_i <- max(lp) + log(mean(exp(lp - max(lp))))
     pw <- lo$pointwise

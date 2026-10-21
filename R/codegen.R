@@ -49,11 +49,14 @@ kernel_layout <- function(kernel, ti = NULL) {
 #'   `k_ou()` can use the branch-wise form (ultrametric trees) or need dense
 #'   algebra. Without a tree an ultrametric tree is assumed. Ignored for a
 #'   fitted model.
+#' @param repeated Write the program for several observations per species?
+#'   The kernel then describes the species means, and a within-species
+#'   residual standard deviation `within_sigma` is added; see [phylo_gp()].
 #' @return A character string with class `phylogp_stancode`.
 #' @examples
 #' cat(kernel_stancode(k_bm() + k_white()))
 #' @export
-kernel_stancode <- function(kernel, tree = NULL) {
+kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
   if (inherits(kernel, "phylogp_fit")) return(kernel$code)
   ti <- if (is.null(tree)) NULL else tree_info(tree)
   L <- kernel_layout(kernel, ti)
@@ -76,7 +79,16 @@ kernel_stancode <- function(kernel, tree = NULL) {
     "int<lower=0, upper=1> use_prior;      // 0: posterior mode = maximum likelihood",
     "real<lower=0> prior_beta_scale;",
     if (L$quad_kind == "gh") c("int<lower=1> n_gh;", "vector[n_gh] gh_x;", "vector[n_gh] gh_w;"),
-    if (L$quad_kind == "lam") c("int<lower=1> n_lq;", "vector<lower=0>[n_lq] lq_lam;", "vector<lower=0>[n_lq] lq_w;"))
+    if (L$quad_kind == "lam") c("int<lower=1> n_lq;", "vector<lower=0>[n_lq] lq_lam;", "vector<lower=0>[n_lq] lq_w;"),
+    if (repeated) c(
+      "// several observations per species: y and X hold species means",
+      "int<lower=1> M;                       // observations",
+      "vector<lower=1>[N] n_obs;             // observations per species",
+      "array[M] int<lower=1, upper=N> obs_sp; // species of each observation",
+      "vector[M] y_dev;                      // y minus its species mean",
+      "matrix[M, P] X_dev;                   // X minus its species means",
+      "vector<lower=0, upper=1>[N] within_include; // 0 leaves a species out",
+      "real<lower=0> within_sigma_scale;"))
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
     data <- c(data, sprintf("// %s: %s", id, cmp$label),
@@ -88,7 +100,8 @@ kernel_stancode <- function(kernel, tree = NULL) {
   }
 
   # ---- parameters ----
-  pars <- "vector[P] coefs;              // regression coefficients"
+  pars <- c("vector[P] coefs;              // regression coefficients",
+            if (repeated) "real<lower=0> within_sigma;    // residual sd within species")
   tpars <- character()
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
@@ -100,7 +113,8 @@ kernel_stancode <- function(kernel, tree = NULL) {
   }
 
   # ---- kernel assembly (used in model and generated quantities) ----
-  asm <- c("vector[E] w = rep_vector(0, E);", "real rv = 0;", "vector[N] t2 = square(se);")
+  asm <- c("vector[E] w = rep_vector(0, E);", "real rv = 0;", "vector[N] t2 = square(se);",
+           if (repeated) "t2 += square(within_sigma) ./ n_obs;  // error of the species means")
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
     if (L$forms[j] == "white") {
@@ -137,6 +151,11 @@ kernel_stancode <- function(kernel, tree = NULL) {
                 c(sprintf("%1$s_sigma ~ normal(0, %1$s_sigma_scale);", id),
                   sub_id(comps[[j]]$stan_prior, id))
               })))
+  within <- "within_logdens(y_dev, X_dev, coefs, obs_sp, n_obs, within_sigma)"
+  if (repeated) {
+    lik <- c(lik, sprintf("target += dot_product(within_include, %s);", within))
+    priors <- c(priors, "within_sigma ~ normal(0, within_sigma_scale);")
+  }
   model <- c("{", ind(c(asm, lik)), "}", latent_prior,
              "if (use_prior == 1) {", ind(priors), "}")
 
@@ -168,7 +187,8 @@ kernel_stancode <- function(kernel, tree = NULL) {
   } else {
     body <- c(body, "log_lik[i] = normal_lpdf(ri | mo[i, 1], sqrt(vi));")
   }
-  loo <- c(loo, ind(body), "}")
+  loo <- c(loo, ind(body), "}",
+           if (repeated) sprintf("log_lik += %s;  // leave out all rows of a species", within))
   gq <- c("vector[N] log_lik;", "{", ind(c(asm, loo)), "}")
 
   fun_file <- system.file("stan", "phylogp_functions.stan", package = "phylogp")
@@ -178,7 +198,7 @@ kernel_stancode <- function(kernel, tree = NULL) {
     sprintf("// Kernel: %s", paste(vapply(comps, `[[`, "", "label"), collapse = " + ")),
     sprintf("// Likelihood: %s", if (L$dense) "dense (O(N^3))" else "pruning (O(N))"))
   code <- c(header,
-            "functions {", funs, "}",
+            "functions {", funs, if (repeated) ind(within_lp_stan()), "}",
             "data {", ind(data), "}",
             "parameters {", ind(pars), "}",
             if (length(tpars)) c("transformed parameters {", ind(tpars), "}"),
@@ -192,6 +212,20 @@ print.phylogp_stancode <- function(x, ...) {
   cat(x, "\n")
   invisible(x)
 }
+
+# Stan function: log density of the within-species deviations of each species,
+# log p(y_i | ybar_i) for y_ij ~ N(x_ij b + f_i, s^2), which with the density of
+# the species mean (variance s^2 / n_i) gives the exact likelihood of the rows.
+within_lp_stan <- function() c(
+  "vector within_logdens(vector y_dev, matrix X_dev, vector coefs, array[] int obs_sp,",
+  "                 vector n_obs, real s) {",
+  "  int N = rows(n_obs);",
+  "  vector[N] ss = rep_vector(0, N);",
+  "  vector[rows(y_dev)] d = y_dev - X_dev * coefs;",
+  "  for (m in 1:rows(y_dev)) ss[obs_sp[m]] += square(d[m]);",
+  "  return -0.5 * (n_obs - 1) * log(2 * pi() * square(s)) - 0.5 * log(n_obs)",
+  "         - ss / (2 * square(s));",
+  "}")
 
 #' Data for the Stan program of a kernel
 #'
@@ -207,10 +241,16 @@ print.phylogp_stancode <- function(x, ...) {
 #'   component scales; by default `2 sd(y) / sqrt(base variance)`.
 #' @param prior_beta_scale Optional scale of the normal priors on the
 #'   regression coefficients.
+#' @param repeated For several observations per species: `NULL`, or a list
+#'   with `n` (observations per species, in tip order), `species` (tip index
+#'   of each observation), `y_dev` and `X_dev` (deviations of the response
+#'   and of the design matrix from their species means) and `sd_y` (sd of
+#'   the response over observations). `y` and `X` are then species means.
 #' @return A named list.
 #' @export
 kernel_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
-                          prior_sigma_scale = NULL, prior_beta_scale = NULL) {
+                          prior_sigma_scale = NULL, prior_beta_scale = NULL,
+                          repeated = NULL) {
   ti <- tree_info(tree)
   L <- kernel_layout(kernel, ti)
   y <- as.numeric(y)
@@ -246,6 +286,12 @@ kernel_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
     }
     if (!is.null(cmp$standata)) d <- c(d, cmp$standata(ti, id, cmp))
   }
+  if (!is.null(repeated))
+    d <- c(d, list(M = length(repeated$species), n_obs = as.numeric(repeated$n),
+                   obs_sp = as.integer(repeated$species), y_dev = repeated$y_dev,
+                   X_dev = matrix(repeated$X_dev, ncol = ncol(X)),
+                   within_include = rep(1, ti$N),
+                   within_sigma_scale = prior_sigma_scale %||% (2 * repeated$sd_y)))
   d
 }
 

@@ -12,7 +12,8 @@ kernel_standata(
   se = NULL,
   use_prior = 1,
   prior_sigma_scale = NULL,
-  prior_beta_scale = NULL
+  prior_beta_scale = NULL,
+  repeated = NULL
 )
 }
 \arguments{
@@ -33,6 +34,12 @@ component scales; by default \verb{2 sd(y) / sqrt(base variance)}.}
 
 \item{prior_beta_scale}{Optional scale of the normal priors on the
 regression coefficients.}
+
+\item{repeated}{For several observations per species: \code{NULL}, or a list
+with \code{n} (observations per species, in tip order), \code{species} (tip index
+of each observation), \code{y_dev} and \code{X_dev} (deviations of the response
+and of the design matrix from their species means) and \code{sd_y} (sd of
+the response over observations). \code{y} and \code{X} are then species means.}
 }
 \value{
 A named list.

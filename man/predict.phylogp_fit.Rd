@@ -26,7 +26,8 @@ species must be in \code{tree}. If \code{NULL}, the fitted species are predicted
 given to \code{\link[=phylo_gp]{phylo_gp()}}.}
 
 \item{type}{\code{"response"} (a new observation of the trait, including
-residual variation from \code{k_white()}) or \code{"latent"} (the evolutionary
+residual variation from \code{k_white()} and, for fits with several rows per
+species, the within-species variation) or \code{"latent"} (the evolutionary
 process at the tip).}
 
 \item{ndraws}{Number of posterior draws used.}

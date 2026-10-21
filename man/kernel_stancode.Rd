@@ -4,7 +4,7 @@
 \alias{kernel_stancode}
 \title{Stan code for a kernel or a fitted model}
 \usage{
-kernel_stancode(kernel, tree = NULL)
+kernel_stancode(kernel, tree = NULL, repeated = FALSE)
 }
 \arguments{
 \item{kernel}{A kernel, e.g. \code{k_bm() + k_white()}, or a \code{phylogp_fit}.}
@@ -13,6 +13,10 @@ kernel_stancode(kernel, tree = NULL)
 \code{k_ou()} can use the branch-wise form (ultrametric trees) or need dense
 algebra. Without a tree an ultrametric tree is assumed. Ignored for a
 fitted model.}
+
+\item{repeated}{Write the program for several observations per species?
+The kernel then describes the species means, and a within-species
+residual standard deviation \code{within_sigma} is added; see \code{\link[=phylo_gp]{phylo_gp()}}.}
 }
 \value{
 A character string with class \code{phylogp_stancode}.

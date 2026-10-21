@@ -57,6 +57,7 @@ loo_group <- function(fit, groups, ndraws = 400, ...) {
     message(sprintf("Group %d of %d: %s (%d species)", k, length(levels_g), levels_g[k], length(idx)))
     sd_k <- fit$standata
     sd_k$se[idx] <- big
+    if (!is.null(fit$repeated)) sd_k$within_include[idx] <- 0
     f <- mod$sample(data = sd_k, chains = sm$chains, parallel_chains = sm$chains,
                     iter_warmup = sm$iter_warmup, iter_sampling = sm$iter_sampling,
                     adapt_delta = sm$adapt_delta, seed = sm$seed, refresh = 0,
@@ -68,12 +69,13 @@ loo_group <- function(fit, groups, ndraws = 400, ...) {
       beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
       kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
       r <- y - as.numeric(X %*% beta) - kp$shift
-      t2 <- kp$t2 + se^2
+      t2 <- kp$t2 + se^2 + within_t2(fit, row)
+      wl <- within_lp(fit, row, beta)[idx]
       r_rest <- r
       r_rest[idx] <- NA
       joint <- group_lpd(ti, kp, r, r_rest, t2, idx)
       cm <- condition_tips(ti, kp, r_rest, t2, idx)
-      c(joint, stats::dnorm(r[idx], cm$mean, sqrt(cm$var + t2[idx]), log = TRUE))
+      c(joint + sum(wl), stats::dnorm(r[idx], cm$mean, sqrt(cm$var + t2[idx]), log = TRUE) + wl)
     }, numeric(1 + length(idx)))
     res <- matrix(res, nrow = 1 + length(idx))
     lme <- function(x) max(x) + log(mean(exp(x - max(x))))

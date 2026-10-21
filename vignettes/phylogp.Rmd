@@ -218,6 +218,34 @@ change is underestimated (the truth is 8-fold) even though its location is
 found. This is the expected behaviour of the model, and the reason to
 read the estimated ratio as conservative.
 
+## Several observations per species
+
+Data often come as individuals rather than species means. Give the column
+of species names in `species` and keep one row per individual: the kernel
+then describes the species, a `k_white()` component becomes the
+non-phylogenetic species effect, and a residual standard deviation within
+species (`within_sigma`) is added. The likelihood is exact and still linear
+in the number of species, because it factorises into the species means and
+the deviations from them. Here we sample two to six individuals per
+species, with body size varying within species:
+
+```{r individuals, eval = has_stan, message = FALSE}
+set.seed(7)
+ind <- data.frame(species = rep(rownames(d), sample(2:6, N, replace = TRUE)))
+dev_body  <- rnorm(nrow(ind), 0, 0.2)
+ind$body  <- d[ind$species, "body"] + dev_body
+ind$brain <- d[ind$species, "brain"] + 0.7 * dev_body + rnorm(nrow(ind), 0, 0.3)
+nrow(ind)
+
+fit_ind <- phylo_gp(brain ~ body, data = ind, tree = tr,
+                    kernel = k_bm() + k_white(), species = "species",
+                    method = "optimize")
+fit_ind
+```
+
+Leave-one-out cross-validation then leaves out whole species, and
+`predict()` with `type = "response"` predicts a new individual.
+
 ## Under the hood
 
 Each kernel component adds its contribution to the variance accumulated

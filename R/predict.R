@@ -77,6 +77,22 @@ condition_tips <- function(ti, kp, r, t2, idx) {
        var = diag(Kp)[idx] - rowSums(A * Kp[idx, o, drop = FALSE]))
 }
 
+# Several observations per species: the within-species error of each species
+# mean (added to the tip variances) and the log density of each species'
+# deviations from its mean, log p(y_i | ybar_i), for one draw.
+within_t2 <- function(fit, row) {
+  if (is.null(fit$repeated)) return(0)
+  unname(row["within_sigma"])^2 / fit$repeated$n
+}
+within_lp <- function(fit, row, beta) {
+  rp <- fit$repeated
+  if (is.null(rp)) return(rep(0, length(fit$tree$tip.label)))
+  s2 <- unname(row["within_sigma"])^2
+  d <- rp$y_dev - as.numeric(rp$X_dev %*% beta)
+  ss <- as.numeric(rowsum(d^2, rp$species, reorder = TRUE))
+  -0.5 * (rp$n - 1) * log(2 * pi * s2) - 0.5 * log(rp$n) - ss / (2 * s2)
+}
+
 # Parameter draws of a fit as a matrix (one row per draw)
 fit_draws <- function(fit, ndraws = NULL, seed = 1) {
   if (fit$method == "optimize") {
@@ -152,7 +168,8 @@ summarise_moments <- function(M, V, probs, names, n_rep = 4) {
 #' @param tree Tree containing the species to predict; by default the tree
 #'   given to [phylo_gp()].
 #' @param type `"response"` (a new observation of the trait, including
-#'   residual variation from `k_white()`) or `"latent"` (the evolutionary
+#'   residual variation from `k_white()` and, for fits with several rows per
+#'   species, the within-species variation) or `"latent"` (the evolutionary
 #'   process at the tip).
 #' @param ndraws Number of posterior draws used.
 #' @param probs Quantiles to report.
@@ -216,10 +233,11 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
     r <- rep(NA_real_, ti$N)
     r[o] <- y_obs - as.numeric(X_obs %*% beta) - kp$shift[o]
     t2 <- kp$t2
-    t2[o] <- t2[o] + se_obs^2
+    t2[o] <- t2[o] + se_obs^2 + within_t2(object, row)
     cm <- condition_tips(ti, kp, r, t2, t_idx)
     m <- cm$mean + kp$shift[t_idx]; v <- cm$var
-    if (type == "response") v <- v + kp$t2[t_idx]
+    if (type == "response")
+      v <- v + kp$t2[t_idx] + if (is.null(object$repeated)) 0 else unname(row["within_sigma"])^2
     M[s, ] <- m + as.numeric(X_t %*% beta)
     V[s, ] <- pmax(v, 0)
   }
@@ -278,7 +296,7 @@ ancestral <- function(object, ndraws = 500, probs = c(0.05, 0.95), tips = FALSE,
     mu <- unname(row["coefs[1]"])
     P <- draw_pars(L, row, ti)
     kp <- kernel_parts(L$kernel, ti, P)
-    t2 <- kp$t2 + se^2
+    t2 <- kp$t2 + se^2 + within_t2(object, row)
     post <- if (any(is_ou)) {
       tr <- ou_transitions(L, P, ti)
       tree_posterior(ti, y - mu, tr$w, tr$rv, t2, a = tr$a)
