@@ -18,8 +18,10 @@ Fit a phylogenetic Gaussian process and compare models.
 
 ## Prediction and ancestral states
 
-Predict species without data and reconstruct internal nodes.
+Regression effects, species without data and internal nodes.
 
+- [`plot_effects()`](https://thomaspueschel.github.io/phylogp/reference/plot_effects.md)
+  : Plot regression effects
 - [`predict(`*`<phylogp_fit>`*`)`](https://thomaspueschel.github.io/phylogp/reference/predict.phylogp_fit.md)
   : Predict trait values for species
 - [`ancestral()`](https://thomaspueschel.github.io/phylogp/reference/ancestral.md)

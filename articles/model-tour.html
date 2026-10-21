@@ -163,6 +163,14 @@ here), is a function of the posterior draws:</p>
 <span><span class="co">#&gt; 0.4572182 0.7312588 0.8897449</span></span></code></pre></div>
 <p>The true signal is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.6</mn><mn>2</mn></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msup><mn>0.6</mn><mn>2</mn></msup><mo>+</mo><msup><mn>0.3</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">0.6^2 / (0.6^2 + 0.3^2) = 0.8</annotation></semantics></math>.</p>
+<p><code><a href="../reference/plot_effects.html">plot_effects()</a></code> draws the fitted relationship, the
+expected brain size at each body size, with its 90% credible band over
+the species values. This is the population-level line, averaged over the
+phylogenetic and species effects; the function also returns the values
+for your own plots.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_effects.html">plot_effects</a></span><span class="op">(</span><span class="va">fit1</span>, <span class="st">"body"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="model-tour_files/figure-html/effects-bm-1.png" class="r-plt" alt="" width="65%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="the-classical-family">2. The classical family<a class="anchor" aria-label="anchor" href="#the-classical-family"></a>
@@ -171,7 +179,7 @@ here), is a function of the posterior draws:</p>
 are all kernels too. With <code>method = "optimize"</code> they
 reproduce <code>phylolm</code> and <code>geiger</code> to numerical
 precision, so a table of the usual models takes a few lines:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kernels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>BM <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"BM + white"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                <span class="st">"Pagel's lambda"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_lambda</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"Pagel's kappa"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_kappa</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                <span class="st">"Pagel's delta"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_delta</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"early burst"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -204,7 +212,7 @@ check whether two kernels are the same model.</p>
 example from a meta-analysis, the standard errors enter the model
 through <code>se</code>. They are added to the variance of each species,
 so precisely measured species count for more.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">d3</span> <span class="op">&lt;-</span> <span class="va">d1</span></span>
 <span><span class="va">d3</span><span class="op">$</span><span class="va">se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">0.05</span>, <span class="fl">0.6</span><span class="op">)</span></span>
@@ -241,7 +249,7 @@ species.</p>
 within species, and the within-species slope is 0.3, smaller than the
 slope among species (0.7). Splitting the predictor into the species mean
 and the deviation from it estimates both slopes:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="va">N</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">dev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ind</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span></span>
@@ -269,6 +277,15 @@ and the deviation from it estimates both slopes:</p>
 <span><span class="co">#&gt; 4    bm1_sigma 0.476 0.10694 0.307 0.655    1     3068</span></span>
 <span><span class="co">#&gt; 5 white1_sigma 0.344 0.05499 0.253 0.434    1     3532</span></span>
 <span><span class="co">#&gt; 6 within_sigma 0.198 0.00862 0.184 0.213    1     5443</span></span></code></pre></div>
+<p>The two panels of <code><a href="../reference/plot_effects.html">plot_effects()</a></code> show the steep
+relationship among species and the shallower one within species, over
+the individual data:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_effects.html">plot_effects</a></span><span class="op">(</span><span class="va">fit4</span><span class="op">)</span></span></code></pre></div>
+<p><img src="model-tour_files/figure-html/effects-individuals-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The points are the raw individual values, so in the right panel they
+still include the differences among species, which is why they scatter
+widely around the shallow within-species line.</p>
 <p>Leave-one-out cross-validation then leaves out whole species, and
 <code>predict(type = "response")</code> predicts a new individual.</p>
 </div>
@@ -282,7 +299,7 @@ into bins and gives each a log rate with a random-walk prior. We
 simulate an early burst, in which the rate falls 20-fold from the root
 to the present, and see whether the flexible kernel recovers its shape
 without being told.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">r_eb</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span>                                    <span class="co"># rate at time t: exp(r_eb * t)</span></span>
 <span><span class="va">y5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>,</span>
@@ -290,7 +307,7 @@ without being told.</p>
 <span>                                  white1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">d5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y5</span><span class="op">)</span></span>
 <span><span class="va">fit5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d5</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/k_rate_time.html">k_rate_time</a></span><span class="op">(</span>n_bins <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rate_through_time.html">rate_through_time</a></span><span class="op">(</span><span class="va">fit5</span><span class="op">)</span></span>
 <span><span class="va">mid</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">rt</span><span class="op">$</span><span class="va">start</span> <span class="op">+</span> <span class="va">rt</span><span class="op">$</span><span class="va">end</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span></span>
 <span><span class="va">true</span> <span class="op">&lt;-</span> <span class="fl">3</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">r_eb</span> <span class="op">*</span> <span class="va">mid</span><span class="op">)</span>                      <span class="co"># sigma^2 times the relative rate</span></span>
@@ -304,7 +321,7 @@ without being told.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"estimate (median, 90% interval)"</span>, <span class="st">"truth"</span><span class="op">)</span>,</span>
 <span>       col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blue"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">]</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="model-tour_files/figure-html/plot-time-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>The estimated rates decline towards the present, as in the
 simulation, without the exponential shape being assumed. Early in the
@@ -326,7 +343,7 @@ the phylogenetic and the spatial variation are estimated together.</p>
 <p>We place the species on a map, with relatives tending to live near
 each other, and simulate a trait with phylogenetic, spatial and
 independent parts.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>, nsim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>          <span class="co"># range centres, phylogenetically clustered</span></span>
 <span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="va">xy</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">N</span>, <span class="fl">0</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span>           <span class="co"># plus some dispersal</span></span>
@@ -336,7 +353,7 @@ independent parts.</p>
 <span><span class="va">y6</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>,</span>
 <span>                      pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span>, white1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">d6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y6</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">space</span>, row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit6_phy</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit6_space</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/k_dist.html">k_dist</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit6_space</span></span>
@@ -363,7 +380,7 @@ close to the true 0.8. The length scale <code>ell</code> is poorly
 determined with 100 species (its interval is wide, although it contains
 the true 1.5), which is typical for spatial processes. Leave-one-out
 cross-validation clearly prefers the model with geography:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"phylogeny only"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_phy</span><span class="op">)</span>,</span>
 <span>                      <span class="st">"phylogeny + geography"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_space</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                  model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
@@ -380,7 +397,7 @@ and for great-circle distances on the sphere;
 <code>k_white(df = 4)</code> the species-level residual follows a
 Student-t distribution with 4 degrees of freedom, which down-weights
 them. We add five outliers to the data of section 1:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d7</span> <span class="op">&lt;-</span> <span class="va">d1</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">d7</span><span class="op">$</span><span class="va">brain</span><span class="op">[</span><span class="va">out</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">d7</span><span class="op">$</span><span class="va">brain</span><span class="op">[</span><span class="va">out</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="fl">2.5</span></span>
@@ -405,7 +422,7 @@ tree.</p>
 predict each species from all the others. For branch-wise kernels the
 leave-one-out densities are computed in linear time, and
 <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> returns the usual Pareto-smoothed estimate:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit1_bm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit1_ou</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit1_bm</span><span class="op">)</span>, <span class="st">"BM + white"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span>,</span>
@@ -428,7 +445,7 @@ something harder: how well the model predicts a group it has not seen.
 <code><a href="../reference/loo_group.html">loo_group()</a></code> refits the model without each group and scores
 the group’s joint predictive density; the result can be compared with
 <code>loo_compare()</code> as well.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clades</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cutree.html" class="external-link">cutree</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/as.hclust.html" class="external-link">as.hclust</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span>, k <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>               <span class="co"># seven clades</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">clades</span><span class="op">)</span></span>
 <span><span class="co">#&gt; clades</span></span>
@@ -450,7 +467,7 @@ across the tree.</p>
 <p>A fitted model predicts species that are in the tree but have no
 data, by conditioning the Gaussian process on the observed species. We
 leave out five species and predict them from their body size:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">fit9</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">missing</span>, <span class="op">]</span>, <span class="va">tr</span>,</span>
 <span>                 <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -466,7 +483,7 @@ leave out five species and predict them from their body size:</p>
 <code><a href="../reference/ancestral.html">ancestral()</a></code> reconstructs the trait at the internal nodes,
 again in linear time. Here we reconstruct body size and colour the tree
 by the posterior medians:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_body</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">body</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">anc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ancestral.html">ancestral</a></span><span class="op">(</span><span class="va">fit_body</span>, tips <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">anc</span><span class="op">[</span><span class="va">anc</span><span class="op">$</span><span class="va">node</span> <span class="op">&gt;</span> <span class="va">N</span>, <span class="op">]</span>, <span class="fl">3</span><span class="op">)</span></span>

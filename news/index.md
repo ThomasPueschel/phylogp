@@ -2,6 +2,11 @@
 
 ## phylogp (development version)
 
+- [`plot_effects()`](https://thomaspueschel.github.io/phylogp/reference/plot_effects.md)
+  plots the expected response along each predictor, with a posterior
+  credible band, over the data (like `brms::conditional_effects()`,
+  named differently so both packages can be loaded together), and
+  returns the values for custom plots.
 - New vignette, “A tour of models”: from Brownian motion and PGLS
   through the classical family, measurement error, several individuals
   per species, rates through time, phylogeny plus geography and outlying
