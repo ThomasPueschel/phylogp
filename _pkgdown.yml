@@ -27,6 +27,7 @@ articles:
     navbar: ~
     contents:
       - phylogp
+      - model-tour
       - kernel-design
       - slopes-prediction
 

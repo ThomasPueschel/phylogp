@@ -264,6 +264,8 @@ Called on a kernel instead of a fit, `kernel_stancode()` produces the same progr
 
 ## Next steps
 
+* `vignette("model-tour", package = "phylogp")` goes through the main
+  kinds of models, from Brownian motion to phylogeny plus geography.
 * `vignette("kernel-design", package = "phylogp")` shows how to build and
   check your own kernels, including when a kernel is or is not a valid
   covariance on a tree with fossil tips.

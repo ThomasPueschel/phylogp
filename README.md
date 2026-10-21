@@ -105,6 +105,10 @@ Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
 
 * `vignette("phylogp")`: getting started, a complete analysis of simulated
   data with a fast-evolving clade.
+* `vignette("model-tour")`: a tour of models, from Brownian motion and PGLS
+  to measurement error, several individuals per species, rates through time
+  and phylogeny plus geography, with model choice, prediction and
+  ancestral states.
 * `vignette("kernel-design")`: building your own kernels, checking that they
   are valid on your tree, and when two kernels are the same model.
 * `vignette("slopes-prediction")`: slopes that evolve along the tree,

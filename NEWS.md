@@ -1,5 +1,10 @@
 # phylogp (development version)
 
+* New vignette, "A tour of models": from Brownian motion and PGLS through
+  the classical family, measurement error, several individuals per species,
+  rates through time, phylogeny plus geography and outlying species, to
+  model choice by leave-one-out and leave-clade-out cross-validation,
+  prediction and ancestral states.
 * Several rows per species: with `species = ` given, `phylo_gp()` accepts
   repeated measurements (e.g. individuals) and adds a within-species residual
   standard deviation, `within_sigma`. The kernel then describes the species
