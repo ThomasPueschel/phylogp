@@ -32,6 +32,20 @@ A kernel component.
 The bin values are latent variables, so models with this component can
 only be fitted by sampling.
 
+## References
+
+Blomberg S.P., Garland T., Ives A.R. 2003. Testing for phylogenetic
+signal in comparative data: Behavioral traits are more labile.
+Evolution. 57:717–745.
+
+Harmon L.J., Losos J.B., Davies T.J., Gillespie R.G., Gittleman J.L.,
+Jennings W.B., others. 2010. Early bursts of body size and shape
+evolution are rare in comparative data. Evolution. 64:2385–2396.
+
+Clavel J., Morlon H. 2017. Accelerated body size evolution during cold
+climatic periods in the Cenozoic. Proceedings of the National Academy of
+Sciences of the USA. 114:4183–4188.
+
 ## Examples
 
 ``` r

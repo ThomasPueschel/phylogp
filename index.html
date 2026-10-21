@@ -150,9 +150,140 @@
 <p>Version 0.2.0. Planned: multivariate kernels and non-Gaussian traits.</p>
 </div>
 <div class="section level2">
+<h2 id="background-and-references">Background and references<a class="anchor" aria-label="anchor" href="#background-and-references"></a>
+</h2>
+<p>The models in phylogp are not new; what the package adds is a common kernel form for them, checks of their validity, and linear-time computation. Each component builds on earlier work:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Model or method</th>
+<th>Builds on</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Brownian motion and phylogenetic regression</td>
+<td>Felsenstein 1973, 1985; Grafen 1989; Martins &amp; Hansen 1997</td>
+</tr>
+<tr>
+<td>Phylogenetic mixed model (<code>k_bm() + k_white()</code>)</td>
+<td>Lynch 1991; Housworth et al. 2004; Hadfield &amp; Nakagawa 2010</td>
+</tr>
+<tr>
+<td>Pagel’s λ, κ and δ</td>
+<td>Pagel 1999</td>
+</tr>
+<tr>
+<td>Early burst</td>
+<td>Blomberg et al. 2003; Harmon et al. 2010</td>
+</tr>
+<tr>
+<td>Ornstein–Uhlenbeck</td>
+<td>Hansen 1997; Butler &amp; King 2004</td>
+</tr>
+<tr>
+<td>Relaxed (autocorrelated) rates, <code><a href="reference/k_relaxed.html">k_relaxed()</a></code>
+</td>
+<td>Thorne &amp; Kishino 2002; Eastman et al. 2011; Venditti et al. 2011; Revell 2021; Fisher et al. 2021</td>
+</tr>
+<tr>
+<td>Rates through time, <code><a href="reference/k_rate_time.html">k_rate_time()</a></code>
+</td>
+<td>Blomberg et al. 2003; Harmon et al. 2010; Clavel &amp; Morlon 2017</td>
+</tr>
+<tr>
+<td>Phylogeny plus space, <code><a href="reference/k_dist.html">k_dist()</a></code>
+</td>
+<td>Freckleton &amp; Jetz 2009; Guzmán Naranjo &amp; Becker 2022; Hartmann &amp; Jäger 2023</td>
+</tr>
+<tr>
+<td>Evolving slopes, <code><a href="reference/k_slope.html">k_slope()</a></code>
+</td>
+<td>Lande 1979; Pagel &amp; Harvey 1989; Hadfield &amp; Nakagawa 2010</td>
+</tr>
+<tr>
+<td>Measurement error and several individuals per species</td>
+<td>Ives et al. 2007</td>
+</tr>
+<tr>
+<td>Linear-time likelihoods</td>
+<td>Felsenstein 1973; Ho &amp; Ané 2014a</td>
+</tr>
+<tr>
+<td>Gaussian processes and kernel design</td>
+<td>Rasmussen &amp; Williams 2006; Duvenaud et al. 2013; on phylogenies, Jones &amp; Moriarty 2013</td>
+</tr>
+<tr>
+<td>Kernel validity on trees</td>
+<td>Schoenberg 1938; Dellacherie et al. 2014</td>
+</tr>
+<tr>
+<td>OU and accelerating early burst as one model</td>
+<td>Ho &amp; Ané 2014b; Uyeda et al. 2015</td>
+</tr>
+<tr>
+<td>Leave-one-out cross-validation</td>
+<td>Vehtari et al. 2017</td>
+</tr>
+<tr>
+<td>Prediction and ancestral states</td>
+<td>Schluter et al. 1997; Garland &amp; Ives 2000</td>
+</tr>
+<tr>
+<td>Stan</td>
+<td>Carpenter et al. 2017</td>
+</tr>
+</tbody>
+</table>
+<p>The vignettes cite these works where they are used, and the help page of each component lists its references.</p>
+<details><summary>
+Full references
+</summary><ul>
+<li>Blomberg S.P., Garland T., Ives A.R. 2003. Testing for phylogenetic signal in comparative data: Behavioral traits are more labile. Evolution. 57:717–745.</li>
+<li>Butler M.A., King A.A. 2004. Phylogenetic comparative analysis: A modeling approach for adaptive evolution. The American Naturalist. 164:683–695.</li>
+<li>Carpenter B., Gelman A., Hoffman M.D., Lee D., Goodrich B., Betancourt M., Brubaker M., Guo J., Li P., Riddell A. 2017. Stan: A probabilistic programming language. Journal of Statistical Software. 76:1–32.</li>
+<li>Clavel J., Morlon H. 2017. Accelerated body size evolution during cold climatic periods in the Cenozoic. Proceedings of the National Academy of Sciences of the USA. 114:4183–4188.</li>
+<li>Dellacherie C., Martínez S., San Martín J. 2014. Inverse M-matrices and ultrametric matrices. Cham: Springer.</li>
+<li>Duvenaud D., Lloyd J., Grosse R., Tenenbaum J., Ghahramani Z. 2013. Structure discovery in nonparametric regression through compositional kernel search. Proceedings of the 30th international conference on machine learning. 28:1166–1174.</li>
+<li>Eastman J.M., Alfaro M.E., Joyce P., Hipp A.L., Harmon L.J. 2011. A novel comparative method for identifying shifts in the rate of character evolution on trees. Evolution. 65:3578–3589.</li>
+<li>Felsenstein J. 1973. Maximum-likelihood estimation of evolutionary trees from continuous characters. American Journal of Human Genetics. 25:471–492.</li>
+<li>Felsenstein J. 1985. Phylogenies and the comparative method. The American Naturalist. 125:1–15.</li>
+<li>Fisher A.A., Ji X., Zhang Z., Lemey P., Suchard M.A. 2021. Relaxed random walks at scale. Systematic Biology. 70:258–267.</li>
+<li>Freckleton R.P., Jetz W. 2009. Space versus phylogeny: Disentangling phylogenetic and spatial signals in comparative data. Proceedings of the Royal Society B. 276:21–30.</li>
+<li>Garland T. Jr., Ives A.R. 2000. Using the past to predict the present: Confidence intervals for regression equations in phylogenetic comparative methods. The American Naturalist. 155:346–364.</li>
+<li>Grafen A. 1989. The phylogenetic regression. Philosophical Transactions of the Royal Society of London B. 326:119–157.</li>
+<li>Guzmán Naranjo M., Becker L. 2022. Statistical bias control in typology. Linguistic Typology. 26:605–670.</li>
+<li>Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods for comparative biology: Phylogenies, taxonomies and multi-trait models for continuous and categorical characters. Journal of Evolutionary Biology. 23:494–508.</li>
+<li>Hansen T.F. 1997. Stabilizing selection and the comparative analysis of adaptation. Evolution. 51:1341–1351.</li>
+<li>Harmon L.J., Losos J.B., Davies T.J., Gillespie R.G., Gittleman J.L., Jennings W.B., others. 2010. Early bursts of body size and shape evolution are rare in comparative data. Evolution. 64:2385–2396.</li>
+<li>Hartmann F., Jäger G. 2023. Gaussian process models for geographic controls in phylogenetic trees. Open Research Europe. 3:57.</li>
+<li>Ho L. si T., Ané C. 2014a. A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. Systematic Biology. 63:397–408.</li>
+<li>Ho L. si T., Ané C. 2014b. Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models. Methods in Ecology and Evolution. 5:1133–1146.</li>
+<li>Housworth E.A., Martins E.P., Lynch M. 2004. The phylogenetic mixed model. The American Naturalist. 163:84–96.</li>
+<li>Ives A.R., Midford P.E., Garland T. 2007. Within-species variation and measurement error in phylogenetic comparative methods. Systematic Biology. 56:252–270.</li>
+<li>Jones N.S., Moriarty J. 2013. Evolutionary inference for function-valued traits: Gaussian process regression on phylogenies. Journal of the Royal Society Interface. 10:20120616.</li>
+<li>Lande R. 1979. Quantitative genetic analysis of multivariate evolution, applied to brain:body size allometry. Evolution. 33:402–416.</li>
+<li>Lynch M. 1991. Methods for the analysis of comparative data in evolutionary biology. Evolution. 45:1065–1080.</li>
+<li>Martins E.P., Hansen T.F. 1997. Phylogenies and the comparative method: A general approach to incorporating phylogenetic information into the analysis of interspecific data. The American Naturalist. 149:646–667.</li>
+<li>Pagel M. 1999. Inferring the historical patterns of biological evolution. Nature. 401:877–884.</li>
+<li>Pagel M.D., Harvey P.H. 1989. Taxonomic differences in the scaling of brain on body weight among mammals. Science. 244:1589–1593.</li>
+<li>Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine learning. Cambridge, MA: MIT Press.</li>
+<li>Revell L.J. 2021. A variable-rate quantitative trait evolution model using penalized-likelihood. PeerJ. 9:e11997.</li>
+<li>Schluter D., Price T., Mooers A.Ø., Ludwig D. 1997. Likelihood of ancestor states in adaptive radiation. Evolution. 51:1699–1711.</li>
+<li>Schoenberg I.J. 1938. Metric spaces and positive definite functions. Transactions of the American Mathematical Society. 44:522–536.</li>
+<li>Thorne J.L., Kishino H. 2002. Divergence time and evolutionary rate estimation with multilocus data. Systematic Biology. 51:689–702.</li>
+<li>Uyeda J.C., Caetano D.S., Pennell M.W. 2015. Comparative analysis of principal components can be misleading. Systematic Biology. 64:677–689.</li>
+<li>Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27:1413–1432.</li>
+<li>Venditti C., Meade A., Pagel M. 2011. Multiple routes to mammalian diversity. Nature. 479:393–396.</li>
+</ul></details>
+</div>
+<div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>Püschel, T. A. Gaussian processes on phylogenies: a kernel framework for building, checking and comparing models of trait evolution. In preparation.</p>
+<p>The software: Püschel, T. A. 2026. phylogp: phylogenetic comparative models as Gaussian processes, version 0.2.0. Zenodo. <a href="https://doi.org/10.5281/zenodo.23472027" class="external-link">doi:10.5281/zenodo.23472027</a></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

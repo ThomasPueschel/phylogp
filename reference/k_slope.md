@@ -59,6 +59,24 @@ linear in the number of species; this needs `method = "sample"`. With
 `latent = FALSE` the dense marginal kernel is used (O(N^3)), which also
 allows maximum likelihood.
 
+## References
+
+Lande R. 1979. Quantitative genetic analysis of multivariate evolution,
+applied to brain:body size allometry. Evolution. 33:402–416.
+
+Pagel M.D., Harvey P.H. 1989. Taxonomic differences in the scaling of
+brain on body weight among mammals. Science. 244:1589–1593.
+
+Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods
+for comparative biology: Phylogenies, taxonomies and multi-trait models
+for continuous and categorical characters. Journal of Evolutionary
+Biology. 23:494–508.
+
+Matsuba M., Fukasawa K., Aoki S., Akasaka M., Ishihama F. 2024. Scalable
+phylogenetic Gaussian process models improve the detectability of
+environmental signals on local extinctions for many Red List species.
+Methods in Ecology and Evolution. 15:756–768.
+
 ## Examples
 
 ``` r

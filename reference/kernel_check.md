@@ -49,6 +49,21 @@ grid of parameter values (edge variances for user-defined branch-wise
 kernels, the smallest eigenvalue for dense kernels) and reports
 failures. A sum of valid kernels is valid.
 
+## References
+
+Schoenberg I.J. 1938. Metric spaces and positive definite functions.
+Transactions of the American Mathematical Society. 44:522–536.
+
+Deza M.M., Laurent M. 1997. Geometry of cuts and metrics. Berlin:
+Springer.
+
+Dellacherie C., Martínez S., San Martín J. 2014. Inverse M-matrices and
+ultrametric matrices. Cham: Springer.
+
+Feragen A., Lauze F., Hauberg S. 2015. Geodesic exponential kernels:
+When curvature and linearity conflict. Proceedings of the IEEE
+conference on computer vision and pattern recognition (CVPR).:3032–3042.
+
 ## Examples
 
 ``` r

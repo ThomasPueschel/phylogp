@@ -88,6 +88,18 @@ The search is numerical, with several starting points. A small KL is
 therefore evidence of equivalence, but a large one means only that no
 equivalent parameter values were found.
 
+## References
+
+Ho L. si T., Ané C. 2014. Intrinsic inference difficulties for trait
+evolution with Ornstein-Uhlenbeck models. Methods in Ecology and
+Evolution. 5:1133–1146.
+
+Uyeda J.C., Caetano D.S., Pennell M.W. 2015. Comparative analysis of
+principal components can be misleading. Systematic Biology. 64:677–689.
+
+Murrell D.J. 2018. A global envelope test to detect non-random bursts of
+trait evolution. Methods in Ecology and Evolution. 9:1739–1748.
+
 ## Examples
 
 ``` r

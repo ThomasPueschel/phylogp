@@ -79,6 +79,50 @@ A kernel component.
   variation); `k_bm() + k_white()` is Pagel's lambda on an ultrametric
   tree.
 
+## References
+
+Felsenstein J. 1973. Maximum-likelihood estimation of evolutionary trees
+from continuous characters. American Journal of Human Genetics.
+25:471–492.
+
+Felsenstein J. 1985. Phylogenies and the comparative method. The
+American Naturalist. 125:1–15.
+
+Grafen A. 1989. The phylogenetic regression. Philosophical Transactions
+of the Royal Society of London B. 326:119–157.
+
+Lynch M. 1991. Methods for the analysis of comparative data in
+evolutionary biology. Evolution. 45:1065–1080.
+
+Housworth E.A., Martins E.P., Lynch M. 2004. The phylogenetic mixed
+model. The American Naturalist. 163:84–96.
+
+Pagel M. 1999. Inferring the historical patterns of biological
+evolution. Nature. 401:877–884.
+
+Freckleton R.P., Harvey P.H., Pagel M. 2002. Phylogenetic analysis and
+comparative data: A test and review of evidence. The American
+Naturalist. 160:712–726.
+
+Blomberg S.P., Garland T., Ives A.R. 2003. Testing for phylogenetic
+signal in comparative data: Behavioral traits are more labile.
+Evolution. 57:717–745.
+
+Harmon L.J., Losos J.B., Davies T.J., Gillespie R.G., Gittleman J.L.,
+Jennings W.B., others. 2010. Early bursts of body size and shape
+evolution are rare in comparative data. Evolution. 64:2385–2396.
+
+Hansen T.F. 1997. Stabilizing selection and the comparative analysis of
+adaptation. Evolution. 51:1341–1351.
+
+Butler M.A., King A.A. 2004. Phylogenetic comparative analysis: A
+modeling approach for adaptive evolution. The American Naturalist.
+164:683–695.
+
+Ho L. si T., Ané C. 2014. Intrinsic inference difficulties for trait
+evolution with Ornstein-Uhlenbeck models. Methods in Ecology and
+Evolution. 5:1133–1146.
+
 ## Examples
 
 ``` r

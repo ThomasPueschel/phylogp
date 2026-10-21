@@ -15,6 +15,24 @@ tr$edge.length <- tr$edge.length / max(ape::node.depth.edgelength(tr))
 
 ## The building blocks
 
+The components correspond to familiar models: Brownian motion
+([Felsenstein 1985](#ref-felsenstein1985)), Pagel’s transformations
+([Pagel 1999](#ref-pagel1999)), early burst ([Blomberg et al.
+2003](#ref-blomberg2003); [Harmon et al. 2010](#ref-harmon2010)),
+Ornstein–Uhlenbeck ([Hansen 1997](#ref-hansen1997); [Butler and King
+2004](#ref-butler2004)), autocorrelated rates ([Thorne and Kishino
+2002](#ref-thorne2002); [Eastman et al. 2011](#ref-eastman2011);
+[Venditti et al. 2011](#ref-venditti2011)) and distance-based kernels as
+used for spatial structure ([Freckleton and Jetz
+2009](#ref-freckleton2009); [Hartmann and Jäger
+2023](#ref-hartmann2023)).
+[`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md)
+is the species-level variation of the phylogenetic mixed model ([Lynch
+1991](#ref-lynch1991); [Housworth et al. 2004](#ref-housworth2004)).
+Kernels are combined by sums and products, as is usual for Gaussian
+processes ([Rasmussen and Williams 2006](#ref-rasmussen2006); [Duvenaud
+et al. 2013](#ref-duvenaud2013)).
+
 | Component | Kernel (before scaling by `sigma^2`) | Form |
 |----|----|----|
 | [`k_bm()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md) | shared path length $`t_{ij}`$ | branch-wise |
@@ -48,8 +66,9 @@ k_bm() + k_dist(phi = "exponential") + k_white()
 ```
 
 *Branch-wise* components add variance along the edges of the tree. Any
-sum of them keeps the linear-time pruning likelihood; adding a dense
-component switches the model to dense linear algebra.
+sum of them keeps the linear-time pruning likelihood ([Felsenstein
+1973](#ref-felsenstein1973); [Ho and Ané 2014a](#ref-ho2014)); adding a
+dense component switches the model to dense linear algebra.
 
 ## A gallery of kernels
 
@@ -223,10 +242,13 @@ into the squared-exponential kernel that most Gaussian-process software
 uses by default. Whether that works depends on the tree:
 
 - On an **ultrametric** tree any non-increasing function of patristic
-  distance is valid: it is just another tree transformation.
+  distance is valid: it is just another tree transformation (ultrametric
+  matrices are positive semi-definite; Dellacherie et al.
+  ([2014](#ref-dellacherie2014))).
 - On trees with **fossil tips**, or phylograms without a clock, only
   *completely monotone* functions are guaranteed, such as the
-  exponential, which is the Ornstein–Uhlenbeck kernel.
+  exponential, which is the Ornstein–Uhlenbeck kernel ([Schoenberg
+  1938](#ref-schoenberg1938); [Feragen et al. 2015](#ref-feragen2015)).
   Squared-exponential and Matérn kernels can fail.
 
 The smallest eigenvalue of the kernel matrix tells us directly. Below,
@@ -311,7 +333,9 @@ Different processes can imply exactly the same distribution for the
 tips. On an ultrametric tree, a single-optimum OU process with a fixed
 root has the same kernel as an *accelerating* early-burst (ACDC) model
 with rate $`r = 2\alpha`$. With extant species alone the two cannot be
-told apart, but fossil tips separate them.
+told apart, but fossil tips separate them. The equivalence has been
+noted before ([Ho and Ané 2014b](#ref-ho2014intrinsic); [Uyeda et al.
+2015](#ref-uyeda2015comparative); [Murrell 2018](#ref-murrell2018)).
 
 ``` r
 
@@ -460,3 +484,92 @@ In the compiled Stan programs that
 generates, the same algorithm keeps each gradient evaluation linear in
 the number of species, which is what makes kernels with thousands of
 latent rates practical.
+
+## References
+
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+“Testing for Phylogenetic Signal in Comparative Data: Behavioral Traits
+Are More Labile.” *Evolution* 57: 717–45.
+
+Butler, Marguerite A., and Aaron A. King. 2004. “Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive Evolution.” *The
+American Naturalist* 164: 683–95.
+
+Dellacherie, Claude, Servet Martínez, and Jaime San Martín. 2014.
+*Inverse M-Matrices and Ultrametric Matrices*. Vol. 2118. Lecture Notes
+in Mathematics. Springer. <https://doi.org/10.1007/978-3-319-10298-6>.
+
+Duvenaud, David, James Lloyd, Roger Grosse, Joshua Tenenbaum, and Zoubin
+Ghahramani. 2013. “Structure Discovery in Nonparametric Regression
+Through Compositional Kernel Search.” *Proceedings of the 30th
+International Conference on Machine Learning*, PMLR, vol. 28: 1166–74.
+
+Eastman, Jonathan M., Michael E. Alfaro, Paul Joyce, Andrew L. Hipp, and
+Luke J. Harmon. 2011. “A Novel Comparative Method for Identifying Shifts
+in the Rate of Character Evolution on Trees.” *Evolution* 65: 3578–89.
+
+Felsenstein, Joseph. 1973. “Maximum-Likelihood Estimation of
+Evolutionary Trees from Continuous Characters.” *American Journal of
+Human Genetics* 25: 471–92.
+
+Felsenstein, Joseph. 1985. “Phylogenies and the Comparative Method.”
+*The American Naturalist* 125: 1–15.
+
+Feragen, Aasa, François Lauze, and Søren Hauberg. 2015. “Geodesic
+Exponential Kernels: When Curvature and Linearity Conflict.”
+*Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)*, 3032–42.
+
+Freckleton, Robert P., and Walter Jetz. 2009. “Space Versus Phylogeny:
+Disentangling Phylogenetic and Spatial Signals in Comparative Data.”
+*Proceedings of the Royal Society B* 276: 21–30.
+
+Hansen, Thomas F. 1997. “Stabilizing Selection and the Comparative
+Analysis of Adaptation.” *Evolution* 51: 1341–51.
+
+Harmon, Luke J., Jonathan B. Losos, T. Jonathan Davies, et al. 2010.
+“Early Bursts of Body Size and Shape Evolution Are Rare in Comparative
+Data.” *Evolution* 64: 2385–96.
+
+Hartmann, Frederik, and Gerhard Jäger. 2023. “Gaussian Process Models
+for Geographic Controls in Phylogenetic Trees.” *Open Research Europe*
+3: 57. <https://doi.org/10.12688/openreseurope.15490.2>.
+
+Ho, Lam si Tung, and Cécile Ané. 2014a. “A Linear-Time Algorithm for
+Gaussian and Non-Gaussian Trait Evolution Models.” *Systematic Biology*
+63: 397–408.
+
+Ho, Lam si Tung, and Cécile Ané. 2014b. “Intrinsic Inference
+Difficulties for Trait Evolution with Ornstein-Uhlenbeck Models.”
+*Methods in Ecology and Evolution* 5: 1133–46.
+
+Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
+“The Phylogenetic Mixed Model.” *The American Naturalist* 163: 84–96.
+
+Lynch, Michael. 1991. “Methods for the Analysis of Comparative Data in
+Evolutionary Biology.” *Evolution* 45: 1065–80.
+
+Murrell, David J. 2018. “A Global Envelope Test to Detect Non-Random
+Bursts of Trait Evolution.” *Methods in Ecology and Evolution* 9 (7):
+1739–48. <https://doi.org/10.1111/2041-210X.13006>.
+
+Pagel, Mark. 1999. “Inferring the Historical Patterns of Biological
+Evolution.” *Nature* 401: 877–84.
+
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006. *Gaussian
+Processes for Machine Learning*. MIT Press.
+
+Schoenberg, I. J. 1938. “Metric Spaces and Positive Definite Functions.”
+*Transactions of the American Mathematical Society* 44: 522–36.
+
+Thorne, Jeffrey L., and Hirohisa Kishino. 2002. “Divergence Time and
+Evolutionary Rate Estimation with Multilocus Data.” *Systematic Biology*
+51: 689–702.
+
+Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
+“Comparative Analysis of Principal Components Can Be Misleading.”
+*Systematic Biology* 64 (4): 677–89.
+<https://doi.org/10.1093/sysbio/syv019>.
+
+Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. “Multiple Routes to
+Mammalian Diversity.” *Nature* 479: 393–96.

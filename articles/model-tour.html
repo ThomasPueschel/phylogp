@@ -90,11 +90,12 @@ needs <code>cmdstanr</code> and CmdStan.</p>
 <div class="section level2">
 <h2 id="brownian-motion-and-phylogenetic-regression">1. Brownian motion and phylogenetic regression<a class="anchor" aria-label="anchor" href="#brownian-motion-and-phylogenetic-regression"></a>
 </h2>
-<p>The simplest model of trait evolution is Brownian motion (BM):
-changes accumulate at a constant rate along every branch, so the
-covariance of two species is proportional to the time they share.
-Phylogenetic generalised least squares (PGLS) is a regression whose
-residuals follow this process.</p>
+<p>The simplest model of trait evolution is Brownian motion [BM; <span class="citation">Felsenstein (<a href="#ref-felsenstein1985">1985</a>)</span>]: changes accumulate at a
+constant rate along every branch, so the covariance of two species is
+proportional to the time they share. Phylogenetic generalised least
+squares [PGLS; <span class="citation">Grafen (<a href="#ref-grafen1989">1989</a>)</span>; <span class="citation">Martins
+and Hansen (<a href="#ref-martins1997">1997</a>)</span>] is a regression
+whose residuals follow this process.</p>
 <p>We simulate log brain size that scales with log body size (slope
 0.7), with a residual that evolves by BM plus some species-level
 variation that is not phylogenetic.</p>
@@ -111,8 +112,10 @@ variation that is not phylogenetic.</p>
 <span><span class="co">#&gt; t3 -1.2534429 -0.48847486</span></span></code></pre></div>
 <p>Pure BM (<code><a href="../reference/classical-kernels.html">k_bm()</a></code>) is PGLS. Adding <code><a href="../reference/classical-kernels.html">k_white()</a></code>,
 independent variation of each species, gives the phylogenetic mixed
-model, which on a time-calibrated tree is the same model as Pagel’s
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>.
+model <span class="citation">(<a href="#ref-lynch1991">Lynch 1991</a>;
+<a href="#ref-housworth2004">Housworth et al. 2004</a>)</span>, which on
+a time-calibrated tree is the same model as Pagel’s
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math><span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>)</span>.
 Both can be fitted by maximum likelihood:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_bm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"optimize"</span><span class="op">)</span></span>
@@ -137,7 +140,8 @@ Both can be fitted by maximum likelihood:</p>
 <span><span class="co">#&gt;   190.5519   138.6829</span></span></code></pre></div>
 <p>or in a Bayesian way, which gives the uncertainty of every parameter.
 The proportion of residual variance that is phylogenetic, the
-<em>phylogenetic signal</em> (equal to Pagel’s
+<em>phylogenetic signal</em> <span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>; <a href="#ref-freckleton2002">Freckleton et al. 2002</a>; <a href="#ref-blomberg2003">Blomberg et al. 2003</a>)</span> (equal to
+Pagel’s
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
 here), is a function of the posterior draws:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -163,11 +167,13 @@ here), is a function of the posterior draws:</p>
 <span><span class="co">#&gt; 0.4572182 0.7312588 0.8897449</span></span></code></pre></div>
 <p>The true signal is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.6</mn><mn>2</mn></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msup><mn>0.6</mn><mn>2</mn></msup><mo>+</mo><msup><mn>0.3</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">0.6^2 / (0.6^2 + 0.3^2) = 0.8</annotation></semantics></math>.</p>
-<p><code><a href="../reference/plot_effects.html">plot_effects()</a></code> draws the fitted relationship, the
-expected brain size at each body size, with its 90% credible band over
-the species values. This is the population-level line, averaged over the
-phylogenetic and species effects; the function also returns the values
-for your own plots.</p>
+<p><code><a href="../reference/plot_effects.html">plot_effects()</a></code>, like the conditional-effects plots of
+brms <span class="citation">(<a href="#ref-burkner2017">Bürkner
+2017</a>)</span>, draws the fitted relationship, the expected brain size
+at each body size, with its 90% credible band over the species values.
+This is the population-level line, averaged over the phylogenetic and
+species effects; the function also returns the values for your own
+plots.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_effects.html">plot_effects</a></span><span class="op">(</span><span class="va">fit1</span>, <span class="st">"body"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="model-tour_files/figure-html/effects-bm-1.png" class="r-plt" alt="" width="65%" style="display: block; margin: auto;"></p>
@@ -175,10 +181,12 @@ for your own plots.</p>
 <div class="section level2">
 <h2 id="the-classical-family">2. The classical family<a class="anchor" aria-label="anchor" href="#the-classical-family"></a>
 </h2>
-<p>Pagel’s transformations, early burst (EB) and Ornstein–Uhlenbeck (OU)
-are all kernels too. With <code>method = "optimize"</code> they
-reproduce <code>phylolm</code> and <code>geiger</code> to numerical
-precision, so a table of the usual models takes a few lines:</p>
+<p>Pagel’s transformations <span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>)</span>, early burst [EB; <span class="citation">Blomberg et al. (<a href="#ref-blomberg2003">2003</a>)</span>; <span class="citation"><span class="nocase">Harmon et al.</span> (<a href="#ref-harmon2010">2010</a>)</span>] and Ornstein–Uhlenbeck [OU;
+<span class="citation">Hansen (<a href="#ref-hansen1997">1997</a>)</span>; <span class="citation">Butler
+and King (<a href="#ref-butler2004">2004</a>)</span>] are all kernels
+too. With <code>method = "optimize"</code> they reproduce
+<code>phylolm</code> and <code>geiger</code> to numerical precision, so
+a table of the usual models takes a few lines:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kernels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>BM <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"BM + white"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                <span class="st">"Pagel's lambda"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_lambda</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"Pagel's kappa"</span> <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_kappa</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -201,7 +209,7 @@ and Pagel’s
 fit best and equally well: they are the same model. On a time-calibrated
 tree, an OU model with a single optimum is also the same model as an
 <em>accelerating</em> early burst, so their fits cannot be told apart
-from extant species alone; see
+from extant species alone <span class="citation">(<a href="#ref-ho2014intrinsic">Ho and Ané 2014</a>; <a href="#ref-uyeda2015comparative">Uyeda et al. 2015</a>)</span>; see
 <code><a href="../articles/kernel-design.html">vignette("kernel-design", package = "phylogp")</a></code> for how to
 check whether two kernels are the same model.</p>
 </div>
@@ -210,8 +218,9 @@ check whether two kernels are the same model.</p>
 </h2>
 <p>When each species value is a mean with a known standard error, for
 example from a meta-analysis, the standard errors enter the model
-through <code>se</code>. They are added to the variance of each species,
-so precisely measured species count for more.</p>
+through <code>se</code> <span class="citation">(<a href="#ref-ives2007">Ives et al. 2007</a>)</span>. They are added to the
+variance of each species, so precisely measured species count for
+more.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">d3</span> <span class="op">&lt;-</span> <span class="va">d1</span></span>
@@ -238,8 +247,8 @@ error, with somewhat wider intervals.</p>
 <div class="section level2">
 <h2 id="several-individuals-per-species">4. Several individuals per species<a class="anchor" aria-label="anchor" href="#several-individuals-per-species"></a>
 </h2>
-<p>Data often come as individuals rather than species means. Keep one
-row per individual and give the column of species names in
+<p>Data often come as individuals rather than species means <span class="citation">(<a href="#ref-ives2007">Ives et al. 2007</a>)</span>.
+Keep one row per individual and give the column of species names in
 <code>species</code>. The kernel then describes the species,
 <code><a href="../reference/classical-kernels.html">k_white()</a></code> becomes the non-phylogenetic species effect, and
 a residual standard deviation within species, <code>within_sigma</code>,
@@ -292,13 +301,15 @@ widely around the shallow within-species line.</p>
 <div class="section level2">
 <h2 id="rates-that-change-through-time">5. Rates that change through time<a class="anchor" aria-label="anchor" href="#rates-that-change-through-time"></a>
 </h2>
-<p>Early burst assumes that the rate of evolution declines
-exponentially. A more flexible alternative lets the rate vary smoothly
-through time: <code><a href="../reference/k_rate_time.html">k_rate_time()</a></code> divides the height of the tree
-into bins and gives each a log rate with a random-walk prior. We
-simulate an early burst, in which the rate falls 20-fold from the root
-to the present, and see whether the flexible kernel recovers its shape
-without being told.</p>
+<p>Early burst assumes that the rate of evolution declines exponentially
+<span class="citation">(<a href="#ref-harmon2010"><span class="nocase">Harmon et al.</span> 2010</a>)</span>. A more flexible
+alternative lets the rate vary smoothly through time:
+<code><a href="../reference/k_rate_time.html">k_rate_time()</a></code> divides the height of the tree into bins and
+gives each a log rate with a random-walk prior, in the spirit of models
+in which rates follow time or an environmental variable <span class="citation">(<a href="#ref-clavel2017">Clavel and Morlon
+2017</a>)</span>. We simulate an early burst, in which the rate falls
+20-fold from the root to the present, and see whether the flexible
+kernel recovers its shape without being told.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">r_eb</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span>                                    <span class="co"># rate at time t: exp(r_eb * t)</span></span>
@@ -337,9 +348,13 @@ than through time, see <code><a href="../reference/k_relaxed.html">k_relaxed()</
 </h2>
 <p>Closely related species are often also close in space, and a trait
 can vary with geography for reasons that have nothing to do with
-ancestry. <code><a href="../reference/k_dist.html">k_dist()</a></code> adds a Gaussian process over any
-distance matrix, here the distances between species’ range centres, so
-the phylogenetic and the spatial variation are estimated together.</p>
+ancestry <span class="citation">(<a href="#ref-freckleton2009">Freckleton and Jetz 2009</a>)</span>.
+<code><a href="../reference/k_dist.html">k_dist()</a></code> adds a Gaussian process over any distance matrix,
+here the distances between species’ range centres, so the phylogenetic
+and the spatial variation are estimated together, as in Gaussian-process
+models of geography and phylogeny in linguistics <span class="citation">(<a href="#ref-guzmannaranjo2022">Guzmán Naranjo and
+Becker 2022</a>; <a href="#ref-hartmann2023">Hartmann and Jäger
+2023</a>)</span>.</p>
 <p>We place the species on a map, with relatives tending to live near
 each other, and simulate a trait with phylogenetic, spatial and
 independent parts.</p>
@@ -387,7 +402,7 @@ cross-validation clearly prefers the model with geography:</p>
 <span><span class="co">#&gt;  phylogeny + geography       0.0     0.0      NA                    </span></span>
 <span><span class="co">#&gt;         phylogeny only     -16.1     4.8    1.00</span></span></code></pre></div>
 <p>The exponential kernel used here is valid for any Euclidean distance
-and for great-circle distances on the sphere;
+and for great-circle distances on the sphere <span class="citation">(<a href="#ref-schoenberg1938">Schoenberg 1938</a>; <a href="#ref-gneiting2013">Gneiting 2013</a>)</span>;
 <code><a href="../reference/kernel_check.html">kernel_check()</a></code> tests other choices on the data at hand.</p>
 </div>
 <div class="section level2">
@@ -418,9 +433,10 @@ tree.</p>
 <div class="section level2">
 <h2 id="choosing-among-models">8. Choosing among models<a class="anchor" aria-label="anchor" href="#choosing-among-models"></a>
 </h2>
-<p>Leave-one-out cross-validation (LOO) compares models by how well they
-predict each species from all the others. For branch-wise kernels the
-leave-one-out densities are computed in linear time, and
+<p>Leave-one-out cross-validation [LOO; <span class="citation">Vehtari
+et al. (<a href="#ref-vehtari2017">2017</a>)</span>] compares models by
+how well they predict each species from all the others. For branch-wise
+kernels the leave-one-out densities are computed in linear time, and
 <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> returns the usual Pareto-smoothed estimate:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit1_bm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -465,8 +481,9 @@ across the tree.</p>
 <h2 id="prediction-and-ancestral-states">9. Prediction and ancestral states<a class="anchor" aria-label="anchor" href="#prediction-and-ancestral-states"></a>
 </h2>
 <p>A fitted model predicts species that are in the tree but have no
-data, by conditioning the Gaussian process on the observed species. We
-leave out five species and predict them from their body size:</p>
+data, by conditioning the Gaussian process on the observed species <span class="citation">(<a href="#ref-garland2000">Garland and Ives
+2000</a>)</span>. We leave out five species and predict them from their
+body size:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">fit9</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">missing</span>, <span class="op">]</span>, <span class="va">tr</span>,</span>
@@ -480,9 +497,10 @@ leave out five species and predict them from their body size:</p>
 <span><span class="co">#&gt; 4     t48  0.8087231 -0.001191137  1.52776729  0.8384882</span></span>
 <span><span class="co">#&gt; 5     t97  0.6816089 -0.153634129  1.45359702  1.3873117</span></span></code></pre></div>
 <p>For intercept-only models of a process along the whole tree,
-<code><a href="../reference/ancestral.html">ancestral()</a></code> reconstructs the trait at the internal nodes,
-again in linear time. Here we reconstruct body size and colour the tree
-by the posterior medians:</p>
+<code><a href="../reference/ancestral.html">ancestral()</a></code> reconstructs the trait at the internal nodes
+<span class="citation">(<a href="#ref-schluter1997">Schluter et al.
+1997</a>)</span>, again in linear time. Here we reconstruct body size
+and colour the tree by the posterior medians:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_body</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">body</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">anc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ancestral.html">ancestral</a></span><span class="op">(</span><span class="va">fit_body</span>, tips <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -513,6 +531,134 @@ whether two kernels are the same model.</li>
 slopes that evolve along the tree, influential species and robust
 residuals.</li>
 </ul>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-blomberg2003" class="csl-entry">
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+<span>“Testing for Phylogenetic Signal in Comparative Data: Behavioral
+Traits Are More Labile.”</span> <em>Evolution</em> 57: 717–45.
+</div>
+<div id="ref-burkner2017" class="csl-entry">
+Bürkner, Paul-Christian. 2017. <span>“Brms: An <span>R</span> Package
+for <span>B</span>ayesian Multilevel Models Using
+<span>S</span>tan.”</span> <em>Journal of Statistical Software</em> 80
+(1): 1–28.
+</div>
+<div id="ref-butler2004" class="csl-entry">
+Butler, Marguerite A., and Aaron A. King. 2004. <span>“Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive
+Evolution.”</span> <em>The American Naturalist</em> 164: 683–95.
+</div>
+<div id="ref-clavel2017" class="csl-entry">
+Clavel, Julien, and Hélène Morlon. 2017. <span>“Accelerated Body Size
+Evolution During Cold Climatic Periods in the
+<span>C</span>enozoic.”</span> <em>Proceedings of the National Academy
+of Sciences of the USA</em> 114: 4183–88. <a href="https://doi.org/10.1073/pnas.1606868114" class="external-link">https://doi.org/10.1073/pnas.1606868114</a>.
+</div>
+<div id="ref-felsenstein1985" class="csl-entry">
+Felsenstein, Joseph. 1985. <span>“Phylogenies and the Comparative
+Method.”</span> <em>The American Naturalist</em> 125: 1–15.
+</div>
+<div id="ref-freckleton2002" class="csl-entry">
+Freckleton, Robert P., Paul H. Harvey, and Mark Pagel. 2002.
+<span>“Phylogenetic Analysis and Comparative Data: A Test and Review of
+Evidence.”</span> <em>The American Naturalist</em> 160: 712–26.
+</div>
+<div id="ref-freckleton2009" class="csl-entry">
+Freckleton, Robert P., and Walter Jetz. 2009. <span>“Space Versus
+Phylogeny: Disentangling Phylogenetic and Spatial Signals in Comparative
+Data.”</span> <em>Proceedings of the Royal Society B</em> 276: 21–30.
+</div>
+<div id="ref-garland2000" class="csl-entry">
+Garland, Theodore, Jr., and Anthony R. Ives. 2000. <span>“Using the Past
+to Predict the Present: Confidence Intervals for Regression Equations in
+Phylogenetic Comparative Methods.”</span> <em>The American
+Naturalist</em> 155: 346–64. <a href="https://doi.org/10.1086/303327" class="external-link">https://doi.org/10.1086/303327</a>.
+</div>
+<div id="ref-gneiting2013" class="csl-entry">
+Gneiting, Tilmann. 2013. <span>“Strictly and Non-Strictly Positive
+Definite Functions on Spheres.”</span> <em>Bernoulli</em> 19: 1327–49.
+<a href="https://doi.org/10.3150/12-BEJSP06" class="external-link">https://doi.org/10.3150/12-BEJSP06</a>.
+</div>
+<div id="ref-grafen1989" class="csl-entry">
+Grafen, Alan. 1989. <span>“The Phylogenetic Regression.”</span>
+<em>Philosophical Transactions of the Royal Society of London B</em>
+326: 119–57.
+</div>
+<div id="ref-guzmannaranjo2022" class="csl-entry">
+Guzmán Naranjo, Matías, and Laura Becker. 2022. <span>“Statistical Bias
+Control in Typology.”</span> <em>Linguistic Typology</em> 26: 605–70. <a href="https://doi.org/10.1515/lingty-2021-0002" class="external-link">https://doi.org/10.1515/lingty-2021-0002</a>.
+</div>
+<div id="ref-hansen1997" class="csl-entry">
+Hansen, Thomas F. 1997. <span>“Stabilizing Selection and the Comparative
+Analysis of Adaptation.”</span> <em>Evolution</em> 51: 1341–51.
+</div>
+<div id="ref-harmon2010" class="csl-entry">
+<span class="nocase">Harmon, Luke J., Jonathan B. Losos, T. Jonathan
+Davies, et al.</span> 2010. <span>“Early Bursts of Body Size and Shape
+Evolution Are Rare in Comparative Data.”</span> <em>Evolution</em> 64:
+2385–96.
+</div>
+<div id="ref-hartmann2023" class="csl-entry">
+Hartmann, Frederik, and Gerhard Jäger. 2023. <span>“Gaussian Process
+Models for Geographic Controls in Phylogenetic Trees.”</span> <em>Open
+Research Europe</em> 3: 57. <a href="https://doi.org/10.12688/openreseurope.15490.2" class="external-link">https://doi.org/10.12688/openreseurope.15490.2</a>.
+</div>
+<div id="ref-ho2014intrinsic" class="csl-entry">
+Ho, Lam si Tung, and Cécile Ané. 2014. <span>“Intrinsic Inference
+Difficulties for Trait Evolution with
+<span>O</span>rnstein-<span>U</span>hlenbeck Models.”</span> <em>Methods
+in Ecology and Evolution</em> 5: 1133–46.
+</div>
+<div id="ref-housworth2004" class="csl-entry">
+Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
+<span>“The Phylogenetic Mixed Model.”</span> <em>The American
+Naturalist</em> 163: 84–96.
+</div>
+<div id="ref-ives2007" class="csl-entry">
+Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
+<span>“Within-Species Variation and Measurement Error in Phylogenetic
+Comparative Methods.”</span> <em>Systematic Biology</em> 56: 252–70.
+</div>
+<div id="ref-lynch1991" class="csl-entry">
+Lynch, Michael. 1991. <span>“Methods for the Analysis of Comparative
+Data in Evolutionary Biology.”</span> <em>Evolution</em> 45: 1065–80.
+</div>
+<div id="ref-martins1997" class="csl-entry">
+Martins, Emília P., and Thomas F. Hansen. 1997. <span>“Phylogenies and
+the Comparative Method: A General Approach to Incorporating Phylogenetic
+Information into the Analysis of Interspecific Data.”</span> <em>The
+American Naturalist</em> 149: 646–67.
+</div>
+<div id="ref-pagel1999" class="csl-entry">
+Pagel, Mark. 1999. <span>“Inferring the Historical Patterns of
+Biological Evolution.”</span> <em>Nature</em> 401: 877–84.
+</div>
+<div id="ref-schluter1997" class="csl-entry">
+Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.
+<span>“Likelihood of Ancestor States in Adaptive Radiation.”</span>
+<em>Evolution</em> 51: 1699–711. <a href="https://doi.org/10.1111/j.1558-5646.1997.tb05095.x" class="external-link">https://doi.org/10.1111/j.1558-5646.1997.tb05095.x</a>.
+</div>
+<div id="ref-schoenberg1938" class="csl-entry">
+Schoenberg, I. J. 1938. <span>“Metric Spaces and Positive Definite
+Functions.”</span> <em>Transactions of the American Mathematical
+Society</em> 44: 522–36.
+</div>
+<div id="ref-uyeda2015comparative" class="csl-entry">
+Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
+<span>“Comparative Analysis of Principal Components Can Be
+Misleading.”</span> <em>Systematic Biology</em> 64 (4): 677–89. <a href="https://doi.org/10.1093/sysbio/syv019" class="external-link">https://doi.org/10.1093/sysbio/syv019</a>.
+</div>
+<div id="ref-vehtari2017" class="csl-entry">
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. <span>“Practical
+<span>B</span>ayesian Model Evaluation Using Leave-One-Out
+Cross-Validation and <span>WAIC</span>.”</span> <em>Statistics and
+Computing</em> 27: 1413–32.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

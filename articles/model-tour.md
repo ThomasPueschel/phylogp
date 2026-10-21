@@ -24,11 +24,13 @@ N <- ape::Ntip(tr)
 
 ## 1. Brownian motion and phylogenetic regression
 
-The simplest model of trait evolution is Brownian motion (BM): changes
-accumulate at a constant rate along every branch, so the covariance of
-two species is proportional to the time they share. Phylogenetic
-generalised least squares (PGLS) is a regression whose residuals follow
-this process.
+The simplest model of trait evolution is Brownian motion \[BM;
+Felsenstein ([1985](#ref-felsenstein1985))\]: changes accumulate at a
+constant rate along every branch, so the covariance of two species is
+proportional to the time they share. Phylogenetic generalised least
+squares \[PGLS; Grafen ([1989](#ref-grafen1989)); Martins and Hansen
+([1997](#ref-martins1997))\] is a regression whose residuals follow this
+process.
 
 We simulate log brain size that scales with log body size (slope 0.7),
 with a residual that evolves by BM plus some species-level variation
@@ -53,8 +55,10 @@ Pure BM
 is PGLS. Adding
 [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md),
 independent variation of each species, gives the phylogenetic mixed
-model, which on a time-calibrated tree is the same model as Pagel’s
-$`\lambda`$. Both can be fitted by maximum likelihood:
+model ([Lynch 1991](#ref-lynch1991); [Housworth et al.
+2004](#ref-housworth2004)), which on a time-calibrated tree is the same
+model as Pagel’s $`\lambda`$([Pagel 1999](#ref-pagel1999)). Both can be
+fitted by maximum likelihood:
 
 ``` r
 
@@ -82,8 +86,10 @@ sapply(list(BM = fit_bm, "BM + white" = fit_bmw), function(f) AIC(logLik(f)))
 
 or in a Bayesian way, which gives the uncertainty of every parameter.
 The proportion of residual variance that is phylogenetic, the
-*phylogenetic signal* (equal to Pagel’s $`\lambda`$ here), is a function
-of the posterior draws:
+*phylogenetic signal* ([Pagel 1999](#ref-pagel1999); [Freckleton et al.
+2002](#ref-freckleton2002); [Blomberg et al. 2003](#ref-blomberg2003))
+(equal to Pagel’s $`\lambda`$ here), is a function of the posterior
+draws:
 
 ``` r
 
@@ -111,11 +117,13 @@ quantile(signal, c(0.05, 0.5, 0.95))
 
 The true signal is $`0.6^2 / (0.6^2 + 0.3^2) = 0.8`$.
 
-[`plot_effects()`](https://thomaspueschel.github.io/phylogp/reference/plot_effects.md)
-draws the fitted relationship, the expected brain size at each body
-size, with its 90% credible band over the species values. This is the
-population-level line, averaged over the phylogenetic and species
-effects; the function also returns the values for your own plots.
+[`plot_effects()`](https://thomaspueschel.github.io/phylogp/reference/plot_effects.md),
+like the conditional-effects plots of brms ([Bürkner
+2017](#ref-burkner2017)), draws the fitted relationship, the expected
+brain size at each body size, with its 90% credible band over the
+species values. This is the population-level line, averaged over the
+phylogenetic and species effects; the function also returns the values
+for your own plots.
 
 ``` r
 
@@ -126,7 +134,10 @@ plot_effects(fit1, "body")
 
 ## 2. The classical family
 
-Pagel’s transformations, early burst (EB) and Ornstein–Uhlenbeck (OU)
+Pagel’s transformations ([Pagel 1999](#ref-pagel1999)), early burst
+\[EB; Blomberg et al. ([2003](#ref-blomberg2003)); Harmon et al.
+([2010](#ref-harmon2010))\] and Ornstein–Uhlenbeck \[OU; Hansen
+([1997](#ref-hansen1997)); Butler and King ([2004](#ref-butler2004))\]
 are all kernels too. With `method = "optimize"` they reproduce `phylolm`
 and `geiger` to numerical precision, so a table of the usual models
 takes a few lines:
@@ -154,7 +165,9 @@ The two models with independent species-level variation, “BM + white”
 and Pagel’s $`\lambda`$, fit best and equally well: they are the same
 model. On a time-calibrated tree, an OU model with a single optimum is
 also the same model as an *accelerating* early burst, so their fits
-cannot be told apart from extant species alone; see
+cannot be told apart from extant species alone ([Ho and Ané
+2014](#ref-ho2014intrinsic); [Uyeda et al.
+2015](#ref-uyeda2015comparative)); see
 [`vignette("kernel-design", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/kernel-design.md)
 for how to check whether two kernels are the same model.
 
@@ -162,8 +175,8 @@ for how to check whether two kernels are the same model.
 
 When each species value is a mean with a known standard error, for
 example from a meta-analysis, the standard errors enter the model
-through `se`. They are added to the variance of each species, so
-precisely measured species count for more.
+through `se` ([Ives et al. 2007](#ref-ives2007)). They are added to the
+variance of each species, so precisely measured species count for more.
 
 ``` r
 
@@ -193,9 +206,9 @@ error, with somewhat wider intervals.
 
 ## 4. Several individuals per species
 
-Data often come as individuals rather than species means. Keep one row
-per individual and give the column of species names in `species`. The
-kernel then describes the species,
+Data often come as individuals rather than species means ([Ives et al.
+2007](#ref-ives2007)). Keep one row per individual and give the column
+of species names in `species`. The kernel then describes the species,
 [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md)
 becomes the non-phylogenetic species effect, and a residual standard
 deviation within species, `within_sigma`, is added. The likelihood is
@@ -258,12 +271,15 @@ Leave-one-out cross-validation then leaves out whole species, and
 
 ## 5. Rates that change through time
 
-Early burst assumes that the rate of evolution declines exponentially. A
-more flexible alternative lets the rate vary smoothly through time:
+Early burst assumes that the rate of evolution declines exponentially
+([Harmon et al. 2010](#ref-harmon2010)). A more flexible alternative
+lets the rate vary smoothly through time:
 [`k_rate_time()`](https://thomaspueschel.github.io/phylogp/reference/k_rate_time.md)
 divides the height of the tree into bins and gives each a log rate with
-a random-walk prior. We simulate an early burst, in which the rate falls
-20-fold from the root to the present, and see whether the flexible
+a random-walk prior, in the spirit of models in which rates follow time
+or an environmental variable ([Clavel and Morlon
+2017](#ref-clavel2017)). We simulate an early burst, in which the rate
+falls 20-fold from the root to the present, and see whether the flexible
 kernel recovers its shape without being told.
 
 ``` r
@@ -314,11 +330,15 @@ in
 ## 6. Phylogeny and geography
 
 Closely related species are often also close in space, and a trait can
-vary with geography for reasons that have nothing to do with ancestry.
+vary with geography for reasons that have nothing to do with ancestry
+([Freckleton and Jetz 2009](#ref-freckleton2009)).
 [`k_dist()`](https://thomaspueschel.github.io/phylogp/reference/k_dist.md)
 adds a Gaussian process over any distance matrix, here the distances
 between species’ range centres, so the phylogenetic and the spatial
-variation are estimated together.
+variation are estimated together, as in Gaussian-process models of
+geography and phylogeny in linguistics ([Guzmán Naranjo and Becker
+2022](#ref-guzmannaranjo2022); [Hartmann and Jäger
+2023](#ref-hartmann2023)).
 
 We place the species on a map, with relatives tending to live near each
 other, and simulate a trait with phylogenetic, spatial and independent
@@ -375,7 +395,8 @@ loo::loo_compare(list("phylogeny only" = loo(fit6_phy),
 ```
 
 The exponential kernel used here is valid for any Euclidean distance and
-for great-circle distances on the sphere;
+for great-circle distances on the sphere ([Schoenberg
+1938](#ref-schoenberg1938); [Gneiting 2013](#ref-gneiting2013));
 [`kernel_check()`](https://thomaspueschel.github.io/phylogp/reference/kernel_check.md)
 tests other choices on the data at hand.
 
@@ -409,8 +430,9 @@ the tree.
 
 ## 8. Choosing among models
 
-Leave-one-out cross-validation (LOO) compares models by how well they
-predict each species from all the others. For branch-wise kernels the
+Leave-one-out cross-validation \[LOO; Vehtari et al.
+([2017](#ref-vehtari2017))\] compares models by how well they predict
+each species from all the others. For branch-wise kernels the
 leave-one-out densities are computed in linear time, and
 [`loo()`](https://mc-stan.org/loo/reference/loo.html) returns the usual
 Pareto-smoothed estimate:
@@ -466,8 +488,9 @@ the tree.
 ## 9. Prediction and ancestral states
 
 A fitted model predicts species that are in the tree but have no data,
-by conditioning the Gaussian process on the observed species. We leave
-out five species and predict them from their body size:
+by conditioning the Gaussian process on the observed species ([Garland
+and Ives 2000](#ref-garland2000)). We leave out five species and predict
+them from their body size:
 
 ``` r
 
@@ -486,8 +509,9 @@ cbind(p[, c("species", "mean", "q5", "q95")], true = d1[missing, "brain"])
 
 For intercept-only models of a process along the whole tree,
 [`ancestral()`](https://thomaspueschel.github.io/phylogp/reference/ancestral.md)
-reconstructs the trait at the internal nodes, again in linear time. Here
-we reconstruct body size and colour the tree by the posterior medians:
+reconstructs the trait at the internal nodes ([Schluter et al.
+1997](#ref-schluter1997)), again in linear time. Here we reconstruct
+body size and colour the tree by the posterior medians:
 
 ``` r
 
@@ -516,3 +540,98 @@ plot_tree_values(ft, anc$mean[match(ft$edge[, 2], anc$node)],
 - [`vignette("slopes-prediction", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/slopes-prediction.md):
   slopes that evolve along the tree, influential species and robust
   residuals.
+
+## References
+
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+“Testing for Phylogenetic Signal in Comparative Data: Behavioral Traits
+Are More Labile.” *Evolution* 57: 717–45.
+
+Bürkner, Paul-Christian. 2017. “Brms: An R Package for Bayesian
+Multilevel Models Using Stan.” *Journal of Statistical Software* 80 (1):
+1–28.
+
+Butler, Marguerite A., and Aaron A. King. 2004. “Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive Evolution.” *The
+American Naturalist* 164: 683–95.
+
+Clavel, Julien, and Hélène Morlon. 2017. “Accelerated Body Size
+Evolution During Cold Climatic Periods in the Cenozoic.” *Proceedings of
+the National Academy of Sciences of the USA* 114: 4183–88.
+<https://doi.org/10.1073/pnas.1606868114>.
+
+Felsenstein, Joseph. 1985. “Phylogenies and the Comparative Method.”
+*The American Naturalist* 125: 1–15.
+
+Freckleton, Robert P., Paul H. Harvey, and Mark Pagel. 2002.
+“Phylogenetic Analysis and Comparative Data: A Test and Review of
+Evidence.” *The American Naturalist* 160: 712–26.
+
+Freckleton, Robert P., and Walter Jetz. 2009. “Space Versus Phylogeny:
+Disentangling Phylogenetic and Spatial Signals in Comparative Data.”
+*Proceedings of the Royal Society B* 276: 21–30.
+
+Garland, Theodore, Jr., and Anthony R. Ives. 2000. “Using the Past to
+Predict the Present: Confidence Intervals for Regression Equations in
+Phylogenetic Comparative Methods.” *The American Naturalist* 155:
+346–64. <https://doi.org/10.1086/303327>.
+
+Gneiting, Tilmann. 2013. “Strictly and Non-Strictly Positive Definite
+Functions on Spheres.” *Bernoulli* 19: 1327–49.
+<https://doi.org/10.3150/12-BEJSP06>.
+
+Grafen, Alan. 1989. “The Phylogenetic Regression.” *Philosophical
+Transactions of the Royal Society of London B* 326: 119–57.
+
+Guzmán Naranjo, Matías, and Laura Becker. 2022. “Statistical Bias
+Control in Typology.” *Linguistic Typology* 26: 605–70.
+<https://doi.org/10.1515/lingty-2021-0002>.
+
+Hansen, Thomas F. 1997. “Stabilizing Selection and the Comparative
+Analysis of Adaptation.” *Evolution* 51: 1341–51.
+
+Harmon, Luke J., Jonathan B. Losos, T. Jonathan Davies, et al. 2010.
+“Early Bursts of Body Size and Shape Evolution Are Rare in Comparative
+Data.” *Evolution* 64: 2385–96.
+
+Hartmann, Frederik, and Gerhard Jäger. 2023. “Gaussian Process Models
+for Geographic Controls in Phylogenetic Trees.” *Open Research Europe*
+3: 57. <https://doi.org/10.12688/openreseurope.15490.2>.
+
+Ho, Lam si Tung, and Cécile Ané. 2014. “Intrinsic Inference Difficulties
+for Trait Evolution with Ornstein-Uhlenbeck Models.” *Methods in Ecology
+and Evolution* 5: 1133–46.
+
+Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
+“The Phylogenetic Mixed Model.” *The American Naturalist* 163: 84–96.
+
+Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
+“Within-Species Variation and Measurement Error in Phylogenetic
+Comparative Methods.” *Systematic Biology* 56: 252–70.
+
+Lynch, Michael. 1991. “Methods for the Analysis of Comparative Data in
+Evolutionary Biology.” *Evolution* 45: 1065–80.
+
+Martins, Emília P., and Thomas F. Hansen. 1997. “Phylogenies and the
+Comparative Method: A General Approach to Incorporating Phylogenetic
+Information into the Analysis of Interspecific Data.” *The American
+Naturalist* 149: 646–67.
+
+Pagel, Mark. 1999. “Inferring the Historical Patterns of Biological
+Evolution.” *Nature* 401: 877–84.
+
+Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.
+“Likelihood of Ancestor States in Adaptive Radiation.” *Evolution* 51:
+1699–711. <https://doi.org/10.1111/j.1558-5646.1997.tb05095.x>.
+
+Schoenberg, I. J. 1938. “Metric Spaces and Positive Definite Functions.”
+*Transactions of the American Mathematical Society* 44: 522–36.
+
+Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
+“Comparative Analysis of Principal Components Can Be Misleading.”
+*Systematic Biology* 64 (4): 677–89.
+<https://doi.org/10.1093/sysbio/syv019>.
+
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian
+Model Evaluation Using Leave-One-Out Cross-Validation and WAIC.”
+*Statistics and Computing* 27: 1413–32.

@@ -70,6 +70,15 @@ predict(
 A data frame with one row per species: whether it was observed,
 posterior mean, standard deviation and quantiles.
 
+## References
+
+Garland T. Jr., Ives A.R. 2000. Using the past to predict the present:
+Confidence intervals for regression equations in phylogenetic
+comparative methods. The American Naturalist. 155:346–364.
+
+Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine
+learning. Cambridge, MA: MIT Press.
+
 ## Examples
 
 ``` r

@@ -23,6 +23,16 @@ e1 + e2
 
 A kernel of class `phylogp_kernel`.
 
+## References
+
+Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine
+learning. Cambridge, MA: MIT Press.
+
+Duvenaud D., Lloyd J., Grosse R., Tenenbaum J., Ghahramani Z. 2013.
+Structure discovery in nonparametric regression through compositional
+kernel search. Proceedings of the 30th international conference on
+machine learning. 28:1166–1174.
+
 ## Examples
 
 ``` r

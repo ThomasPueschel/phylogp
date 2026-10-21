@@ -19,7 +19,8 @@ and CmdStan.
 
 A classic question in comparative biology is whether a scaling
 relationship, such as brain size on body size, is the same across a
-clade or itself evolves. We simulate a tree of 120 species, body sizes
+clade or itself evolves ([Lande 1979](#ref-lande1979); [Pagel and Harvey
+1989](#ref-pagel1989)). We simulate a tree of 120 species, body sizes
 evolving by Brownian motion, and a brain–body slope whose deviation from
 0.7 also evolves by Brownian motion along the tree.
 
@@ -70,7 +71,9 @@ We compare
 2.  the same, plus residual variance that grows with body size, which is
     `k_slope("body") * k_white()`: species-specific slope deviations
     that are *not* phylogenetically structured;
-3.  a slope that evolves along the tree, `k_slope("body") * k_bm()`.
+3.  a slope that evolves along the tree, `k_slope("body") * k_bm()`, the
+    kernel form of a phylogenetic random slope in a mixed model
+    ([Hadfield and Nakagawa 2010](#ref-hadfield2010)).
 
 Model 2 matters. A varying slope also makes the variance of brain size
 grow with distance from the mean body size, so a varying-slope model
@@ -128,7 +131,7 @@ removing them changes the posterior enough that the importance-sampling
 estimate of their leave-one-out density is unreliable.
 [`loo_refit()`](https://thomaspueschel.github.io/phylogp/reference/loo_refit.md)
 refits the model without each of them and replaces their contribution by
-the exact value.
+the exact value ([Vehtari et al. 2017](#ref-vehtari2017)).
 
 ``` r
 
@@ -199,10 +202,12 @@ middle, but the pattern along the tree is recovered.
 
 ## Predicting species without data
 
-Gaussian-process prediction on a tree is kriging: a species’ value is
-predicted from its relatives through the kernel. Here we hold out 12
-species, fit the model to the rest, and predict them from their body
-sizes and positions in the tree.
+Gaussian-process prediction on a tree is kriging ([Garland and Ives
+2000](#ref-garland2000); [Rasmussen and Williams
+2006](#ref-rasmussen2006)): a species’ value is predicted from its
+relatives through the kernel. Here we hold out 12 species, fit the model
+to the rest, and predict them from their body sizes and positions in the
+tree.
 
 ``` r
 
@@ -237,7 +242,9 @@ smoothed values that also use the species’ own data.
 
 ## Ancestral states
 
-Ancestral states are predictions at the internal nodes of the tree.
+Ancestral states are predictions at the internal nodes of the tree
+([Schluter et al. 1997](#ref-schluter1997); [Garland and Ives
+2000](#ref-garland2000)).
 [`ancestral()`](https://thomaspueschel.github.io/phylogp/reference/ancestral.md)
 computes them in linear time, averaged over the posterior. Because we
 simulated the whole history, we can compare them with the truth.
@@ -335,3 +342,33 @@ With Student-t residuals the slope estimate is closer to the true 0.7
 and more precise, and leave-one-out strongly prefers the robust model.
 For real data, both models are worth reporting: the multipliers show
 which species drive the difference.
+
+## References
+
+Garland, Theodore, Jr., and Anthony R. Ives. 2000. “Using the Past to
+Predict the Present: Confidence Intervals for Regression Equations in
+Phylogenetic Comparative Methods.” *The American Naturalist* 155:
+346–64. <https://doi.org/10.1086/303327>.
+
+Hadfield, Jarrod D., and Shinichi Nakagawa. 2010. “General Quantitative
+Genetic Methods for Comparative Biology: Phylogenies, Taxonomies and
+Multi-Trait Models for Continuous and Categorical Characters.” *Journal
+of Evolutionary Biology* 23: 494–508.
+
+Lande, Russell. 1979. “Quantitative Genetic Analysis of Multivariate
+Evolution, Applied to Brain:body Size Allometry.” *Evolution* 33:
+402–16.
+
+Pagel, Mark D., and Paul H. Harvey. 1989. “Taxonomic Differences in the
+Scaling of Brain on Body Weight Among Mammals.” *Science* 244: 1589–93.
+
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006. *Gaussian
+Processes for Machine Learning*. MIT Press.
+
+Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.
+“Likelihood of Ancestor States in Adaptive Radiation.” *Evolution* 51:
+1699–711. <https://doi.org/10.1111/j.1558-5646.1997.tb05095.x>.
+
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian
+Model Evaluation Using Leave-One-Out Cross-Validation and WAIC.”
+*Statistics and Computing* 27: 1413–32.

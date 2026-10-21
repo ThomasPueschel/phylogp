@@ -71,8 +71,12 @@
     
     
 <p>Every Gaussian model of continuous trait evolution, from Brownian
-motion and Pagel’s λ to Ornstein–Uhlenbeck, early-burst and multi-rate
-models, says the same thing about the data:</p>
+motion <span class="citation">(<a href="#ref-felsenstein1985">Felsenstein 1985</a>)</span> and Pagel’s λ
+<span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>)</span>
+to Ornstein–Uhlenbeck <span class="citation">(<a href="#ref-hansen1997">Hansen 1997</a>; <a href="#ref-butler2004">Butler
+and King 2004</a>)</span>, early-burst <span class="citation">(<a href="#ref-blomberg2003">Blomberg et al. 2003</a>; <a href="#ref-harmon2010"><span class="nocase">Harmon et al.</span>
+2010</a>)</span> and multi-rate models <span class="citation">(<a href="#ref-omeara2006">O’Meara et al. 2006</a>; <a href="#ref-eastman2011">Eastman et al. 2011</a>; <a href="#ref-venditti2011">Venditti et al. 2011</a>)</span>, says the same
+thing about the data:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∼</mo><mi>𝒩</mi><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mi>β</mi><mo>,</mo><mspace width="0.278em"></mspace><mi>K</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex"> y \sim \mathcal{N}(X\beta,\; K), </annotation></semantics></math></p>
 <p>and the models differ only in the covariance matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>,
@@ -233,10 +237,14 @@ the regression line upwards.</p>
 <h2 id="a-kernel-whose-rate-evolves">A kernel whose rate evolves<a class="anchor" aria-label="anchor" href="#a-kernel-whose-rate-evolves"></a>
 </h2>
 <p><code><a href="../reference/k_relaxed.html">k_relaxed()</a></code> lets the log rate of evolution follow a
-Brownian motion along the tree, without being told where any shift lies.
-Its rates are latent variables, so it is fitted by Hamiltonian Monte
-Carlo. We compare it with the Bayesian version of the Pagel’s λ model
-(BM plus residual).</p>
+Brownian motion along the tree, without being told where any shift lies,
+much as relaxed-clock models let rates of molecular evolution vary <span class="citation">(<a href="#ref-thorne2002">Thorne and Kishino
+2002</a>)</span>; related approaches for continuous traits include
+variable-rates models <span class="citation">(<a href="#ref-eastman2011">Eastman et al. 2011</a>; <a href="#ref-venditti2011">Venditti et al. 2011</a>; <a href="#ref-revell2021multirate">Revell 2021</a>)</span> and relaxed
+random walks <span class="citation">(<a href="#ref-fisher2021relaxed">Fisher et al. 2021</a>)</span>. Its rates
+are latent variables, so it is fitted by Hamiltonian Monte Carlo. We
+compare it with the Bayesian version of the Pagel’s λ model (BM plus
+residual).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_bm</span>      <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, data <span class="op">=</span> <span class="va">d</span>, tree <span class="op">=</span> <span class="va">tr</span>,</span>
 <span>                        kernel <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -258,9 +266,9 @@ Carlo. We compare it with the Bayesian version of the Pagel’s λ model
 <span><span class="co">#&gt; 5   white1_sigma  0.107 0.0473  0.030 0.192    1     2794</span></span></code></pre></div>
 <p><code>relaxed1_tau</code>, the standard deviation of log-rate change,
 is clearly above zero: the data favour variable rates.</p>
-<p>Leave-one-out cross-validation asks which model predicts each species
-better from all the others. <code>phylogp</code> computes the exact
-conditional densities
+<p>Leave-one-out cross-validation <span class="citation">(<a href="#ref-vehtari2017">Vehtari et al. 2017</a>)</span> asks which model
+predicts each species better from all the others. <code>phylogp</code>
+computes the exact conditional densities
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>y</mi><mrow><mi>−</mi><mi>i</mi></mrow></msub><mo>,</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(y_i \mid y_{-i}, \theta)</annotation></semantics></math>
 in linear time, and <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> combines them across posterior
 draws.</p>
@@ -327,9 +335,9 @@ read the estimated ratio as conservative.</p>
 <div class="section level2">
 <h2 id="several-observations-per-species">Several observations per species<a class="anchor" aria-label="anchor" href="#several-observations-per-species"></a>
 </h2>
-<p>Data often come as individuals rather than species means. Give the
-column of species names in <code>species</code> and keep one row per
-individual: the kernel then describes the species, a
+<p>Data often come as individuals rather than species means <span class="citation">(<a href="#ref-ives2007">Ives et al. 2007</a>)</span>.
+Give the column of species names in <code>species</code> and keep one
+row per individual: the kernel then describes the species, a
 <code><a href="../reference/classical-kernels.html">k_white()</a></code> component becomes the non-phylogenetic species
 effect, and a residual standard deviation within species
 (<code>within_sigma</code>) is added. The likelihood is exact and still
@@ -374,7 +382,8 @@ new individual.</p>
 <p>Each kernel component adds its contribution to the variance
 accumulated along every branch. When all components have this
 branch-wise form, the likelihood is evaluated by the linear-time pruning
-recursion. You can inspect, and edit, the generated program:</p>
+recursion <span class="citation">(<a href="#ref-felsenstein1973">Felsenstein 1973</a>; <a href="#ref-ho2014">Ho and Ané 2014</a>)</span>. You can inspect, and
+edit, the generated program:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="fu"><a href="../reference/kernel_stancode.html">kernel_stancode</a></span><span class="op">(</span><span class="va">fit_relaxed</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">code</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^model"</span>, <span class="va">code</span><span class="op">)</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^generated"</span>, <span class="va">code</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">]</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span>
@@ -419,6 +428,91 @@ is not a valid covariance on a tree with fossil tips.</li>
 <li>
 <code>?classical-kernels</code> lists the built-in components.</li>
 </ul>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-blomberg2003" class="csl-entry">
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+<span>“Testing for Phylogenetic Signal in Comparative Data: Behavioral
+Traits Are More Labile.”</span> <em>Evolution</em> 57: 717–45.
+</div>
+<div id="ref-butler2004" class="csl-entry">
+Butler, Marguerite A., and Aaron A. King. 2004. <span>“Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive
+Evolution.”</span> <em>The American Naturalist</em> 164: 683–95.
+</div>
+<div id="ref-eastman2011" class="csl-entry">
+Eastman, Jonathan M., Michael E. Alfaro, Paul Joyce, Andrew L. Hipp, and
+Luke J. Harmon. 2011. <span>“A Novel Comparative Method for Identifying
+Shifts in the Rate of Character Evolution on Trees.”</span>
+<em>Evolution</em> 65: 3578–89.
+</div>
+<div id="ref-felsenstein1973" class="csl-entry">
+Felsenstein, Joseph. 1973. <span>“Maximum-Likelihood Estimation of
+Evolutionary Trees from Continuous Characters.”</span> <em>American
+Journal of Human Genetics</em> 25: 471–92.
+</div>
+<div id="ref-felsenstein1985" class="csl-entry">
+Felsenstein, Joseph. 1985. <span>“Phylogenies and the Comparative
+Method.”</span> <em>The American Naturalist</em> 125: 1–15.
+</div>
+<div id="ref-fisher2021relaxed" class="csl-entry">
+Fisher, Alexander A., Xiang Ji, Zhenyu Zhang, Philippe Lemey, and Marc
+A. Suchard. 2021. <span>“Relaxed Random Walks at Scale.”</span>
+<em>Systematic Biology</em> 70 (2): 258–67. <a href="https://doi.org/10.1093/sysbio/syaa056" class="external-link">https://doi.org/10.1093/sysbio/syaa056</a>.
+</div>
+<div id="ref-hansen1997" class="csl-entry">
+Hansen, Thomas F. 1997. <span>“Stabilizing Selection and the Comparative
+Analysis of Adaptation.”</span> <em>Evolution</em> 51: 1341–51.
+</div>
+<div id="ref-harmon2010" class="csl-entry">
+<span class="nocase">Harmon, Luke J., Jonathan B. Losos, T. Jonathan
+Davies, et al.</span> 2010. <span>“Early Bursts of Body Size and Shape
+Evolution Are Rare in Comparative Data.”</span> <em>Evolution</em> 64:
+2385–96.
+</div>
+<div id="ref-ho2014" class="csl-entry">
+Ho, Lam si Tung, and Cécile Ané. 2014. <span>“A Linear-Time Algorithm
+for <span>G</span>aussian and Non-<span>G</span>aussian Trait Evolution
+Models.”</span> <em>Systematic Biology</em> 63: 397–408.
+</div>
+<div id="ref-ives2007" class="csl-entry">
+Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
+<span>“Within-Species Variation and Measurement Error in Phylogenetic
+Comparative Methods.”</span> <em>Systematic Biology</em> 56: 252–70.
+</div>
+<div id="ref-omeara2006" class="csl-entry">
+O’Meara, Brian C., Cécile Ané, Michael J. Sanderson, and Peter C.
+Wainwright. 2006. <span>“Testing for Different Rates of Continuous Trait
+Evolution Using Likelihood.”</span> <em>Evolution</em> 60: 922–33.
+</div>
+<div id="ref-pagel1999" class="csl-entry">
+Pagel, Mark. 1999. <span>“Inferring the Historical Patterns of
+Biological Evolution.”</span> <em>Nature</em> 401: 877–84.
+</div>
+<div id="ref-revell2021multirate" class="csl-entry">
+Revell, Liam J. 2021. <span>“A Variable-Rate Quantitative Trait
+Evolution Model Using Penalized-Likelihood.”</span> <em>PeerJ</em> 9:
+e11997.
+</div>
+<div id="ref-thorne2002" class="csl-entry">
+Thorne, Jeffrey L., and Hirohisa Kishino. 2002. <span>“Divergence Time
+and Evolutionary Rate Estimation with Multilocus Data.”</span>
+<em>Systematic Biology</em> 51: 689–702.
+</div>
+<div id="ref-vehtari2017" class="csl-entry">
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. <span>“Practical
+<span>B</span>ayesian Model Evaluation Using Leave-One-Out
+Cross-Validation and <span>WAIC</span>.”</span> <em>Statistics and
+Computing</em> 27: 1413–32.
+</div>
+<div id="ref-venditti2011" class="csl-entry">
+Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. <span>“Multiple
+Routes to Mammalian Diversity.”</span> <em>Nature</em> 479: 393–96.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

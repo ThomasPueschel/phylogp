@@ -76,6 +76,11 @@ median of the expected response (`estimate`) and the band (`lower`,
 Named differently from `brms::conditional_effects()` so that both
 packages can be loaded together.
 
+## References
+
+Bürkner P.-C. 2017. Brms: An R package for Bayesian multilevel models
+using Stan. Journal of Statistical Software. 80:1–28.
+
 ## Examples
 
 ``` r

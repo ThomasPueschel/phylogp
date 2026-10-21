@@ -50,6 +50,12 @@ the group, `log mean_s p(y_group | y_rest, theta_s)`, is computed. For
 branch-wise kernels this is the difference of two pruning likelihoods,
 so it costs O(N) per draw; dense kernels use dense conditioning.
 
+## References
+
+Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC. Statistics and
+Computing. 27:1413–1432.
+
 ## Examples
 
 ``` r

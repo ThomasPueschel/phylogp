@@ -103,6 +103,31 @@ deviations from those means. Predictors may vary within species.
 Leave-one-out leaves out whole species. Not yet available with varying
 slopes or known measurement error (`se`).
 
+## References
+
+Rasmussen C.E., Williams C.K.I. 2006. Gaussian processes for machine
+learning. Cambridge, MA: MIT Press.
+
+Carpenter B., Gelman A., Hoffman M.D., Lee D., Goodrich B., Betancourt
+M., Brubaker M., Guo J., Li P., Riddell A. 2017. Stan: A probabilistic
+programming language. Journal of Statistical Software. 76:1–32.
+
+Felsenstein J. 1973. Maximum-likelihood estimation of evolutionary trees
+from continuous characters. American Journal of Human Genetics.
+25:471–492.
+
+Ho L. si T., Ané C. 2014. A linear-time algorithm for Gaussian and
+non-Gaussian trait evolution models. Systematic Biology. 63:397–408.
+
+Ives A.R., Midford P.E., Garland T. 2007. Within-species variation and
+measurement error in phylogenetic comparative methods. Systematic
+Biology. 56:252–270.
+
+Hadfield J.D., Nakagawa S. 2010. General quantitative genetic methods
+for comparative biology: Phylogenies, taxonomies and multi-trait models
+for continuous and categorical characters. Journal of Evolutionary
+Biology. 23:494–508.
+
 ## Examples
 
 ``` r

@@ -64,3 +64,9 @@ estimates and the spread of per-tree estimates;
 [`loo()`](https://mc-stan.org/loo/reference/loo.html) gives
 leave-one-out cross-validation for the pooled posterior;
 [`coef()`](https://rdrr.io/r/stats/coef.html) gives per-tree estimates.
+
+## References
+
+Villemereuil P. de, Wells J.A., Edwards R.D., Blomberg S.P. 2012.
+Bayesian models for comparative analysis integrating phylogenetic
+uncertainty. BMC Evolutionary Biology. 12:102.

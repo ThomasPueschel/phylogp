@@ -93,7 +93,8 @@ outlying species.</li>
 </h2>
 <p>A classic question in comparative biology is whether a scaling
 relationship, such as brain size on body size, is the same across a
-clade or itself evolves. We simulate a tree of 120 species, body sizes
+clade or itself evolves <span class="citation">(<a href="#ref-lande1979">Lande 1979</a>; <a href="#ref-pagel1989">Pagel and
+Harvey 1989</a>)</span>. We simulate a tree of 120 species, body sizes
 evolving by Brownian motion, and a brain–body slope whose deviation from
 0.7 also evolves by Brownian motion along the tree.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -136,7 +137,8 @@ evolving by Brownian motion, and a brain–body slope whose deviation from
 <code>k_slope("body") * k_white()</code>: species-specific slope
 deviations that are <em>not</em> phylogenetically structured;</li>
 <li>a slope that evolves along the tree,
-<code>k_slope("body") * k_bm()</code>.</li>
+<code>k_slope("body") * k_bm()</code>, the kernel form of a phylogenetic
+random slope in a mixed model <span class="citation">(<a href="#ref-hadfield2010">Hadfield and Nakagawa 2010</a>)</span>.</li>
 </ol>
 <p>Model 2 matters. A varying slope also makes the variance of brain
 size grow with distance from the mean body size, so a varying-slope
@@ -189,7 +191,8 @@ slope, not from the variance pattern alone.</p>
 removing them changes the posterior enough that the importance-sampling
 estimate of their leave-one-out density is unreliable.
 <code><a href="../reference/loo_refit.html">loo_refit()</a></code> refits the model without each of them and
-replaces their contribution by the exact value.</p>
+replaces their contribution by the exact value <span class="citation">(<a href="#ref-vehtari2017">Vehtari et al.
+2017</a>)</span>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loo_vary_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/loo_refit.html">loo_refit</a></span><span class="op">(</span><span class="va">f_vary</span>, loo <span class="op">=</span> <span class="va">loo_vary</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">loo_vary_exact</span>, <span class="st">"refitted"</span><span class="op">)</span></span>
@@ -242,10 +245,11 @@ middle, but the pattern along the tree is recovered.</p>
 <div class="section level2">
 <h2 id="predicting-species-without-data">Predicting species without data<a class="anchor" aria-label="anchor" href="#predicting-species-without-data"></a>
 </h2>
-<p>Gaussian-process prediction on a tree is kriging: a species’ value is
-predicted from its relatives through the kernel. Here we hold out 12
-species, fit the model to the rest, and predict them from their body
-sizes and positions in the tree.</p>
+<p>Gaussian-process prediction on a tree is kriging <span class="citation">(<a href="#ref-garland2000">Garland and Ives 2000</a>;
+<a href="#ref-rasmussen2006">Rasmussen and Williams 2006</a>)</span>: a
+species’ value is predicted from its relatives through the kernel. Here
+we hold out 12 species, fit the model to the rest, and predict them from
+their body sizes and positions in the tree.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">held</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">12</span><span class="op">)</span></span>
@@ -274,7 +278,9 @@ own data.</p>
 <div class="section level2">
 <h2 id="ancestral-states">Ancestral states<a class="anchor" aria-label="anchor" href="#ancestral-states"></a>
 </h2>
-<p>Ancestral states are predictions at the internal nodes of the tree.
+<p>Ancestral states are predictions at the internal nodes of the tree
+<span class="citation">(<a href="#ref-schluter1997">Schluter et al.
+1997</a>; <a href="#ref-garland2000">Garland and Ives 2000</a>)</span>.
 <code><a href="../reference/ancestral.html">ancestral()</a></code> computes them in linear time, averaged over the
 posterior. Because we simulated the whole history, we can compare them
 with the truth.</p>
@@ -352,6 +358,50 @@ everything else.</p>
 and more precise, and leave-one-out strongly prefers the robust model.
 For real data, both models are worth reporting: the multipliers show
 which species drive the difference.</p>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-garland2000" class="csl-entry">
+Garland, Theodore, Jr., and Anthony R. Ives. 2000. <span>“Using the Past
+to Predict the Present: Confidence Intervals for Regression Equations in
+Phylogenetic Comparative Methods.”</span> <em>The American
+Naturalist</em> 155: 346–64. <a href="https://doi.org/10.1086/303327" class="external-link">https://doi.org/10.1086/303327</a>.
+</div>
+<div id="ref-hadfield2010" class="csl-entry">
+Hadfield, Jarrod D., and Shinichi Nakagawa. 2010. <span>“General
+Quantitative Genetic Methods for Comparative Biology: Phylogenies,
+Taxonomies and Multi-Trait Models for Continuous and Categorical
+Characters.”</span> <em>Journal of Evolutionary Biology</em> 23:
+494–508.
+</div>
+<div id="ref-lande1979" class="csl-entry">
+Lande, Russell. 1979. <span>“Quantitative Genetic Analysis of
+Multivariate Evolution, Applied to Brain:body Size Allometry.”</span>
+<em>Evolution</em> 33: 402–16.
+</div>
+<div id="ref-pagel1989" class="csl-entry">
+Pagel, Mark D., and Paul H. Harvey. 1989. <span>“Taxonomic Differences
+in the Scaling of Brain on Body Weight Among Mammals.”</span>
+<em>Science</em> 244: 1589–93.
+</div>
+<div id="ref-rasmussen2006" class="csl-entry">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-schluter1997" class="csl-entry">
+Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.
+<span>“Likelihood of Ancestor States in Adaptive Radiation.”</span>
+<em>Evolution</em> 51: 1699–711. <a href="https://doi.org/10.1111/j.1558-5646.1997.tb05095.x" class="external-link">https://doi.org/10.1111/j.1558-5646.1997.tb05095.x</a>.
+</div>
+<div id="ref-vehtari2017" class="csl-entry">
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. <span>“Practical
+<span>B</span>ayesian Model Evaluation Using Leave-One-Out
+Cross-Validation and <span>WAIC</span>.”</span> <em>Statistics and
+Computing</em> 27: 1413–32.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

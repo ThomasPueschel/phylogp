@@ -32,3 +32,16 @@ loo(x, ...)
 
 A `loo` object (Bayesian fits) or a vector of pointwise log densities
 (maximum-likelihood fits).
+
+## References
+
+Sundararajan S., Keerthi S.S. 2001. Predictive approaches for choosing
+hyperparameters in Gaussian processes. Neural Computation. 13:1103–1118.
+
+Vehtari A., Gelman A., Gabry J. 2017. Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC. Statistics and
+Computing. 27:1413–1432.
+
+Bürkner P.-C., Gabry J., Vehtari A. 2021. Efficient leave-one-out
+cross-validation for Bayesian non-factorized normal and Student-t
+models. Computational Statistics. 36:1243–1261.

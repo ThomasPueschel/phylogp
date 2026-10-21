@@ -52,6 +52,15 @@ for
 and
 [`kernel_plot()`](https://thomaspueschel.github.io/phylogp/reference/kernel_plot.md).
 
+## References
+
+Hansen T.F., Martins E.P. 1996. Translating between microevolutionary
+process and macroevolutionary patterns: The correlation structure of
+interspecific data. Evolution. 50:1404–1417.
+
+Ho L. si T., Ané C. 2014. A linear-time algorithm for Gaussian and
+non-Gaussian trait evolution models. Systematic Biology. 63:397–408.
+
 ## Examples
 
 ``` r

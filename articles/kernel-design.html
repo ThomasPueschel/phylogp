@@ -83,6 +83,19 @@ Stan.</p>
 <div class="section level2">
 <h2 id="the-building-blocks">The building blocks<a class="anchor" aria-label="anchor" href="#the-building-blocks"></a>
 </h2>
+<p>The components correspond to familiar models: Brownian motion <span class="citation">(<a href="#ref-felsenstein1985">Felsenstein
+1985</a>)</span>, Pagel’s transformations <span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>)</span>, early burst <span class="citation">(<a href="#ref-blomberg2003">Blomberg et al. 2003</a>;
+<a href="#ref-harmon2010"><span class="nocase">Harmon et al.</span>
+2010</a>)</span>, Ornstein–Uhlenbeck <span class="citation">(<a href="#ref-hansen1997">Hansen 1997</a>; <a href="#ref-butler2004">Butler
+and King 2004</a>)</span>, autocorrelated rates <span class="citation">(<a href="#ref-thorne2002">Thorne and Kishino 2002</a>;
+<a href="#ref-eastman2011">Eastman et al. 2011</a>; <a href="#ref-venditti2011">Venditti et al. 2011</a>)</span> and
+distance-based kernels as used for spatial structure <span class="citation">(<a href="#ref-freckleton2009">Freckleton and Jetz
+2009</a>; <a href="#ref-hartmann2023">Hartmann and Jäger
+2023</a>)</span>. <code><a href="../reference/classical-kernels.html">k_white()</a></code> is the species-level variation
+of the phylogenetic mixed model <span class="citation">(<a href="#ref-lynch1991">Lynch 1991</a>; <a href="#ref-housworth2004">Housworth et al. 2004</a>)</span>. Kernels are
+combined by sums and products, as is usual for Gaussian processes <span class="citation">(<a href="#ref-rasmussen2006">Rasmussen and Williams
+2006</a>; <a href="#ref-duvenaud2013">Duvenaud et al.
+2013</a>)</span>.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -182,8 +195,9 @@ variation:</p>
 <span><span class="co">#&gt;   dist1      dist(exponential)            parameters: sigma, ell</span></span>
 <span><span class="co">#&gt;   white1     white()                      parameters: sigma</span></span></code></pre></div>
 <p><em>Branch-wise</em> components add variance along the edges of the
-tree. Any sum of them keeps the linear-time pruning likelihood; adding a
-dense component switches the model to dense linear algebra.</p>
+tree. Any sum of them keeps the linear-time pruning likelihood <span class="citation">(<a href="#ref-felsenstein1973">Felsenstein 1973</a>;
+<a href="#ref-ho2014">Ho and Ané 2014a</a>)</span>; adding a dense
+component switches the model to dense linear algebra.</p>
 </div>
 <div class="section level2">
 <h2 id="a-gallery-of-kernels">A gallery of kernels<a class="anchor" aria-label="anchor" href="#a-gallery-of-kernels"></a>
@@ -326,11 +340,11 @@ distances into the squared-exponential kernel that most Gaussian-process
 software uses by default. Whether that works depends on the tree:</p>
 <ul>
 <li>On an <strong>ultrametric</strong> tree any non-increasing function
-of patristic distance is valid: it is just another tree
-transformation.</li>
+of patristic distance is valid: it is just another tree transformation
+(ultrametric matrices are positive semi-definite; <span class="citation">Dellacherie et al. (<a href="#ref-dellacherie2014">2014</a>)</span>).</li>
 <li>On trees with <strong>fossil tips</strong>, or phylograms without a
 clock, only <em>completely monotone</em> functions are guaranteed, such
-as the exponential, which is the Ornstein–Uhlenbeck kernel.
+as the exponential, which is the Ornstein–Uhlenbeck kernel <span class="citation">(<a href="#ref-schoenberg1938">Schoenberg 1938</a>; <a href="#ref-feragen2015">Feragen et al. 2015</a>)</span>.
 Squared-exponential and Matérn kernels can fail.</li>
 </ul>
 <p>The smallest eigenvalue of the kernel matrix tells us directly.
@@ -405,7 +419,8 @@ root has the same kernel as an <em>accelerating</em> early-burst (ACDC)
 model with rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>2</mn><mi>α</mi></mrow><annotation encoding="application/x-tex">r = 2\alpha</annotation></semantics></math>.
 With extant species alone the two cannot be told apart, but fossil tips
-separate them.</p>
+separate them. The equivalence has been noted before <span class="citation">(<a href="#ref-ho2014intrinsic">Ho and Ané 2014b</a>;
+<a href="#ref-uyeda2015comparative">Uyeda et al. 2015</a>; <a href="#ref-murrell2018">Murrell 2018</a>)</span>.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">1.5</span></span>
 <span><span class="va">pair</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tree</span><span class="op">)</span> <span class="op">{</span></span>
@@ -529,6 +544,127 @@ difference is large beyond a few hundred species:</p>
 the same algorithm keeps each gradient evaluation linear in the number
 of species, which is what makes kernels with thousands of latent rates
 practical.</p>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-blomberg2003" class="csl-entry">
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+<span>“Testing for Phylogenetic Signal in Comparative Data: Behavioral
+Traits Are More Labile.”</span> <em>Evolution</em> 57: 717–45.
+</div>
+<div id="ref-butler2004" class="csl-entry">
+Butler, Marguerite A., and Aaron A. King. 2004. <span>“Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive
+Evolution.”</span> <em>The American Naturalist</em> 164: 683–95.
+</div>
+<div id="ref-dellacherie2014" class="csl-entry">
+Dellacherie, Claude, Servet Martínez, and Jaime San Martín. 2014.
+<em>Inverse <span>M</span>-Matrices and Ultrametric Matrices</em>. Vol.
+2118. Lecture Notes in Mathematics. Springer. <a href="https://doi.org/10.1007/978-3-319-10298-6" class="external-link">https://doi.org/10.1007/978-3-319-10298-6</a>.
+</div>
+<div id="ref-duvenaud2013" class="csl-entry">
+Duvenaud, David, James Lloyd, Roger Grosse, Joshua Tenenbaum, and Zoubin
+Ghahramani. 2013. <span>“Structure Discovery in Nonparametric Regression
+Through Compositional Kernel Search.”</span> <em>Proceedings of the 30th
+International Conference on Machine Learning</em>, PMLR, vol. 28:
+1166–74.
+</div>
+<div id="ref-eastman2011" class="csl-entry">
+Eastman, Jonathan M., Michael E. Alfaro, Paul Joyce, Andrew L. Hipp, and
+Luke J. Harmon. 2011. <span>“A Novel Comparative Method for Identifying
+Shifts in the Rate of Character Evolution on Trees.”</span>
+<em>Evolution</em> 65: 3578–89.
+</div>
+<div id="ref-felsenstein1973" class="csl-entry">
+Felsenstein, Joseph. 1973. <span>“Maximum-Likelihood Estimation of
+Evolutionary Trees from Continuous Characters.”</span> <em>American
+Journal of Human Genetics</em> 25: 471–92.
+</div>
+<div id="ref-felsenstein1985" class="csl-entry">
+Felsenstein, Joseph. 1985. <span>“Phylogenies and the Comparative
+Method.”</span> <em>The American Naturalist</em> 125: 1–15.
+</div>
+<div id="ref-feragen2015" class="csl-entry">
+Feragen, Aasa, François Lauze, and Søren Hauberg. 2015. <span>“Geodesic
+Exponential Kernels: When Curvature and Linearity Conflict.”</span>
+<em>Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>, 3032–42.
+</div>
+<div id="ref-freckleton2009" class="csl-entry">
+Freckleton, Robert P., and Walter Jetz. 2009. <span>“Space Versus
+Phylogeny: Disentangling Phylogenetic and Spatial Signals in Comparative
+Data.”</span> <em>Proceedings of the Royal Society B</em> 276: 21–30.
+</div>
+<div id="ref-hansen1997" class="csl-entry">
+Hansen, Thomas F. 1997. <span>“Stabilizing Selection and the Comparative
+Analysis of Adaptation.”</span> <em>Evolution</em> 51: 1341–51.
+</div>
+<div id="ref-harmon2010" class="csl-entry">
+<span class="nocase">Harmon, Luke J., Jonathan B. Losos, T. Jonathan
+Davies, et al.</span> 2010. <span>“Early Bursts of Body Size and Shape
+Evolution Are Rare in Comparative Data.”</span> <em>Evolution</em> 64:
+2385–96.
+</div>
+<div id="ref-hartmann2023" class="csl-entry">
+Hartmann, Frederik, and Gerhard Jäger. 2023. <span>“Gaussian Process
+Models for Geographic Controls in Phylogenetic Trees.”</span> <em>Open
+Research Europe</em> 3: 57. <a href="https://doi.org/10.12688/openreseurope.15490.2" class="external-link">https://doi.org/10.12688/openreseurope.15490.2</a>.
+</div>
+<div id="ref-ho2014" class="csl-entry">
+Ho, Lam si Tung, and Cécile Ané. 2014a. <span>“A Linear-Time Algorithm
+for <span>G</span>aussian and Non-<span>G</span>aussian Trait Evolution
+Models.”</span> <em>Systematic Biology</em> 63: 397–408.
+</div>
+<div id="ref-ho2014intrinsic" class="csl-entry">
+Ho, Lam si Tung, and Cécile Ané. 2014b. <span>“Intrinsic Inference
+Difficulties for Trait Evolution with
+<span>O</span>rnstein-<span>U</span>hlenbeck Models.”</span> <em>Methods
+in Ecology and Evolution</em> 5: 1133–46.
+</div>
+<div id="ref-housworth2004" class="csl-entry">
+Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
+<span>“The Phylogenetic Mixed Model.”</span> <em>The American
+Naturalist</em> 163: 84–96.
+</div>
+<div id="ref-lynch1991" class="csl-entry">
+Lynch, Michael. 1991. <span>“Methods for the Analysis of Comparative
+Data in Evolutionary Biology.”</span> <em>Evolution</em> 45: 1065–80.
+</div>
+<div id="ref-murrell2018" class="csl-entry">
+Murrell, David J. 2018. <span>“A Global Envelope Test to Detect
+Non-Random Bursts of Trait Evolution.”</span> <em>Methods in Ecology and
+Evolution</em> 9 (7): 1739–48. <a href="https://doi.org/10.1111/2041-210X.13006" class="external-link">https://doi.org/10.1111/2041-210X.13006</a>.
+</div>
+<div id="ref-pagel1999" class="csl-entry">
+Pagel, Mark. 1999. <span>“Inferring the Historical Patterns of
+Biological Evolution.”</span> <em>Nature</em> 401: 877–84.
+</div>
+<div id="ref-rasmussen2006" class="csl-entry">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-schoenberg1938" class="csl-entry">
+Schoenberg, I. J. 1938. <span>“Metric Spaces and Positive Definite
+Functions.”</span> <em>Transactions of the American Mathematical
+Society</em> 44: 522–36.
+</div>
+<div id="ref-thorne2002" class="csl-entry">
+Thorne, Jeffrey L., and Hirohisa Kishino. 2002. <span>“Divergence Time
+and Evolutionary Rate Estimation with Multilocus Data.”</span>
+<em>Systematic Biology</em> 51: 689–702.
+</div>
+<div id="ref-uyeda2015comparative" class="csl-entry">
+Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
+<span>“Comparative Analysis of Principal Components Can Be
+Misleading.”</span> <em>Systematic Biology</em> 64 (4): 677–89. <a href="https://doi.org/10.1093/sysbio/syv019" class="external-link">https://doi.org/10.1093/sysbio/syv019</a>.
+</div>
+<div id="ref-venditti2011" class="csl-entry">
+Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. <span>“Multiple
+Routes to Mammalian Diversity.”</span> <em>Nature</em> 479: 393–96.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

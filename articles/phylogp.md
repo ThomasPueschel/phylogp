@@ -1,8 +1,14 @@
 # Getting started with phylogp
 
 Every Gaussian model of continuous trait evolution, from Brownian motion
-and Pagel’s λ to Ornstein–Uhlenbeck, early-burst and multi-rate models,
-says the same thing about the data:
+([Felsenstein 1985](#ref-felsenstein1985)) and Pagel’s λ ([Pagel
+1999](#ref-pagel1999)) to Ornstein–Uhlenbeck ([Hansen
+1997](#ref-hansen1997); [Butler and King 2004](#ref-butler2004)),
+early-burst ([Blomberg et al. 2003](#ref-blomberg2003); [Harmon et al.
+2010](#ref-harmon2010)) and multi-rate models ([O’Meara et al.
+2006](#ref-omeara2006); [Eastman et al. 2011](#ref-eastman2011);
+[Venditti et al. 2011](#ref-venditti2011)), says the same thing about
+the data:
 
 ``` math
  y \sim \mathcal{N}(X\beta,\; K), 
@@ -166,9 +172,15 @@ the regression line upwards.
 
 [`k_relaxed()`](https://thomaspueschel.github.io/phylogp/reference/k_relaxed.md)
 lets the log rate of evolution follow a Brownian motion along the tree,
-without being told where any shift lies. Its rates are latent variables,
-so it is fitted by Hamiltonian Monte Carlo. We compare it with the
-Bayesian version of the Pagel’s λ model (BM plus residual).
+without being told where any shift lies, much as relaxed-clock models
+let rates of molecular evolution vary ([Thorne and Kishino
+2002](#ref-thorne2002)); related approaches for continuous traits
+include variable-rates models ([Eastman et al. 2011](#ref-eastman2011);
+[Venditti et al. 2011](#ref-venditti2011); [Revell
+2021](#ref-revell2021multirate)) and relaxed random walks ([Fisher et
+al. 2021](#ref-fisher2021relaxed)). Its rates are latent variables, so
+it is fitted by Hamiltonian Monte Carlo. We compare it with the Bayesian
+version of the Pagel’s λ model (BM plus residual).
 
 ``` r
 
@@ -195,9 +207,10 @@ fit_relaxed
 `relaxed1_tau`, the standard deviation of log-rate change, is clearly
 above zero: the data favour variable rates.
 
-Leave-one-out cross-validation asks which model predicts each species
-better from all the others. `phylogp` computes the exact conditional
-densities $`p(y_i \mid y_{-i}, \theta)`$ in linear time, and
+Leave-one-out cross-validation ([Vehtari et al. 2017](#ref-vehtari2017))
+asks which model predicts each species better from all the others.
+`phylogp` computes the exact conditional densities
+$`p(y_i \mid y_{-i}, \theta)`$ in linear time, and
 [`loo()`](https://mc-stan.org/loo/reference/loo.html) combines them
 across posterior draws.
 
@@ -281,9 +294,9 @@ read the estimated ratio as conservative.
 
 ## Several observations per species
 
-Data often come as individuals rather than species means. Give the
-column of species names in `species` and keep one row per individual:
-the kernel then describes the species, a
+Data often come as individuals rather than species means ([Ives et al.
+2007](#ref-ives2007)). Give the column of species names in `species` and
+keep one row per individual: the kernel then describes the species, a
 [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md)
 component becomes the non-phylogenetic species effect, and a residual
 standard deviation within species (`within_sigma`) is added. The
@@ -331,8 +344,9 @@ Leave-one-out cross-validation then leaves out whole species, and
 
 Each kernel component adds its contribution to the variance accumulated
 along every branch. When all components have this branch-wise form, the
-likelihood is evaluated by the linear-time pruning recursion. You can
-inspect, and edit, the generated program:
+likelihood is evaluated by the linear-time pruning recursion
+([Felsenstein 1973](#ref-felsenstein1973); [Ho and Ané
+2014](#ref-ho2014)). You can inspect, and edit, the generated program:
 
 ``` r
 
@@ -377,3 +391,64 @@ directly.
   shows how to build and check your own kernels, including when a kernel
   is or is not a valid covariance on a tree with fossil tips.
 - `?classical-kernels` lists the built-in components.
+
+## References
+
+Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
+“Testing for Phylogenetic Signal in Comparative Data: Behavioral Traits
+Are More Labile.” *Evolution* 57: 717–45.
+
+Butler, Marguerite A., and Aaron A. King. 2004. “Phylogenetic
+Comparative Analysis: A Modeling Approach for Adaptive Evolution.” *The
+American Naturalist* 164: 683–95.
+
+Eastman, Jonathan M., Michael E. Alfaro, Paul Joyce, Andrew L. Hipp, and
+Luke J. Harmon. 2011. “A Novel Comparative Method for Identifying Shifts
+in the Rate of Character Evolution on Trees.” *Evolution* 65: 3578–89.
+
+Felsenstein, Joseph. 1973. “Maximum-Likelihood Estimation of
+Evolutionary Trees from Continuous Characters.” *American Journal of
+Human Genetics* 25: 471–92.
+
+Felsenstein, Joseph. 1985. “Phylogenies and the Comparative Method.”
+*The American Naturalist* 125: 1–15.
+
+Fisher, Alexander A., Xiang Ji, Zhenyu Zhang, Philippe Lemey, and Marc
+A. Suchard. 2021. “Relaxed Random Walks at Scale.” *Systematic Biology*
+70 (2): 258–67. <https://doi.org/10.1093/sysbio/syaa056>.
+
+Hansen, Thomas F. 1997. “Stabilizing Selection and the Comparative
+Analysis of Adaptation.” *Evolution* 51: 1341–51.
+
+Harmon, Luke J., Jonathan B. Losos, T. Jonathan Davies, et al. 2010.
+“Early Bursts of Body Size and Shape Evolution Are Rare in Comparative
+Data.” *Evolution* 64: 2385–96.
+
+Ho, Lam si Tung, and Cécile Ané. 2014. “A Linear-Time Algorithm for
+Gaussian and Non-Gaussian Trait Evolution Models.” *Systematic Biology*
+63: 397–408.
+
+Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
+“Within-Species Variation and Measurement Error in Phylogenetic
+Comparative Methods.” *Systematic Biology* 56: 252–70.
+
+O’Meara, Brian C., Cécile Ané, Michael J. Sanderson, and Peter C.
+Wainwright. 2006. “Testing for Different Rates of Continuous Trait
+Evolution Using Likelihood.” *Evolution* 60: 922–33.
+
+Pagel, Mark. 1999. “Inferring the Historical Patterns of Biological
+Evolution.” *Nature* 401: 877–84.
+
+Revell, Liam J. 2021. “A Variable-Rate Quantitative Trait Evolution
+Model Using Penalized-Likelihood.” *PeerJ* 9: e11997.
+
+Thorne, Jeffrey L., and Hirohisa Kishino. 2002. “Divergence Time and
+Evolutionary Rate Estimation with Multilocus Data.” *Systematic Biology*
+51: 689–702.
+
+Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian
+Model Evaluation Using Leave-One-Out Cross-Validation and WAIC.”
+*Statistics and Computing* 27: 1413–32.
+
+Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. “Multiple Routes to
+Mammalian Diversity.” *Nature* 479: 393–96.
