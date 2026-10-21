@@ -41,8 +41,9 @@ reference:
       - loo_refit
       - loo_group
   - title: Prediction and ancestral states
-    desc: Predict species without data and reconstruct internal nodes.
+    desc: Regression effects, species without data and internal nodes.
     contents:
+      - plot_effects
       - predict.phylogp_fit
       - ancestral
   - title: Classical kernels

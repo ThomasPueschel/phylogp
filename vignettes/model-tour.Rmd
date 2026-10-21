@@ -88,6 +88,15 @@ quantile(signal, c(0.05, 0.5, 0.95))
 
 The true signal is $0.6^2 / (0.6^2 + 0.3^2) = 0.8$.
 
+`plot_effects()` draws the fitted relationship, the expected brain size at
+each body size, with its 90% credible band over the species values. This is
+the population-level line, averaged over the phylogenetic and species
+effects; the function also returns the values for your own plots.
+
+```{r effects-bm, fig.width = 5, fig.height = 4, out.width = "65%"}
+plot_effects(fit1, "body")
+```
+
 ## 2. The classical family
 
 Pagel's transformations, early burst (EB) and Ornstein–Uhlenbeck (OU) are
@@ -161,6 +170,17 @@ fit4 <- phylo_gp(brain ~ body_mean + body_dev, ind, tr, k_bm() + k_white(),
                  species = "species")
 fit4
 ```
+
+The two panels of `plot_effects()` show the steep relationship among
+species and the shallower one within species, over the individual data:
+
+```{r effects-individuals, fig.height = 3.8}
+plot_effects(fit4)
+```
+
+The points are the raw individual values, so in the right panel they still
+include the differences among species, which is why they scatter widely
+around the shallow within-species line.
 
 Leave-one-out cross-validation then leaves out whole species, and
 `predict(type = "response")` predicts a new individual.
