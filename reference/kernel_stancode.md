@@ -10,7 +10,7 @@ Given a fitted model, it returns the program that was fitted.
 ## Usage
 
 ``` r
-kernel_stancode(kernel, tree = NULL)
+kernel_stancode(kernel, tree = NULL, repeated = FALSE)
 ```
 
 ## Arguments
@@ -26,6 +26,13 @@ kernel_stancode(kernel, tree = NULL)
   can use the branch-wise form (ultrametric trees) or need dense
   algebra. Without a tree an ultrametric tree is assumed. Ignored for a
   fitted model.
+
+- repeated:
+
+  Write the program for several observations per species? The kernel
+  then describes the species means, and a within-species residual
+  standard deviation `within_sigma` is added; see
+  [`phylo_gp()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp.md).
 
 ## Value
 

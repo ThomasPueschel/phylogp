@@ -324,13 +324,57 @@ is found. This is the expected behaviour of the model, and the reason to
 read the estimated ratio as conservative.</p>
 </div>
 <div class="section level2">
+<h2 id="several-observations-per-species">Several observations per species<a class="anchor" aria-label="anchor" href="#several-observations-per-species"></a>
+</h2>
+<p>Data often come as individuals rather than species means. Give the
+column of species names in <code>species</code> and keep one row per
+individual: the kernel then describes the species, a
+<code><a href="../reference/classical-kernels.html">k_white()</a></code> component becomes the non-phylogenetic species
+effect, and a residual standard deviation within species
+(<code>within_sigma</code>) is added. The likelihood is exact and still
+linear in the number of species, because it factorises into the species
+means and the deviations from them. Here we sample two to six
+individuals per species, with body size varying within species:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
+<span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">6</span>, <span class="va">N</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">dev_body</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ind</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="va">ind</span><span class="op">$</span><span class="va">body</span>  <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">ind</span><span class="op">$</span><span class="va">species</span>, <span class="st">"body"</span><span class="op">]</span> <span class="op">+</span> <span class="va">dev_body</span></span>
+<span><span class="va">ind</span><span class="op">$</span><span class="va">brain</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">ind</span><span class="op">$</span><span class="va">species</span>, <span class="st">"brain"</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.7</span> <span class="op">*</span> <span class="va">dev_body</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ind</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ind</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 395</span></span>
+<span></span>
+<span><span class="va">fit_ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, data <span class="op">=</span> <span class="va">ind</span>, tree <span class="op">=</span> <span class="va">tr</span>,</span>
+<span>                    kernel <span class="op">=</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, species <span class="op">=</span> <span class="st">"species"</span>,</span>
+<span>                    method <span class="op">=</span> <span class="st">"optimize"</span><span class="op">)</span></span>
+<span><span class="va">fit_ind</span></span>
+<span><span class="co">#&gt; Phylogenetic Gaussian process</span></span>
+<span><span class="co">#&gt;   Formula: brain ~ body </span></span>
+<span><span class="co">#&gt;   Kernel:  bm() + white() </span></span>
+<span><span class="co">#&gt;   Tips:    100 (395 rows; within-species sd: within_sigma) </span></span>
+<span><span class="co">#&gt;   Likelihood: pruning (linear time) </span></span>
+<span><span class="co">#&gt;   Method:  maximum likelihood </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;      parameter estimate</span></span>
+<span><span class="co">#&gt; 1  (Intercept)   -0.153</span></span>
+<span><span class="co">#&gt; 2         body    0.713</span></span>
+<span><span class="co">#&gt; 3    bm1_sigma    1.646</span></span>
+<span><span class="co">#&gt; 4 white1_sigma    0.118</span></span>
+<span><span class="co">#&gt; 5 within_sigma    0.306</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; log-likelihood: -238.62657</span></span></code></pre></div>
+<p>Leave-one-out cross-validation then leaves out whole species, and
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>type = "response"</code> predicts a
+new individual.</p>
+</div>
+<div class="section level2">
 <h2 id="under-the-hood">Under the hood<a class="anchor" aria-label="anchor" href="#under-the-hood"></a>
 </h2>
 <p>Each kernel component adds its contribution to the variance
 accumulated along every branch. When all components have this
 branch-wise form, the likelihood is evaluated by the linear-time pruning
 recursion. You can inspect, and edit, the generated program:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="fu"><a href="../reference/kernel_stancode.html">kernel_stancode</a></span><span class="op">(</span><span class="va">fit_relaxed</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">code</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^model"</span>, <span class="va">code</span><span class="op">)</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^generated"</span>, <span class="va">code</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">]</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; model {</span></span>

@@ -81,7 +81,8 @@ tree. The Stan program is written by kernel_stancode(), compiled once
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>Data frame. Species are matched to tip labels through
-<code>species</code> or, if <code>species</code> is <code>NULL</code>, the row names.</p></dd>
+<code>species</code> or, if <code>species</code> is <code>NULL</code>, the row names. With <code>species</code>, a
+species may have several rows (repeated measurements); see Details.</p></dd>
 
 
 <dt id="arg-tree">tree<a class="anchor" aria-label="anchor" href="#arg-tree"></a></dt>
@@ -99,7 +100,8 @@ rates (<code><a href="k_relaxed.html">k_relaxed()</a></code>, <code><a href="k_r
 
 
 <dt id="arg-species">species<a class="anchor" aria-label="anchor" href="#arg-species"></a></dt>
-<dd><p>Optional name of the column of <code>data</code> holding species names.</p></dd>
+<dd><p>Optional name of the column of <code>data</code> holding species
+names. Needed when species have several rows.</p></dd>
 
 
 <dt id="arg-se">se<a class="anchor" aria-label="anchor" href="#arg-se"></a></dt>
@@ -128,6 +130,22 @@ deviations.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>phylogp_fit</code>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Several rows per species.</strong> When some species have more than one row,
+the model is
+$$y_{ij} = x_{ij}^\top\beta + f_i + \epsilon_{ij}, \quad
+  \epsilon_{ij} \sim N(0, \sigma_w^2),$$
+where \(f\) is the Gaussian process given by <code>kernel</code> over species and
+\(\sigma_w\) (<code>within_sigma</code>) is the residual standard deviation within
+species. A <code><a href="classical-kernels.html">k_white()</a></code> component is then the non-phylogenetic species
+effect (the <code>(1 | species)</code> term of a mixed model). The likelihood is
+exact and keeps its linear cost: it factorises into the species means,
+which follow the kernel with an extra tip variance \(\sigma_w^2/n_i\),
+and the deviations from those means. Predictors may vary within species.
+Leave-one-out leaves out whole species. Not yet available with varying
+slopes or known measurement error (<code>se</code>).</p>
     </div>
 
     <div class="section level2">

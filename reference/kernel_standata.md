@@ -14,7 +14,8 @@ kernel_standata(
   se = NULL,
   use_prior = 1,
   prior_sigma_scale = NULL,
-  prior_beta_scale = NULL
+  prior_beta_scale = NULL,
+  repeated = NULL
 )
 ```
 
@@ -53,6 +54,14 @@ kernel_standata(
 - prior_beta_scale:
 
   Optional scale of the normal priors on the regression coefficients.
+
+- repeated:
+
+  For several observations per species: `NULL`, or a list with `n`
+  (observations per species, in tip order), `species` (tip index of each
+  observation), `y_dev` and `X_dev` (deviations of the response and of
+  the design matrix from their species means) and `sd_y` (sd of the
+  response over observations). `y` and `X` are then species means.
 
 ## Value
 

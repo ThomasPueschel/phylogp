@@ -37,7 +37,8 @@ phylo_gp(
 - data:
 
   Data frame. Species are matched to tip labels through `species` or, if
-  `species` is `NULL`, the row names.
+  `species` is `NULL`, the row names. With `species`, a species may have
+  several rows (repeated measurements); see Details.
 
 - tree:
 
@@ -57,7 +58,8 @@ phylo_gp(
 
 - species:
 
-  Optional name of the column of `data` holding species names.
+  Optional name of the column of `data` holding species names. Needed
+  when species have several rows.
 
 - se:
 
@@ -84,6 +86,22 @@ phylo_gp(
 ## Value
 
 An object of class `phylogp_fit`.
+
+## Details
+
+**Several rows per species.** When some species have more than one row,
+the model is \$\$y\_{ij} = x\_{ij}^\top\beta + f_i + \epsilon\_{ij},
+\quad \epsilon\_{ij} \sim N(0, \sigma_w^2),\$\$ where \\f\\ is the
+Gaussian process given by `kernel` over species and \\\sigma_w\\
+(`within_sigma`) is the residual standard deviation within species. A
+[`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md)
+component is then the non-phylogenetic species effect (the
+`(1 | species)` term of a mixed model). The likelihood is exact and
+keeps its linear cost: it factorises into the species means, which
+follow the kernel with an extra tip variance \\\sigma_w^2/n_i\\, and the
+deviations from those means. Predictors may vary within species.
+Leave-one-out leaves out whole species. Not yet available with varying
+slopes or known measurement error (`se`).
 
 ## Examples
 

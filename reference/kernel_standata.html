@@ -53,7 +53,8 @@
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  use_prior <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  prior_sigma_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prior_beta_scale <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  prior_beta_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  repeated <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -93,6 +94,14 @@ component scales; by default <code>2 sd(y) / sqrt(base variance)</code>.</p></dd
 <dt id="arg-prior-beta-scale">prior_beta_scale<a class="anchor" aria-label="anchor" href="#arg-prior-beta-scale"></a></dt>
 <dd><p>Optional scale of the normal priors on the
 regression coefficients.</p></dd>
+
+
+<dt id="arg-repeated">repeated<a class="anchor" aria-label="anchor" href="#arg-repeated"></a></dt>
+<dd><p>For several observations per species: <code>NULL</code>, or a list
+with <code>n</code> (observations per species, in tip order), <code>species</code> (tip index
+of each observation), <code>y_dev</code> and <code>X_dev</code> (deviations of the response
+and of the design matrix from their species means) and <code>sd_y</code> (sd of
+the response over observations). <code>y</code> and <code>X</code> are then species means.</p></dd>
 
 </dl></div>
     <div class="section level2">

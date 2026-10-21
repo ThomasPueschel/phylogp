@@ -45,8 +45,9 @@ predict(
 
   `"response"` (a new observation of the trait, including residual
   variation from
-  [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md))
-  or `"latent"` (the evolutionary process at the tip).
+  [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md)
+  and, for fits with several rows per species, the within-species
+  variation) or `"latent"` (the evolutionary process at the tip).
 
 - ndraws:
 

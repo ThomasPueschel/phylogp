@@ -54,7 +54,7 @@ returns the program that was fitted.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">kernel_stancode</span><span class="op">(</span><span class="va">kernel</span>, tree <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">kernel_stancode</span><span class="op">(</span><span class="va">kernel</span>, tree <span class="op">=</span> <span class="cn">NULL</span>, repeated <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,6 +70,12 @@ returns the program that was fitted.</p>
 <code><a href="classical-kernels.html">k_ou()</a></code> can use the branch-wise form (ultrametric trees) or need dense
 algebra. Without a tree an ultrametric tree is assumed. Ignored for a
 fitted model.</p></dd>
+
+
+<dt id="arg-repeated">repeated<a class="anchor" aria-label="anchor" href="#arg-repeated"></a></dt>
+<dd><p>Write the program for several observations per species?
+The kernel then describes the species means, and a within-species
+residual standard deviation <code>within_sigma</code> is added; see <code><a href="phylo_gp.html">phylo_gp()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
