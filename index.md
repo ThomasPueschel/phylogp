@@ -123,6 +123,10 @@ work without Stan.
 - [`vignette("phylogp")`](https://thomaspueschel.github.io/phylogp/articles/phylogp.md):
   getting started, a complete analysis of simulated data with a
   fast-evolving clade.
+- [`vignette("model-tour")`](https://thomaspueschel.github.io/phylogp/articles/model-tour.md):
+  a tour of models, from Brownian motion and PGLS to measurement error,
+  several individuals per species, rates through time and phylogeny plus
+  geography, with model choice, prediction and ancestral states.
 - [`vignette("kernel-design")`](https://thomaspueschel.github.io/phylogp/articles/kernel-design.md):
   building your own kernels, checking that they are valid on your tree,
   and when two kernels are the same model.
