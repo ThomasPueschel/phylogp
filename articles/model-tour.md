@@ -103,16 +103,16 @@ fit1
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean     sd    q5   q95 rhat ess_bulk
-#> 1  (Intercept) 0.864 0.2315 0.486 1.249    1     3703
-#> 2         body 0.688 0.0604 0.589 0.787    1     3471
-#> 3    bm1_sigma 0.532 0.1042 0.363 0.705    1     2370
-#> 4 white1_sigma 0.320 0.0538 0.237 0.412    1     2621
+#> 1  (Intercept) 0.865 0.2354 0.481 1.249    1     3755
+#> 2         body 0.688 0.0609 0.588 0.787    1     3480
+#> 3    bm1_sigma 0.532 0.1053 0.361 0.708    1     2389
+#> 4 white1_sigma 0.320 0.0536 0.237 0.412    1     2641
 
 draws <- posterior::as_draws_df(fit1$fit$draws(c("bm1_sigma", "white1_sigma")))
 signal <- with(draws, bm1_sigma^2 / (bm1_sigma^2 + white1_sigma^2))
 quantile(signal, c(0.05, 0.5, 0.95))
 #>        5%       50%       95% 
-#> 0.4572182 0.7312588 0.8897449
+#> 0.4586552 0.7313990 0.8905308
 ```
 
 The true signal is $`0.6^2 / (0.6^2 + 0.3^2) = 0.8`$.
@@ -195,10 +195,10 @@ fit3
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean     sd    q5   q95 rhat ess_bulk
-#> 1  (Intercept) 0.906 0.2248 0.533 1.275    1     2603
-#> 2         body 0.718 0.0684 0.605 0.826    1     3246
-#> 3    bm1_sigma 0.480 0.1297 0.269 0.695    1     1651
-#> 4 white1_sigma 0.365 0.0727 0.243 0.485    1     2097
+#> 1  (Intercept) 0.905 0.2191 0.536 1.265    1     3101
+#> 2         body 0.717 0.0694 0.605 0.832    1     3033
+#> 3    bm1_sigma 0.481 0.1296 0.271 0.698    1     1759
+#> 4 white1_sigma 0.367 0.0727 0.243 0.483    1     2281
 ```
 
 The estimates are close to those from the data without measurement
@@ -242,12 +242,12 @@ fit4
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean      sd    q5   q95 rhat ess_bulk
-#> 1  (Intercept) 0.885 0.21443 0.528 1.235    1     4286
-#> 2    body_mean 0.671 0.05624 0.579 0.764    1     5949
-#> 3     body_dev 0.326 0.03757 0.265 0.387    1     5091
-#> 4    bm1_sigma 0.476 0.10694 0.307 0.655    1     3068
-#> 5 white1_sigma 0.344 0.05499 0.253 0.434    1     3532
-#> 6 within_sigma 0.198 0.00862 0.184 0.213    1     5443
+#> 1  (Intercept) 0.891 0.20548 0.551 1.237    1     3981
+#> 2    body_mean 0.671 0.05616 0.579 0.762    1     4757
+#> 3     body_dev 0.325 0.03814 0.262 0.388    1     5005
+#> 4    bm1_sigma 0.473 0.10673 0.299 0.652    1     2710
+#> 5 white1_sigma 0.345 0.05506 0.256 0.436    1     3356
+#> 6 within_sigma 0.198 0.00864 0.185 0.213    1     5403
 ```
 
 The two panels of
@@ -370,11 +370,11 @@ fit6_space
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean    sd      q5   q95 rhat ess_bulk
-#> 1  (Intercept) 0.110 0.550 -0.7122 0.953    1     1576
-#> 2    bm1_sigma 0.562 0.107  0.3931 0.746    1     2309
-#> 3  dist1_sigma 0.835 0.322  0.4924 1.500    1     1134
-#> 4    dist1_ell 1.760 2.034  0.3688 5.749    1     1023
-#> 5 white1_sigma 0.229 0.131  0.0243 0.448    1     1382
+#> 1  (Intercept) 0.110 0.532 -0.6904 0.912    1     2120
+#> 2    bm1_sigma 0.563 0.110  0.3931 0.749    1     2013
+#> 3  dist1_sigma 0.820 0.315  0.4848 1.453    1     1016
+#> 4    dist1_ell 1.697 2.105  0.3636 5.435    1      981
+#> 5 white1_sigma 0.226 0.134  0.0206 0.448    1     1186
 ```
 
 The spatial component (`dist1`) is a dense kernel, so this model costs
@@ -391,7 +391,7 @@ loo::loo_compare(list("phylogeny only" = loo(fit6_phy),
                       "phylogeny + geography" = loo(fit6_space)))
 #>                  model elpd_diff se_diff p_worse diag_diff diag_elpd
 #>  phylogeny + geography       0.0     0.0      NA                    
-#>         phylogeny only     -16.1     4.8    1.00
+#>         phylogeny only     -16.2     4.8    1.00
 ```
 
 The exponential kernel used here is valid for any Euclidean distance and
@@ -417,9 +417,9 @@ fit7_gauss <- phylo_gp(brain ~ body, d7, tr, k_bm() + k_white())
 fit7_t     <- phylo_gp(brain ~ body, d7, tr, k_bm() + k_white(df = 4))
 rbind(Gaussian = summary(fit7_gauss)[2, c("mean", "q5", "q95")],
       "Student-t" = summary(fit7_t)[2, c("mean", "q5", "q95")])
-#>                mean        q5       q95
-#> Gaussian  0.7516517 0.6104744 0.8970566
-#> Student-t 0.7139526 0.6101820 0.8190757
+#>                mean       q5       q95
+#> Gaussian  0.7556688 0.609421 0.9082016
+#> Student-t 0.7133160 0.608675 0.8186353
 ```
 
 The slope (true value 0.7) and the other parameters are less affected by
@@ -445,7 +445,7 @@ loo::loo_compare(list("BM" = loo(fit1_bm), "BM + white" = loo(fit1),
                       "OU + white" = loo(fit1_ou)))
 #>       model elpd_diff se_diff p_worse       diag_diff      diag_elpd
 #>  BM + white       0.0     0.0      NA                               
-#>  OU + white      -0.4     1.0    0.67 |elpd_diff| < 4 2 k_psis > 0.7
+#>  OU + white      -0.3     1.0    0.61 |elpd_diff| < 4               
 #>          BM     -34.5    17.8    0.97                 2 k_psis > 0.7
 ```
 
@@ -499,12 +499,12 @@ fit9 <- phylo_gp(brain ~ body, d1[!rownames(d1) %in% missing, ], tr,
                  k_bm() + k_white())
 p <- predict(fit9, newdata = d1[missing, ], tree = tr)
 cbind(p[, c("species", "mean", "q5", "q95")], true = d1[missing, "brain"])
-#>   species       mean           q5         q95       true
-#> 1     t31  2.2887568  1.452843046  3.18466261  2.3543451
-#> 2     t91  0.7733394 -0.015971361  1.58290030  0.7208392
-#> 3     t79 -0.7477280 -1.417464313 -0.03630258 -0.3638477
-#> 4     t48  0.8087231 -0.001191137  1.52776729  0.8384882
-#> 5     t97  0.6816089 -0.153634129  1.45359702  1.3873117
+#>   species       mean          q5         q95       true
+#> 1     t31  2.2864257  1.42952697  3.17992502  2.3543451
+#> 2     t91  0.7735237 -0.04041744  1.57516684  0.7208392
+#> 3     t79 -0.7461585 -1.42459633 -0.03153244 -0.3638477
+#> 4     t48  0.8080382  0.01700984  1.52968927  0.8384882
+#> 5     t97  0.6832550 -0.15013275  1.44496314  1.3873117
 ```
 
 For intercept-only models of a process along the whole tree,
@@ -519,9 +519,9 @@ fit_body <- phylo_gp(body ~ 1, d1, tr, k_bm())
 anc <- ancestral(fit_body, tips = TRUE)
 head(anc[anc$node > N, ], 3)
 #>     node      mean        sd          q5      q95
-#> 101  101 0.5933526 0.5471136 -0.28459322 1.451125
+#> 101  101 0.5933526 0.5471136 -0.28459323 1.451124
 #> 102  102 0.7778208 0.4885844 -0.02604714 1.568308
-#> 103  103 0.3475985 0.4361507 -0.38323955 1.040291
+#> 103  103 0.3475985 0.4361507 -0.38323992 1.040291
 ft <- fit_body$tree
 plot_tree_values(ft, anc$mean[match(ft$edge[, 2], anc$node)],
                  main = "Body size along the tree (posterior mean)")
