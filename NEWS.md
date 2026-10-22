@@ -1,5 +1,7 @@
 # phylogp (development version)
 
+* The paper is out as a preprint (EcoEvoRxiv, doi:10.32942/X2D99V);
+  `citation("phylogp")` now gives it, with the software DOI.
 * References: the help pages of the kernel components and tools, the
   vignettes and the README now cite the work each model builds on (Brownian
   motion, the mixed model, Pagel's transformations, early burst, OU, relaxed

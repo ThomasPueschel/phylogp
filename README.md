@@ -193,9 +193,16 @@ each component lists its references.
 
 ## Citation
 
-Püschel, T. A. Gaussian processes on phylogenies: a kernel framework for
-building, checking and comparing models of trait evolution. In preparation.
+If you use phylogp, please cite the paper (currently a preprint):
 
-The software: Püschel, T. A. 2026. phylogp: phylogenetic comparative models
+Püschel, T. A. 2026. Gaussian processes on phylogenies: a kernel framework for
+building, checking and comparing models of trait evolution. EcoEvoRxiv.
+[doi:10.32942/X2D99V](https://doi.org/10.32942/X2D99V)
+
+and, for the version you used, the software:
+
+Püschel, T. A. 2026. phylogp: phylogenetic comparative models
 as Gaussian processes, version 0.2.0. Zenodo.
 [doi:10.5281/zenodo.23472027](https://doi.org/10.5281/zenodo.23472027)
+
+In R, `citation("phylogp")` gives both references, with BibTeX entries.
