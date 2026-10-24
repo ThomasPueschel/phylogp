@@ -2,6 +2,19 @@
 
 ## phylogp (development version)
 
+- New kernel
+  [`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md):
+  Brownian motion whose rate depends on discrete regimes (habitat, diet,
+  selective regime) mapped on the tree, as in multi-rate Brownian motion
+  (O’Meara et al. 2006). The regimes come from a phytools stochastic map
+  given as the tree, including changes along a branch;
+  [`phylo_gp_trees()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp_trees.md)
+  integrates over a sample of maps. The kernel is branch-wise, so it
+  keeps the linear-time likelihood, leave-one-out, prediction and
+  ancestral states, and it can be fitted by maximum likelihood, where it
+  reproduces
+  [`phytools::brownie.lite()`](https://rdrr.io/pkg/phytools/man/brownie.lite.html).
+  Pruning a tree (species without data, prediction) keeps the map.
 - [`predict()`](https://rdrr.io/r/stats/predict.html) now predicts
   species that were not fitted for every kernel, including those with
   latent values

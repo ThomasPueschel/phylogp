@@ -346,7 +346,88 @@ than through time, see <code><a href="../reference/k_relaxed.html">k_relaxed()</
 <code><a href="../articles/phylogp.html">vignette("phylogp", package = "phylogp")</a></code>.</p>
 </div>
 <div class="section level2">
-<h2 id="phylogeny-and-geography">6. Phylogeny and geography<a class="anchor" aria-label="anchor" href="#phylogeny-and-geography"></a>
+<h2 id="rates-that-depend-on-a-regime">6. Rates that depend on a regime<a class="anchor" aria-label="anchor" href="#rates-that-depend-on-a-regime"></a>
+</h2>
+<p>Rates of evolution often differ between selective regimes, such as
+habitat or diet, that are themselves known only at the tips. Multi-rate
+Brownian motion <span class="citation">(<a href="#ref-omeara2006">O’Meara et al. 2006</a>)</span> gives each regime
+its own rate. <code><a href="../reference/k_regime.html">k_regime()</a></code> takes the regimes from a
+stochastic character map <span class="citation">(<a href="#ref-huelsenbeck2003">Huelsenbeck et al. 2003</a>)</span> made
+with phytools <span class="citation">(<a href="#ref-revell2012">Revell
+2012</a>)</span>: give the map as the tree, and each branch accumulates
+variance at the rate of the regime it is in, including changes of regime
+along a branch. Here a trait evolves five times faster in water than on
+land:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
+<span><span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span>, <span class="fl">1.5</span>, <span class="op">-</span><span class="fl">1.5</span><span class="op">)</span>, <span class="fl">2</span>, <span class="fl">2</span>,</span>
+<span>            dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"land"</span>, <span class="st">"water"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"land"</span>, <span class="st">"water"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">history</span> <span class="op">&lt;-</span> <span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/sim.history.html" class="external-link">sim.history</a></span><span class="op">(</span><span class="va">tr</span>, <span class="va">Q</span>, message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># the true habitat history</span></span>
+<span><span class="va">habitat</span> <span class="op">&lt;-</span> <span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/getStates.html" class="external-link">getStates</a></span><span class="op">(</span><span class="va">history</span>, <span class="st">"tips"</span><span class="op">)</span></span>
+<span><span class="va">y6</span> <span class="op">&lt;-</span> <span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/sim.rates.html" class="external-link">sim.rates</a></span><span class="op">(</span><span class="va">history</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>land <span class="op">=</span> <span class="fl">1</span>, water <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">0</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="va">d6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y6</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit6_bm</span>     <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit6_regime</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">history</span>, <span class="fu"><a href="../reference/k_regime.html">k_regime</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit6_regime</span></span>
+<span><span class="co">#&gt; Phylogenetic Gaussian process</span></span>
+<span><span class="co">#&gt;   Formula: y ~ 1 </span></span>
+<span><span class="co">#&gt;   Kernel:  regime(reference = "land") + white() </span></span>
+<span><span class="co">#&gt;   Tips:    100 </span></span>
+<span><span class="co">#&gt;   Likelihood: pruning (linear time) </span></span>
+<span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;            parameter   mean     sd      q5   q95 rhat ess_bulk</span></span>
+<span><span class="co">#&gt; 1        (Intercept) 0.0536 0.4943 -0.7444 0.889    1     1961</span></span>
+<span><span class="co">#&gt; 2      regime1_sigma 0.9623 0.1335  0.7496 1.195    1     1481</span></span>
+<span><span class="co">#&gt; 3 regime1_rate_water 4.3119 1.5707  2.3349 7.282    1     1626</span></span>
+<span><span class="co">#&gt; 4       white1_sigma 0.1301 0.0723  0.0214 0.257    1     1665</span></span>
+<span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_bm</span><span class="op">)</span>, <span class="st">"habitat rates"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_regime</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
+<span><span class="co">#&gt;  habitat rates       0.0     0.0      NA                    </span></span>
+<span><span class="co">#&gt;             BM     -13.2     4.6    1.00</span></span></code></pre></div>
+<p>The rates are relative to the reference regime (the first, “land”):
+<code>regime1_sigma</code> is the standard deviation per unit time on
+land, and <code>regime1_rate_water</code> multiplies the variance rate
+in water; its estimate is uncertain with 100 species but its interval
+includes the true 5, and leave-one-out clearly prefers the model with
+habitat-specific rates.</p>
+<p>In practice the history of the regimes is not known; only the habitat
+of living species is. Stochastic maps sample possible histories given
+the tip states, and <code><a href="../reference/phylo_gp_trees.html">phylo_gp_trees()</a></code> fits the model to
+each, so the estimates integrate over that uncertainty:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">maps</span> <span class="op">&lt;-</span> <span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/make.simmap.html" class="external-link">make.simmap</a></span><span class="op">(</span><span class="va">tr</span>, <span class="va">habitat</span>, model <span class="op">=</span> <span class="st">"ER"</span>, nsim <span class="op">=</span> <span class="fl">20</span>, message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">fit6_maps</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp_trees.html">phylo_gp_trees</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">maps</span>, <span class="fu"><a href="../reference/k_regime.html">k_regime</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"optimize"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit6_maps</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            parameter      mean between_tree_sd         min       max</span></span>
+<span><span class="co">#&gt; 1        (Intercept) 0.2805205       0.2037889 -0.05460611 0.6269597</span></span>
+<span><span class="co">#&gt; 2      regime1_sigma 0.9944812       0.1031456  0.83717994 1.1851927</span></span>
+<span><span class="co">#&gt; 3 regime1_rate_water 3.6960534       1.0084896  2.19499430 5.8250831</span></span>
+<span><span class="co">#&gt; 4       white1_sigma 0.1156084       0.0263715  0.07066121 0.1779984</span></span>
+<span></span>
+<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">habitat_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>land <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">cols</span><span class="op">[</span><span class="st">"gold"</span><span class="op">]</span><span class="op">)</span>, water <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">cols</span><span class="op">[</span><span class="st">"blue"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/plotSimmap.html" class="external-link">plotSimmap</a></span><span class="op">(</span><span class="va">history</span>, <span class="va">habitat_cols</span>, ftype <span class="op">=</span> <span class="st">"off"</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"True history (gold: land, blue: water)"</span>, font.main <span class="op">=</span> <span class="fl">1</span>, cex.main <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span></span>
+<span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/plotSimmap.html" class="external-link">plotSimmap</a></span><span class="op">(</span><span class="va">maps</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">habitat_cols</span>, ftype <span class="op">=</span> <span class="st">"off"</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"One stochastic map"</span>, font.main <span class="op">=</span> <span class="fl">1</span>, cex.main <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span></span></code></pre></div>
+<p><img src="model-tour_files/figure-html/regime-maps-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>Averaged over the maps, the rate in water is lower than on the true
+history and varies from map to map. Stochastic maps place some changes
+of habitat where the true history had none, which blurs the contrast
+between the regimes and pulls the estimated ratio towards 1; the spread
+across maps shows how much the uncertain history matters. Because the
+kernel is branch-wise, the likelihood stays linear in the number of
+species, and leave-one-out, prediction and ancestral states work as for
+Brownian motion. The kernel adds to others like any component, for
+example <code>k_regime() + k_white()</code> above, or
+<code>k_regime() + k_dist(geo) + k_white()</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="phylogeny-and-geography">7. Phylogeny and geography<a class="anchor" aria-label="anchor" href="#phylogeny-and-geography"></a>
 </h2>
 <p>Closely related species are often also close in space, and a trait
 can vary with geography for reasons that have nothing to do with
@@ -360,7 +441,7 @@ Becker 2022</a>; <a href="#ref-hartmann2023">Hartmann and Jäger
 <p>We place the species on a map, with relatives tending to live near
 each other, and simulate a trait with phylogenetic, spatial and
 independent parts.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>, nsim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>          <span class="co"># range centres, phylogenetically clustered</span></span>
 <span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="va">xy</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">N</span>, <span class="fl">0</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span>           <span class="co"># plus some dispersal</span></span>
@@ -370,7 +451,7 @@ independent parts.</p>
 <span><span class="va">y6</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>,</span>
 <span>                      pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span>, white1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">d6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y6</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">space</span>, row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit6_phy</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit6_space</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d6</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/k_dist.html">k_dist</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit6_space</span></span>
@@ -397,7 +478,7 @@ close to the true 0.8. The length scale <code>ell</code> is poorly
 determined with 100 species (its interval is wide, although it contains
 the true 1.5), which is typical for spatial processes. Leave-one-out
 cross-validation clearly prefers the model with geography:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"phylogeny only"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_phy</span><span class="op">)</span>,</span>
 <span>                      <span class="st">"phylogeny + geography"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_space</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                  model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
@@ -408,13 +489,13 @@ and for great-circle distances on the sphere <span class="citation">(<a href="#r
 <code><a href="../reference/kernel_check.html">kernel_check()</a></code> tests other choices on the data at hand.</p>
 </div>
 <div class="section level2">
-<h2 id="outlying-species">7. Outlying species<a class="anchor" aria-label="anchor" href="#outlying-species"></a>
+<h2 id="outlying-species">8. Outlying species<a class="anchor" aria-label="anchor" href="#outlying-species"></a>
 </h2>
 <p>A few species far from the rest can pull a Gaussian regression. With
 <code>k_white(df = 4)</code> the species-level residual follows a
 Student-t distribution with 4 degrees of freedom, which down-weights
 them. We add five outliers to the data of section 1:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d7</span> <span class="op">&lt;-</span> <span class="va">d1</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">d7</span><span class="op">$</span><span class="va">brain</span><span class="op">[</span><span class="va">out</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">d7</span><span class="op">$</span><span class="va">brain</span><span class="op">[</span><span class="va">out</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="fl">2.5</span></span>
@@ -433,14 +514,14 @@ on robust residuals and on slopes that themselves evolve along the
 tree.</p>
 </div>
 <div class="section level2">
-<h2 id="choosing-among-models">8. Choosing among models<a class="anchor" aria-label="anchor" href="#choosing-among-models"></a>
+<h2 id="choosing-among-models">9. Choosing among models<a class="anchor" aria-label="anchor" href="#choosing-among-models"></a>
 </h2>
 <p>Leave-one-out cross-validation [LOO; <span class="citation">Vehtari
 et al. (<a href="#ref-vehtari2017">2017</a>)</span>] compares models by
 how well they predict each species from all the others. For branch-wise
 kernels the leave-one-out densities are computed in linear time, and
 <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> returns the usual Pareto-smoothed estimate:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit1_bm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit1_ou</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit1_bm</span><span class="op">)</span>, <span class="st">"BM + white"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span>,</span>
@@ -463,7 +544,7 @@ something harder: how well the model predicts a group it has not seen.
 <code><a href="../reference/loo_group.html">loo_group()</a></code> refits the model without each group and scores
 the group’s joint predictive density; the result can be compared with
 <code>loo_compare()</code> as well.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clades</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cutree.html" class="external-link">cutree</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/as.hclust.html" class="external-link">as.hclust</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span>, k <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>               <span class="co"># seven clades</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">clades</span><span class="op">)</span></span>
 <span><span class="co">#&gt; clades</span></span>
@@ -480,13 +561,13 @@ be fitting the relationships within clades rather than the process
 across the tree.</p>
 </div>
 <div class="section level2">
-<h2 id="prediction-and-ancestral-states">9. Prediction and ancestral states<a class="anchor" aria-label="anchor" href="#prediction-and-ancestral-states"></a>
+<h2 id="prediction-and-ancestral-states">10. Prediction and ancestral states<a class="anchor" aria-label="anchor" href="#prediction-and-ancestral-states"></a>
 </h2>
 <p>A fitted model predicts species that are in the tree but have no
 data, by conditioning the Gaussian process on the observed species <span class="citation">(<a href="#ref-garland2000">Garland and Ives
 2000</a>)</span>. We leave out five species and predict them from their
 body size:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">fit9</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">brain</span> <span class="op">~</span> <span class="va">body</span>, <span class="va">d1</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">d1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">missing</span>, <span class="op">]</span>, <span class="va">tr</span>,</span>
 <span>                 <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -503,7 +584,7 @@ body size:</p>
 <span class="citation">(<a href="#ref-schluter1997">Schluter et al.
 1997</a>)</span>, again in linear time. Here we reconstruct body size
 and colour the tree by the posterior medians:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_body</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">body</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">d1</span>, <span class="va">tr</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">anc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ancestral.html">ancestral</a></span><span class="op">(</span><span class="va">fit_body</span>, tips <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">anc</span><span class="op">[</span><span class="va">anc</span><span class="op">$</span><span class="va">node</span> <span class="op">&gt;</span> <span class="va">N</span>, <span class="op">]</span>, <span class="fl">3</span><span class="op">)</span></span>
@@ -625,6 +706,11 @@ Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
 <span>“The Phylogenetic Mixed Model.”</span> <em>The American
 Naturalist</em> 163: 84–96.
 </div>
+<div id="ref-huelsenbeck2003" class="csl-entry">
+Huelsenbeck, John P., Rasmus Nielsen, and Jonathan P. Bollback. 2003.
+<span>“Stochastic Mapping of Morphological Characters.”</span>
+<em>Systematic Biology</em> 52: 131–58.
+</div>
 <div id="ref-ives2007" class="csl-entry">
 Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
 <span>“Within-Species Variation and Measurement Error in Phylogenetic
@@ -640,9 +726,19 @@ the Comparative Method: A General Approach to Incorporating Phylogenetic
 Information into the Analysis of Interspecific Data.”</span> <em>The
 American Naturalist</em> 149: 646–67.
 </div>
+<div id="ref-omeara2006" class="csl-entry">
+O’Meara, Brian C., Cécile Ané, Michael J. Sanderson, and Peter C.
+Wainwright. 2006. <span>“Testing for Different Rates of Continuous Trait
+Evolution Using Likelihood.”</span> <em>Evolution</em> 60: 922–33.
+</div>
 <div id="ref-pagel1999" class="csl-entry">
 Pagel, Mark. 1999. <span>“Inferring the Historical Patterns of
 Biological Evolution.”</span> <em>Nature</em> 401: 877–84.
+</div>
+<div id="ref-revell2012" class="csl-entry">
+Revell, Liam J. 2012. <span>“Phytools: An <span>R</span> Package for
+Phylogenetic Comparative Biology (and Other Things).”</span> <em>Methods
+in Ecology and Evolution</em> 3: 217–23.
 </div>
 <div id="ref-schluter1997" class="csl-entry">
 Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.

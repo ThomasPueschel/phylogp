@@ -46,12 +46,14 @@ Ornstein-Uhlenbeck and residual variance. Combine them with `+`.
 
 ## Kernel extensions
 
-Kernels for variable rates, distances and your own models.
+Kernels for variable rates, regimes, distances and your own models.
 
 - [`k_relaxed()`](https://thomaspueschel.github.io/phylogp/reference/k_relaxed.md)
   : Relaxed (autocorrelated) rates
 - [`k_rate_time()`](https://thomaspueschel.github.io/phylogp/reference/k_rate_time.md)
   : Rate of evolution as a smooth function of time
+- [`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md)
+  : Rates that depend on mapped regimes
 - [`k_dist()`](https://thomaspueschel.github.io/phylogp/reference/k_dist.md)
   : Distance-based kernels
 - [`k_edge()`](https://thomaspueschel.github.io/phylogp/reference/k_edge.md)

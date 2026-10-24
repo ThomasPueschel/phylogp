@@ -159,25 +159,30 @@ tip variance kept</td>
 <td>branch-wise, latent rates</td>
 </tr>
 <tr class="odd">
+<td><code><a href="../reference/k_regime.html">k_regime()</a></code></td>
+<td>rate depends on regimes mapped on the tree</td>
+<td>branch-wise</td>
+</tr>
+<tr class="even">
 <td><code><a href="../reference/classical-kernels.html">k_white()</a></code></td>
 <td>independent tip variance; <code>df =</code> for Student-t</td>
 <td>tip</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>k_slope(x) * k</code></td>
 <td>slope on <code>x</code> evolving under <code>k</code>:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><msub><mi>x</mi><mi>j</mi></msub><mi>k</mi><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x_i x_j k(i, j)</annotation></semantics></math>
 </td>
 <td>latent (linear) or dense</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code><a href="../reference/k_dist.html">k_dist()</a></code></td>
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>D</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mi>/</mi><mi>ℓ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\phi(D_{ij}/\ell)</annotation></semantics></math>
 on any distance</td>
 <td>dense</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code><a href="../reference/k_edge.html">k_edge()</a></code></td>
 <td>
 <strong>your own</strong> edge variances</td>
@@ -596,11 +601,14 @@ the two parts trade off. The sum describes the data well, but its parts
 should be read with this in mind, as for the early burst with a floor
 above. Checks like these are cheap, and worth running before reading
 much into the parameters of any new combination.</p>
-<p>Two kinds of combination are not yet available: products of two
-kernel components, such as phylogeny × space (only
-<code><a href="../reference/k_slope.html">k_slope()</a></code> multiplies a component), and branch-wise kernels
-whose rate depends on a covariate attached to each branch, such as a
-selective regime. Both need new code rather than new combinations.</p>
+<p>Rates that depend on a regime attached to each branch, such as
+habitat or diet, have their own component, <code><a href="../reference/k_regime.html">k_regime()</a></code>,
+which reads the regimes from a stochastic character map (see
+<code><a href="../articles/model-tour.html">vignette("model-tour", package = "phylogp")</a></code>), and adds to
+other kernels like any component, for example
+<code>k_regime() + k_punct + k_white()</code>. Products of two kernel
+components, such as phylogeny × space, are not yet available: only
+<code><a href="../reference/k_slope.html">k_slope()</a></code> multiplies a component.</p>
 </div>
 </div>
 <div class="section level2">

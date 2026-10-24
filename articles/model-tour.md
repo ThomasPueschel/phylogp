@@ -327,7 +327,102 @@ see
 in
 [`vignette("phylogp", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/phylogp.md).
 
-## 6. Phylogeny and geography
+## 6. Rates that depend on a regime
+
+Rates of evolution often differ between selective regimes, such as
+habitat or diet, that are themselves known only at the tips. Multi-rate
+Brownian motion ([O’Meara et al. 2006](#ref-omeara2006)) gives each
+regime its own rate.
+[`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md)
+takes the regimes from a stochastic character map ([Huelsenbeck et al.
+2003](#ref-huelsenbeck2003)) made with phytools ([Revell
+2012](#ref-revell2012)): give the map as the tree, and each branch
+accumulates variance at the rate of the regime it is in, including
+changes of regime along a branch. Here a trait evolves five times faster
+in water than on land:
+
+``` r
+
+set.seed(6)
+Q <- matrix(c(-1.5, 1.5, 1.5, -1.5), 2, 2,
+            dimnames = list(c("land", "water"), c("land", "water")))
+history <- phytools::sim.history(tr, Q, message = FALSE)   # the true habitat history
+habitat <- phytools::getStates(history, "tips")
+y6 <- phytools::sim.rates(history, c(land = 1, water = 5)) + rnorm(N, 0, 0.1)
+d6 <- data.frame(y = y6)
+
+fit6_bm     <- phylo_gp(y ~ 1, d6, tr, k_bm() + k_white())
+fit6_regime <- phylo_gp(y ~ 1, d6, history, k_regime() + k_white())
+fit6_regime
+#> Phylogenetic Gaussian process
+#>   Formula: y ~ 1 
+#>   Kernel:  regime(reference = "land") + white() 
+#>   Tips:    100 
+#>   Likelihood: pruning (linear time) 
+#>   Method:  Bayesian (HMC) 
+#> 
+#>            parameter   mean     sd      q5   q95 rhat ess_bulk
+#> 1        (Intercept) 0.0536 0.4943 -0.7444 0.889    1     1961
+#> 2      regime1_sigma 0.9623 0.1335  0.7496 1.195    1     1481
+#> 3 regime1_rate_water 4.3119 1.5707  2.3349 7.282    1     1626
+#> 4       white1_sigma 0.1301 0.0723  0.0214 0.257    1     1665
+loo::loo_compare(list("BM" = loo(fit6_bm), "habitat rates" = loo(fit6_regime)))
+#>          model elpd_diff se_diff p_worse diag_diff diag_elpd
+#>  habitat rates       0.0     0.0      NA                    
+#>             BM     -13.2     4.6    1.00
+```
+
+The rates are relative to the reference regime (the first, “land”):
+`regime1_sigma` is the standard deviation per unit time on land, and
+`regime1_rate_water` multiplies the variance rate in water; its estimate
+is uncertain with 100 species but its interval includes the true 5, and
+leave-one-out clearly prefers the model with habitat-specific rates.
+
+In practice the history of the regimes is not known; only the habitat of
+living species is. Stochastic maps sample possible histories given the
+tip states, and
+[`phylo_gp_trees()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp_trees.md)
+fits the model to each, so the estimates integrate over that
+uncertainty:
+
+``` r
+
+maps <- phytools::make.simmap(tr, habitat, model = "ER", nsim = 20, message = FALSE)
+fit6_maps <- phylo_gp_trees(y ~ 1, d6, maps, k_regime() + k_white(), method = "optimize")
+summary(fit6_maps)
+#>            parameter      mean between_tree_sd         min       max
+#> 1        (Intercept) 0.2805205       0.2037889 -0.05460611 0.6269597
+#> 2      regime1_sigma 0.9944812       0.1031456  0.83717994 1.1851927
+#> 3 regime1_rate_water 3.6960534       1.0084896  2.19499430 5.8250831
+#> 4       white1_sigma 0.1156084       0.0263715  0.07066121 0.1779984
+
+op <- par(mfrow = c(1, 2), mar = c(1, 1, 2, 1))
+habitat_cols <- c(land = unname(cols["gold"]), water = unname(cols["blue"]))
+phytools::plotSimmap(history, habitat_cols, ftype = "off", mar = c(1, 1, 2, 1))
+title("True history (gold: land, blue: water)", font.main = 1, cex.main = 0.9)
+phytools::plotSimmap(maps[[1]], habitat_cols, ftype = "off", mar = c(1, 1, 2, 1))
+title("One stochastic map", font.main = 1, cex.main = 0.9)
+```
+
+![](model-tour_files/figure-html/regime-maps-1.png)
+
+``` r
+
+par(op)
+```
+
+Averaged over the maps, the rate in water is lower than on the true
+history and varies from map to map. Stochastic maps place some changes
+of habitat where the true history had none, which blurs the contrast
+between the regimes and pulls the estimated ratio towards 1; the spread
+across maps shows how much the uncertain history matters. Because the
+kernel is branch-wise, the likelihood stays linear in the number of
+species, and leave-one-out, prediction and ancestral states work as for
+Brownian motion. The kernel adds to others like any component, for
+example `k_regime() + k_white()` above, or
+`k_regime() + k_dist(geo) + k_white()`.
+
+## 7. Phylogeny and geography
 
 Closely related species are often also close in space, and a trait can
 vary with geography for reasons that have nothing to do with ancestry
@@ -400,7 +495,7 @@ for great-circle distances on the sphere ([Schoenberg
 [`kernel_check()`](https://thomaspueschel.github.io/phylogp/reference/kernel_check.md)
 tests other choices on the data at hand.
 
-## 7. Outlying species
+## 8. Outlying species
 
 A few species far from the rest can pull a Gaussian regression. With
 `k_white(df = 4)` the species-level residual follows a Student-t
@@ -428,7 +523,7 @@ the outliers under the Student-t residual. See
 for more on robust residuals and on slopes that themselves evolve along
 the tree.
 
-## 8. Choosing among models
+## 9. Choosing among models
 
 Leave-one-out cross-validation \[LOO; Vehtari et al.
 ([2017](#ref-vehtari2017))\] compares models by how well they predict
@@ -485,7 +580,7 @@ A model whose advantage disappears when whole clades are left out may be
 fitting the relationships within clades rather than the process across
 the tree.
 
-## 9. Prediction and ancestral states
+## 10. Prediction and ancestral states
 
 A fitted model predicts species that are in the tree but have no data,
 by conditioning the Gaussian process on the observed species ([Garland
@@ -609,6 +704,10 @@ and Evolution* 5: 1133–46.
 Housworth, Elizabeth A., Emília P. Martins, and Michael Lynch. 2004.
 “The Phylogenetic Mixed Model.” *The American Naturalist* 163: 84–96.
 
+Huelsenbeck, John P., Rasmus Nielsen, and Jonathan P. Bollback. 2003.
+“Stochastic Mapping of Morphological Characters.” *Systematic Biology*
+52: 131–58.
+
 Ives, Anthony R., Peter E. Midford, and Theodore Garland. 2007.
 “Within-Species Variation and Measurement Error in Phylogenetic
 Comparative Methods.” *Systematic Biology* 56: 252–70.
@@ -621,8 +720,16 @@ Comparative Method: A General Approach to Incorporating Phylogenetic
 Information into the Analysis of Interspecific Data.” *The American
 Naturalist* 149: 646–67.
 
+O’Meara, Brian C., Cécile Ané, Michael J. Sanderson, and Peter C.
+Wainwright. 2006. “Testing for Different Rates of Continuous Trait
+Evolution Using Likelihood.” *Evolution* 60: 922–33.
+
 Pagel, Mark. 1999. “Inferring the Historical Patterns of Biological
 Evolution.” *Nature* 401: 877–84.
+
+Revell, Liam J. 2012. “Phytools: An R Package for Phylogenetic
+Comparative Biology (and Other Things).” *Methods in Ecology and
+Evolution* 3: 217–23.
 
 Schluter, Dolph, Trevor Price, Arne Ø. Mooers, and Donald Ludwig. 1997.
 “Likelihood of Ancestor States in Adaptive Radiation.” *Evolution* 51:

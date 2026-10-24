@@ -44,6 +44,7 @@ et al. 2013](#ref-duvenaud2013)).
 | [`k_ou()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md) | $`e^{-\alpha d_{ij}}/2\alpha`$ (random root) | branch-wise on ultrametric trees |
 | [`k_relaxed()`](https://thomaspueschel.github.io/phylogp/reference/k_relaxed.md) | rate evolves by BM along the tree | branch-wise, latent rates |
 | [`k_rate_time()`](https://thomaspueschel.github.io/phylogp/reference/k_rate_time.md) | rate a smooth function of time | branch-wise, latent rates |
+| [`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md) | rate depends on regimes mapped on the tree | branch-wise |
 | [`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md) | independent tip variance; `df =` for Student-t | tip |
 | `k_slope(x) * k` | slope on `x` evolving under `k`: $`x_i x_j k(i, j)`$ | latent (linear) or dense |
 | [`k_dist()`](https://thomaspueschel.github.io/phylogp/reference/k_dist.md) | $`\phi(D_{ij}/\ell)`$ on any distance | dense |
@@ -548,12 +549,16 @@ should be read with this in mind, as for the early burst with a floor
 above. Checks like these are cheap, and worth running before reading
 much into the parameters of any new combination.
 
-Two kinds of combination are not yet available: products of two kernel
-components, such as phylogeny × space (only
+Rates that depend on a regime attached to each branch, such as habitat
+or diet, have their own component,
+[`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md),
+which reads the regimes from a stochastic character map (see
+[`vignette("model-tour", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/model-tour.md)),
+and adds to other kernels like any component, for example
+`k_regime() + k_punct + k_white()`. Products of two kernel components,
+such as phylogeny × space, are not yet available: only
 [`k_slope()`](https://thomaspueschel.github.io/phylogp/reference/k_slope.md)
-multiplies a component), and branch-wise kernels whose rate depends on a
-covariate attached to each branch, such as a selective regime. Both need
-new code rather than new combinations.
+multiplies a component.
 
 ## Is my kernel valid?
 
