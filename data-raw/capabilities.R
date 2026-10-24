@@ -6,7 +6,11 @@
 
 suppressPackageStartupMessages({ library(ape); library(phylogp) })
 set.seed(1)
-tr <- rcoal(24)
+# trees carry a stochastic map of two regimes, for k_regime(); the other
+# kernels ignore it
+Q <- matrix(c(-1, 1, 1, -1), 2, 2, dimnames = list(c("a", "b"), c("a", "b")))
+regime_map <- function(t) phytools::sim.history(t, Q, message = FALSE)
+tr <- regime_map(rcoal(24))
 sp <- tr$tip.label
 x <- setNames(rnorm(24), sp)
 y <- 1 + kernel_simulate(k_bm(), tr)[, 1] + 0.5 * x + rnorm(24, 0, 0.3)
@@ -18,7 +22,7 @@ n_rep <- rep(1:3, length.out = length(fit_sp))
 d_rep <- d_fit[rep(seq_along(fit_sp), n_rep), ]
 d_rep$y <- d_rep$y + rnorm(nrow(d_rep), 0, 0.2)
 rownames(d_rep) <- NULL
-trees <- c(tr, rcoal(24, tip.label = sample(sp)))
+trees <- list(tr, regime_map(rcoal(24, tip.label = sample(sp))))
 groups <- setNames(rep(1:4, length.out = length(fit_sp)), fit_sp)
 
 kernels <- list(
@@ -32,6 +36,7 @@ kernels <- list(
   "k_relaxed() + k_white()" = k_relaxed() + k_white(),
   "k_rate_time(5) + k_white()" = k_rate_time(5) + k_white(),
   "k_bm() + k_dist() + k_white()" = k_bm() + k_dist() + k_white(),
+  "k_regime() + k_white()" = k_regime() + k_white(),
   "k_edge() + k_white()" = k_edge("pow(len, kappa)", pars = list(kappa = c(0, 1))) + k_white(),
   "k_bm() + k_slope(x) * k_bm() + k_white()" = k_bm() + k_slope("x") * k_bm() + k_white(),
   "k_bm() + k_slope(x, latent = FALSE) * k_bm() + k_white()" =

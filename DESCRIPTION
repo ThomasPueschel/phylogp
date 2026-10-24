@@ -7,7 +7,8 @@ Authors@R:
 Description: Fits phylogenetic comparative models for continuous traits as
     Gaussian processes on a tree. Models are built by adding kernels
     (Brownian motion, Pagel's lambda, kappa and delta, early burst,
-    Ornstein-Uhlenbeck, relaxed rates, rate through time, distance-based
+    Ornstein-Uhlenbeck, relaxed rates, rate through time, rates that
+    depend on regimes mapped on the tree, distance-based
     kernels and user-defined branch-wise kernels). The package writes the
     corresponding 'Stan' program, uses a linear-time pruning likelihood
     whenever the kernel has a branch-wise form, and computes leave-one-out

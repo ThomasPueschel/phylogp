@@ -18,7 +18,7 @@ component_forms <- function(kernel, ti = NULL) {
 }
 
 kernel_layout <- function(kernel, ti = NULL) {
-  kernel <- as_kernel(kernel)
+  kernel <- resolve_regimes(as_kernel(kernel), ti)
   forms <- component_forms(kernel, ti)
   ids <- component_ids(kernel)
   kinds <- vapply(kernel$components, function(cmp) cmp$tip_loo$kind %||% "", "")

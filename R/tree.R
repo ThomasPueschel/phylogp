@@ -13,7 +13,14 @@ tree_info <- function(tree) {
   if (!inherits(tree, "phylo")) stop("`tree` must be a 'phylo' object.", call. = FALSE)
   if (is.null(tree$edge.length)) stop("`tree` must have branch lengths.", call. = FALSE)
   if (any(tree$edge.length < 0)) stop("`tree` has negative branch lengths.", call. = FALSE)
+  regime <- mapped_edge(tree)                # regime map of a phytools simmap
+  o <- ape::reorder.phylo(tree, "postorder", index.only = TRUE)
   tree <- ape::reorder.phylo(tree, "postorder")
+  if (!is.null(regime)) {
+    regime <- regime[o, , drop = FALSE]
+    tree$mapped.edge <- regime
+    if (!is.null(tree$maps)) tree$maps <- tree$maps[o]
+  }
   N <- ape::Ntip(tree)
   E <- nrow(tree$edge)
   h <- ape::node.depth.edgelength(tree)
@@ -29,8 +36,14 @@ tree_info <- function(tree) {
     first_child = as.integer(!duplicated(anc)),
     ultrametric = ape::is.ultrametric(tree, tol = 1e-6),
     labels = tree$tip.label,
+    regime = if (is.null(regime)) NULL else unname_rows(regime),
     cache = new.env(parent = emptyenv())   # B, C and D, computed on first use
   ), class = "phylogp_tree")
+}
+
+unname_rows <- function(M) {
+  rownames(M) <- NULL
+  M
 }
 
 #' @export

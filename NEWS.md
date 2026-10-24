@@ -1,5 +1,14 @@
 # phylogp (development version)
 
+* New kernel `k_regime()`: Brownian motion whose rate depends on discrete
+  regimes (habitat, diet, selective regime) mapped on the tree, as in
+  multi-rate Brownian motion (O'Meara et al. 2006). The regimes come from a
+  phytools stochastic map given as the tree, including changes along a
+  branch; `phylo_gp_trees()` integrates over a sample of maps. The kernel is
+  branch-wise, so it keeps the linear-time likelihood, leave-one-out,
+  prediction and ancestral states, and it can be fitted by maximum
+  likelihood, where it reproduces `phytools::brownie.lite()`. Pruning a tree
+  (species without data, prediction) keeps the map.
 * `predict()` now predicts species that were not fitted for every kernel,
   including those with latent values (`k_relaxed()`, `k_rate_time()`, latent
   `k_slope()` terms and `k_white(df = )`). The latent values a new species

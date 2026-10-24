@@ -56,10 +56,11 @@ reference:
       - classical-kernels
       - kernel-sum
   - title: Kernel extensions
-    desc: Kernels for variable rates, distances and your own models.
+    desc: Kernels for variable rates, regimes, distances and your own models.
     contents:
       - k_relaxed
       - k_rate_time
+      - k_regime
       - k_dist
       - k_edge
       - k_slope

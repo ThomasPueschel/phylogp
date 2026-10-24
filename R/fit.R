@@ -87,6 +87,7 @@ phylo_gp <- function(formula, data, tree, kernel,
   kernel <- resolve_slopes(kernel, md$data, md$repeated$rows, species)
   ti <- tree_info(md$tree)
   L <- kernel_layout(kernel, ti)
+  kernel <- L$kernel                       # with the regimes of k_regime() filled in
   if (method == "optimize" && L$latent)
     stop("Kernels with latent values (k_relaxed(), k_rate_time(), latent slopes, ",
          "k_white(df = )) need method = \"sample\".", call. = FALSE)
@@ -172,7 +173,7 @@ match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NUL
          call. = FALSE)
   if (n_drop_tree) {
     message(sprintf("Dropping %d tips without data.", n_drop_tree))
-    tree <- ape::drop.tip(tree, setdiff(tree$tip.label, keep))
+    tree <- drop_tips(tree, setdiff(tree$tip.label, keep))
   }
   if (n_drop_rows) message(sprintf("Dropping %d rows not in the tree or with missing values.", n_drop_rows))
   ti <- tree_info(tree)

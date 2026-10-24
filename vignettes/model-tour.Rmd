@@ -18,6 +18,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5,
 has_stan <- requireNamespace("cmdstanr", quietly = TRUE) &&
   !is.null(tryCatch(cmdstanr::cmdstan_path(), error = function(e) NULL))
 knitr::opts_chunk$set(eval = has_stan)
+has_phytools <- requireNamespace("phytools", quietly = TRUE)
 cols <- c(blue = "#4F6D8F", red = "#C8553D", gold = "#E0A458", grey = "#8C8C8C")
 ```
 
@@ -238,7 +239,68 @@ early decline is underestimated, and only the first interval misses the
 truth. For rates that vary among clades rather than through time, see `k_relaxed()` in
 `vignette("phylogp", package = "phylogp")`.
 
-## 6. Phylogeny and geography
+## 6. Rates that depend on a regime
+
+Rates of evolution often differ between selective regimes, such as habitat
+or diet, that are themselves known only at the tips. Multi-rate Brownian
+motion [@omeara2006] gives each regime its own rate. `k_regime()` takes the
+regimes from a stochastic character map [@huelsenbeck2003] made with
+phytools [@revell2012]: give the map as the tree, and each branch
+accumulates variance at the rate of the regime it is in, including changes
+of regime along a branch. Here a trait evolves five times faster in water
+than on land:
+
+```{r data-regime, eval = has_stan && has_phytools}
+set.seed(6)
+Q <- matrix(c(-1.5, 1.5, 1.5, -1.5), 2, 2,
+            dimnames = list(c("land", "water"), c("land", "water")))
+history <- phytools::sim.history(tr, Q, message = FALSE)   # the true habitat history
+habitat <- phytools::getStates(history, "tips")
+y6 <- phytools::sim.rates(history, c(land = 1, water = 5)) + rnorm(N, 0, 0.1)
+d6 <- data.frame(y = y6)
+
+fit6_bm     <- phylo_gp(y ~ 1, d6, tr, k_bm() + k_white())
+fit6_regime <- phylo_gp(y ~ 1, d6, history, k_regime() + k_white())
+fit6_regime
+loo::loo_compare(list("BM" = loo(fit6_bm), "habitat rates" = loo(fit6_regime)))
+```
+
+The rates are relative to the reference regime (the first, "land"):
+`regime1_sigma` is the standard deviation per unit time on land, and
+`regime1_rate_water` multiplies the variance rate in water; its estimate
+is uncertain with 100 species but its interval includes the true 5, and
+leave-one-out clearly prefers the model with habitat-specific rates.
+
+In practice the history of the regimes is not known; only the habitat of
+living species is. Stochastic maps sample possible histories given the tip
+states, and `phylo_gp_trees()` fits the model to each, so the estimates
+integrate over that uncertainty:
+
+```{r regime-maps, eval = has_stan && has_phytools, fig.height = 3.6}
+maps <- phytools::make.simmap(tr, habitat, model = "ER", nsim = 20, message = FALSE)
+fit6_maps <- phylo_gp_trees(y ~ 1, d6, maps, k_regime() + k_white(), method = "optimize")
+summary(fit6_maps)
+
+op <- par(mfrow = c(1, 2), mar = c(1, 1, 2, 1))
+habitat_cols <- c(land = unname(cols["gold"]), water = unname(cols["blue"]))
+phytools::plotSimmap(history, habitat_cols, ftype = "off", mar = c(1, 1, 2, 1))
+title("True history (gold: land, blue: water)", font.main = 1, cex.main = 0.9)
+phytools::plotSimmap(maps[[1]], habitat_cols, ftype = "off", mar = c(1, 1, 2, 1))
+title("One stochastic map", font.main = 1, cex.main = 0.9)
+par(op)
+```
+
+Averaged over the maps, the rate in water is lower than on the true
+history and varies from map to map. Stochastic maps place some changes of
+habitat where the true history had none, which blurs the contrast between
+the regimes and pulls the estimated ratio towards 1; the spread across maps
+shows how much the uncertain history matters. Because the kernel is
+branch-wise, the likelihood stays linear in the number of species, and
+leave-one-out, prediction and ancestral states work as for Brownian
+motion. The kernel adds to others like any component, for example
+`k_regime() + k_white()` above, or `k_regime() + k_dist(geo) + k_white()`.
+
+## 7. Phylogeny and geography
 
 Closely related species are often also close in space, and a trait can
 vary with geography for reasons that have nothing to do with ancestry
@@ -288,7 +350,7 @@ for great-circle distances on the sphere [@schoenberg1938; @gneiting2013];
 `kernel_check()` tests other
 choices on the data at hand.
 
-## 7. Outlying species
+## 8. Outlying species
 
 A few species far from the rest can pull a Gaussian regression. With
 `k_white(df = 4)` the species-level residual follows a Student-t
@@ -311,7 +373,7 @@ the outliers under the Student-t residual. See
 `vignette("slopes-prediction", package = "phylogp")` for more on robust
 residuals and on slopes that themselves evolve along the tree.
 
-## 8. Choosing among models
+## 9. Choosing among models
 
 Leave-one-out cross-validation [LOO; @vehtari2017] compares models by how well they
 predict each species from all the others. For branch-wise kernels the
@@ -351,7 +413,7 @@ A model whose advantage disappears when whole clades are left out may be
 fitting the relationships within clades rather than the process across the
 tree.
 
-## 9. Prediction and ancestral states
+## 10. Prediction and ancestral states
 
 A fitted model predicts species that are in the tree but have no data, by
 conditioning the Gaussian process on the observed species [@garland2000].

@@ -332,7 +332,7 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
   if (length(new_sp) && !is.null(newdata)) kernel <- extend_slopes(kernel, newdata, targets)
   ti <- if (length(new_sp)) {
     keep <- union(obs_sp, new_sp)
-    tree_info(ape::drop.tip(full, setdiff(full$tip.label, keep)))
+    tree_info(drop_tips(full, setdiff(full$tip.label, keep)))
   } else ti_fit
   lift <- length(new_sp) && L_fit$latent
   if (lift) map <- node_map(ti_fit, ti)

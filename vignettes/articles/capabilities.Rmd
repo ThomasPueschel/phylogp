@@ -21,6 +21,7 @@ change.
 | `k_relaxed() + k_white()` | – <sup>a</sup> | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `k_rate_time(5) + k_white()` | – <sup>a</sup> | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `k_bm() + k_dist() + k_white()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – <sup>b</sup> | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `k_regime() + k_white()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `k_edge() + k_white()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `k_bm() + k_slope(x) * k_bm() + k_white()` | – <sup>a</sup> | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – <sup>c</sup> | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `k_bm() + k_slope(x, latent = FALSE) * k_bm() + k_white()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – <sup>b</sup> | ✓ | – <sup>d</sup> |  |  | – <sup>d</sup> | ✓ |

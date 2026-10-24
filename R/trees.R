@@ -36,6 +36,9 @@ phylo_gp_trees <- function(formula, data, trees, kernel, n_trees = NULL,
   set.seed(seed)
   idx <- if (is.null(n_trees) || n_trees >= length(trees)) seq_along(trees) else
     sort(sample(length(trees), n_trees))
+  # one set of regimes for every stochastic map, so the fits share parameters
+  st <- sort(unique(unlist(lapply(trees[idx], function(t) colnames(t$mapped.edge)))))
+  if (length(st)) kernel <- resolve_regimes(as_kernel(kernel), states = st)
   fits <- vector("list", length(idx))
   for (k in seq_along(idx)) {
     message(sprintf("Tree %d of %d", k, length(idx)))

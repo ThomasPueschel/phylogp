@@ -54,6 +54,7 @@ by sums and products, as is usual for Gaussian processes
 | `k_ou()` | $e^{-\alpha d_{ij}}/2\alpha$ (random root) | branch-wise on ultrametric trees |
 | `k_relaxed()` | rate evolves by BM along the tree | branch-wise, latent rates |
 | `k_rate_time()` | rate a smooth function of time | branch-wise, latent rates |
+| `k_regime()` | rate depends on regimes mapped on the tree | branch-wise |
 | `k_white()` | independent tip variance; `df =` for Student-t | tip |
 | `k_slope(x) * k` | slope on `x` evolving under `k`: $x_i x_j k(i, j)$ | latent (linear) or dense |
 | `k_dist()` | $\phi(D_{ij}/\ell)$ on any distance | dense |
@@ -431,11 +432,13 @@ trade off. The sum describes the data well, but its parts should be read
 with this in mind, as for the early burst with a floor above. Checks like these are cheap, and worth running before reading
 much into the parameters of any new combination.
 
-Two kinds of combination are not yet available: products of two kernel
-components, such as phylogeny × space (only `k_slope()` multiplies a
-component), and branch-wise kernels whose rate depends on a covariate
-attached to each branch, such as a selective regime. Both need new code
-rather than new combinations.
+Rates that depend on a regime attached to each branch, such as habitat or
+diet, have their own component, `k_regime()`, which reads the regimes from
+a stochastic character map (see `vignette("model-tour", package =
+"phylogp")`), and adds to other kernels like any component, for example
+`k_regime() + k_punct + k_white()`. Products of two kernel components,
+such as phylogeny × space, are not yet available: only `k_slope()`
+multiplies a component.
 
 ## Is my kernel valid?
 
