@@ -22,7 +22,7 @@ loo(x, ...)
 
 - x:
 
-  A `phylogp_fit`.
+  A `phylogp_fit`, or a `phylogp_trees` object.
 
 - ...:
 
@@ -32,6 +32,15 @@ loo(x, ...)
 
 A `loo` object (Bayesian fits) or a vector of pointwise log densities
 (maximum-likelihood fits).
+
+## Details
+
+For a fit across a sample of trees
+([`phylo_gp_trees()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp_trees.md)),
+PSIS-LOO is run on each tree and the left-out density of each species is
+averaged over trees with equal weights, \\\log \frac{1}{K}\sum_T p_T(y_i
+\mid y\_{-i})\\. The per-tree results are kept in `attr(, "per_tree")`,
+and each species' Pareto k is its largest value across trees.
 
 ## References
 

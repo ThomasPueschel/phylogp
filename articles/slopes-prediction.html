@@ -160,11 +160,11 @@ slope.</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        parameter  mean     sd    q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1    (Intercept) 0.806 0.2227 0.439 1.173    1     5133</span></span>
-<span><span class="co">#&gt; 2           body 0.955 0.2542 0.536 1.361    1     2126</span></span>
-<span><span class="co">#&gt; 3      bm1_sigma 0.480 0.0799 0.358 0.618    1     1815</span></span>
-<span><span class="co">#&gt; 4 slopebm1_sigma 0.578 0.0927 0.435 0.736    1     1063</span></span>
-<span><span class="co">#&gt; 5   white1_sigma 0.201 0.0343 0.149 0.260    1     2501</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    (Intercept) 0.799 0.2148 0.438 1.154    1     5245</span></span>
+<span><span class="co">#&gt; 2           body 0.949 0.2614 0.517 1.375    1     3295</span></span>
+<span><span class="co">#&gt; 3      bm1_sigma 0.483 0.0830 0.354 0.625    1     1590</span></span>
+<span><span class="co">#&gt; 4 slopebm1_sigma 0.578 0.0913 0.437 0.733    1     1031</span></span>
+<span><span class="co">#&gt; 5   white1_sigma 0.200 0.0342 0.149 0.259    1     2399</span></span></code></pre></div>
 <p>The slopes are fitted as latent values at the nodes of the tree, so
 each gradient evaluation stays linear in the number of species.
 <code>body</code> is centred at its mean, the reference point for the
@@ -176,8 +176,8 @@ slope deviations.</p>
 <span>                      <span class="st">"evolving slope"</span>          <span class="op">=</span> <span class="va">loo_vary</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    model elpd_diff se_diff p_worse diag_diff      diag_elpd</span></span>
 <span><span class="co">#&gt;           evolving slope       0.0     0.0      NA           3 k_psis &gt; 0.7</span></span>
-<span><span class="co">#&gt;           constant slope     -19.8     7.0    1.00                         </span></span>
-<span><span class="co">#&gt;  heteroscedastic control     -21.5     6.5    1.00           1 k_psis &gt; 0.7</span></span></code></pre></div>
+<span><span class="co">#&gt;           constant slope     -19.7     7.1    1.00                         </span></span>
+<span><span class="co">#&gt;  heteroscedastic control     -21.2     6.5    1.00</span></span></code></pre></div>
 <p>The evolving slope predicts left-out species much better than both
 alternatives, and the heteroscedastic control does no better than the
 constant slope: the improvement comes from phylogenetic structure in the
@@ -196,12 +196,12 @@ replaces their contribution by the exact value <span class="citation">(<a href="
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loo_vary_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/loo_refit.html">loo_refit</a></span><span class="op">(</span><span class="va">f_vary</span>, loo <span class="op">=</span> <span class="va">loo_vary</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">loo_vary_exact</span>, <span class="st">"refitted"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "t25"  "t116" "t118"</span></span>
+<span><span class="co">#&gt; [1] "t25"  "t76"  "t116"</span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"constant slope"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">f_const</span><span class="op">)</span>,</span>
 <span>                      <span class="st">"evolving slope"</span> <span class="op">=</span> <span class="va">loo_vary_exact</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
 <span><span class="co">#&gt;  evolving slope       0.0     0.0      NA                    </span></span>
-<span><span class="co">#&gt;  constant slope     -19.7     7.0    1.00</span></span></code></pre></div>
+<span><span class="co">#&gt;  constant slope     -19.5     7.0    1.00</span></span></code></pre></div>
 <p>The conclusion stands once the influential species are handled
 exactly.</p>
 </div>
@@ -237,7 +237,7 @@ node, and <code><a href="../reference/plot_tree_values.html">plot_tree_values()<
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>correlation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">truth</span>, <span class="va">tips</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
 <span>  coverage_90 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">tips</span><span class="op">$</span><span class="va">q5</span> <span class="op">&lt;</span> <span class="va">truth</span> <span class="op">&amp;</span> <span class="va">truth</span> <span class="op">&lt;</span> <span class="va">tips</span><span class="op">$</span><span class="va">q95</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; correlation coverage_90 </span></span>
-<span><span class="co">#&gt;   0.8394791   0.9000000</span></span></code></pre></div>
+<span><span class="co">#&gt;    0.837695    0.900000</span></span></code></pre></div>
 <p>Species-level slopes are shrunk towards those of their relatives, so
 clades with few species and extreme slopes are pulled towards the
 middle, but the pattern along the tree is recovered.</p>
@@ -336,11 +336,11 @@ everything else.</p>
 <span>                      <span class="st">"Student-t residuals"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">f_t</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
 <span><span class="co">#&gt;  Student-t residuals       0.0     0.0      NA                    </span></span>
-<span><span class="co">#&gt;   Gaussian residuals     -42.4     5.2    1.00</span></span>
+<span><span class="co">#&gt;   Gaussian residuals     -42.2     5.2    1.00</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>Gaussian <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">f_gauss</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span>, <span class="st">"Student-t"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">f_t</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           parameter      mean         sd        q5       q95     rhat ess_bulk</span></span>
-<span><span class="co">#&gt; Gaussian       body 0.7625714 0.06985812 0.6449417 0.8785471 1.000194 4035.954</span></span>
-<span><span class="co">#&gt; Student-t      body 0.7374919 0.04483427 0.6644262 0.8121364 1.000549 6840.791</span></span></code></pre></div>
+<span><span class="co">#&gt; Gaussian       body 0.7625714 0.06985812 0.6449417 0.8785471 1.000194 4035.959</span></span>
+<span><span class="co">#&gt; Student-t      body 0.7360951 0.04469396 0.6623558 0.8080492 1.002082 6925.799</span></span></code></pre></div>
 <p>The posterior variance multipliers point to the outlying species:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lam</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_matrix.html" class="external-link">as_draws_matrix</a></span><span class="op">(</span><span class="va">f_t</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="fu">draws</span><span class="op">(</span><span class="st">"white1_lam"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>

@@ -73,7 +73,7 @@ whose contribution should be recomputed by refitting.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A <code>phylogp_fit</code>.</p></dd>
+<dd><p>A <code>phylogp_fit</code>, or a <code>phylogp_trees</code> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -84,6 +84,14 @@ whose contribution should be recomputed by refitting.</p>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>loo</code> object (Bayesian fits) or a vector of pointwise log
 densities (maximum-likelihood fits).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>For a fit across a sample of trees (<code><a href="phylo_gp_trees.html">phylo_gp_trees()</a></code>), PSIS-LOO is run on
+each tree and the left-out density of each species is averaged over trees
+with equal weights, \(\log \frac{1}{K}\sum_T p_T(y_i \mid y_{-i})\). The
+per-tree results are kept in <code>attr(, "per_tree")</code>, and each species' Pareto
+k is its largest value across trees.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

@@ -62,7 +62,7 @@ An object of class `phylogp_trees` holding the individual fits.
 [`summary()`](https://rdrr.io/r/base/summary.html) gives pooled
 estimates and the spread of per-tree estimates;
 [`loo()`](https://mc-stan.org/loo/reference/loo.html) gives
-leave-one-out cross-validation for the pooled posterior;
+leave-one-out cross-validation with trees weighted equally;
 [`coef()`](https://rdrr.io/r/stats/coef.html) gives per-tree estimates.
 
 ## References
