@@ -59,9 +59,10 @@ kernel_standata(
 
   For several observations per species: `NULL`, or a list with `n`
   (observations per species, in tip order), `species` (tip index of each
-  observation), `y_dev` and `X_dev` (deviations of the response and of
-  the design matrix from their species means) and `sd_y` (sd of the
-  response over observations). `y` and `X` are then species means.
+  observation), `y` and `X` (response and design matrix of the
+  observations), optionally `se` (known measurement error of each
+  observation) and `sd_y` (sd of the response over observations). The
+  arguments `y` and `X` are then species means, and `se` is not used.
 
 ## Value
 

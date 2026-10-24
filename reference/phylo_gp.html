@@ -25,6 +25,7 @@ tree. The Stan program is written by kernel_stancode(), compiled once
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-tour.html">A tour of models: from Brownian motion to phylogeny plus geography</a></li>
     <li><a class="dropdown-item" href="../articles/kernel-design.html">Designing kernels</a></li>
     <li><a class="dropdown-item" href="../articles/slopes-prediction.html">Slopes, prediction and robust residuals</a></li>
+    <li><a class="dropdown-item" href="../articles/capabilities.html">What works with what</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -145,8 +146,13 @@ effect (the <code>(1 | species)</code> term of a mixed model). The likelihood is
 exact and keeps its linear cost: it factorises into the species means,
 which follow the kernel with an extra tip variance \(\sigma_w^2/n_i\),
 and the deviations from those means. Predictors may vary within species.
-Leave-one-out leaves out whole species. Not yet available with varying
-slopes or known measurement error (<code>se</code>).</p>
+Leave-one-out leaves out whole species. A varying slope
+(<code>k_slope(x) * k_bm()</code>, latent) then applies to each row's own <code>x</code>, and
+leave-one-out integrates the left-out species' slope over all its rows.</p>
+<p>With <code>se</code> and several rows per species, <code>se</code> is the known measurement
+error of each row: \(\epsilon_{ij} \sim N(0, \sigma_w^2 + se_{ij}^2)\).
+The species means are then weighted by \(1/(\sigma_w^2 + se_{ij}^2)\),
+and the likelihood stays exact and linear in the number of rows.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

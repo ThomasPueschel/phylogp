@@ -70,6 +70,15 @@ predict(
 A data frame with one row per species: whether it was observed,
 posterior mean, standard deviation and quantiles.
 
+## Details
+
+For kernels with latent values, the values a new species needs are drawn
+for each posterior draw from their conditional prior given the fitted
+ones: relaxed log rates and latent slope deviations by a Brownian bridge
+along the fitted branch the species joins and Brownian motion along its
+own branch, a Student-t variance multiplier from its inverse-gamma
+prior; rates through time keep the time bins of the fitted tree.
+
 ## References
 
 Garland T. Jr., Ives A.R. 2000. Using the past to predict the present:

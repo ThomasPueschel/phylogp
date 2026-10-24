@@ -29,6 +29,7 @@ regression part of the model, and integrates over the posterior draws."></head><
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-tour.html">A tour of models: from Brownian motion to phylogeny plus geography</a></li>
     <li><a class="dropdown-item" href="../articles/kernel-design.html">Designing kernels</a></li>
     <li><a class="dropdown-item" href="../articles/slopes-prediction.html">Slopes, prediction and robust residuals</a></li>
+    <li><a class="dropdown-item" href="../articles/capabilities.html">What works with what</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -117,6 +118,15 @@ process at the tip).</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with one row per species: whether it was observed,
 posterior mean, standard deviation and quantiles.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>For kernels with latent values, the values a new species needs are drawn
+for each posterior draw from their conditional prior given the fitted ones:
+relaxed log rates and latent slope deviations by a Brownian bridge along
+the fitted branch the species joins and Brownian motion along its own
+branch, a Student-t variance multiplier from its inverse-gamma prior; rates
+through time keep the time bins of the fitted tree.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

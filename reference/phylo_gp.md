@@ -100,8 +100,15 @@ component is then the non-phylogenetic species effect (the
 keeps its linear cost: it factorises into the species means, which
 follow the kernel with an extra tip variance \\\sigma_w^2/n_i\\, and the
 deviations from those means. Predictors may vary within species.
-Leave-one-out leaves out whole species. Not yet available with varying
-slopes or known measurement error (`se`).
+Leave-one-out leaves out whole species. A varying slope
+(`k_slope(x) * k_bm()`, latent) then applies to each row's own `x`, and
+leave-one-out integrates the left-out species' slope over all its rows.
+
+With `se` and several rows per species, `se` is the known measurement
+error of each row: \\\epsilon\_{ij} \sim N(0, \sigma_w^2 +
+se\_{ij}^2)\\. The species means are then weighted by \\1/(\sigma_w^2 +
+se\_{ij}^2)\\, and the likelihood stays exact and linear in the number
+of rows.
 
 ## References
 

@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-tour.html">A tour of models: from Brownian motion to phylogeny plus geography</a></li>
     <li><a class="dropdown-item" href="../articles/kernel-design.html">Designing kernels</a></li>
     <li><a class="dropdown-item" href="../articles/slopes-prediction.html">Slopes, prediction and robust residuals</a></li>
+    <li><a class="dropdown-item" href="../articles/capabilities.html">What works with what</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -100,9 +101,10 @@ regression coefficients.</p></dd>
 <dt id="arg-repeated">repeated<a class="anchor" aria-label="anchor" href="#arg-repeated"></a></dt>
 <dd><p>For several observations per species: <code>NULL</code>, or a list
 with <code>n</code> (observations per species, in tip order), <code>species</code> (tip index
-of each observation), <code>y_dev</code> and <code>X_dev</code> (deviations of the response
-and of the design matrix from their species means) and <code>sd_y</code> (sd of
-the response over observations). <code>y</code> and <code>X</code> are then species means.</p></dd>
+of each observation), <code>y</code> and <code>X</code> (response and design matrix of the
+observations), optionally <code>se</code> (known measurement error of each
+observation) and <code>sd_y</code> (sd of the response over observations). The
+arguments <code>y</code> and <code>X</code> are then species means, and <code>se</code> is not used.</p></dd>
 
 </dl></div>
     <div class="section level2">
