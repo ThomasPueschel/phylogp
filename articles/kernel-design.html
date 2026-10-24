@@ -74,9 +74,9 @@
     
 <p>In <code>phylogp</code> a model of trait evolution <em>is</em> its
 kernel: the covariance it implies between species. This vignette shows
-how to look at kernels, build new ones, and check that they are valid
-before fitting anything. Apart from one optional fit, nothing here needs
-Stan.</p>
+how to look at kernels, build new ones, combine them into new models,
+and check that they are valid before fitting anything. The fits need
+Stan; everything else does not.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ThomasPueschel/phylogp" class="external-link">phylogp</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
@@ -334,6 +334,276 @@ it keeps the linear-time likelihood:</p>
 <span><span class="co">#&gt; log-likelihood: 153.24276</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="new-models-from-old-parts">New models from old parts<a class="anchor" aria-label="anchor" href="#new-models-from-old-parts"></a>
+</h2>
+<p>A sum of kernels is a model in which several independent processes
+act on the trait at once. Several sums that <code>phylogp</code> fits
+directly correspond to hypotheses that standard comparative software
+either cannot fit or only approximates with a single process. This
+section works through four of them. Each asks the same questions: what
+does the sum say, does it fit better than its parts, and can its parts
+be told apart?</p>
+<p>The fits use maximum likelihood on a tree of 200 species, so each
+takes a few seconds; with <code>method = "sample"</code> the same
+kernels are fitted in a Bayesian way. Models are compared by AIC.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">21</span><span class="op">)</span></span>
+<span><span class="va">tr200</span> <span class="op">&lt;-</span> <span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/rlineage.html" class="external-link">rphylo</a></span><span class="op">(</span><span class="fl">200</span>, birth <span class="op">=</span> <span class="fl">1</span>, death <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">tr200</span><span class="op">$</span><span class="va">edge.length</span> <span class="op">&lt;-</span> <span class="va">tr200</span><span class="op">$</span><span class="va">edge.length</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/node.depth.html" class="external-link">node.depth.edgelength</a></span><span class="op">(</span><span class="va">tr200</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit_ml</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">kernel</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/phylo_gp.html">phylo_gp</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span><span class="op">)</span>, <span class="va">tr200</span>, <span class="va">kernel</span>, method <span class="op">=</span> <span class="st">"optimize"</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">delta_aic</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fits</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span>, <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">a</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+<span>  <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">estimate</span>, <span class="fl">3</span><span class="op">)</span>, <span class="va">s</span><span class="op">$</span><span class="va">parameter</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="gradual-and-speciational-change-together">Gradual and speciational change together<a class="anchor" aria-label="anchor" href="#gradual-and-speciational-change-together"></a>
+</h3>
+<p>Change can accumulate with time along branches (gradual) or happen at
+speciation (cladogenetic, or punctuated) <span class="citation">(<a href="#ref-bokma2008">Bokma 2008</a>)</span>. Pagel’s κ <span class="citation">(<a href="#ref-pagel1999">Pagel 1999</a>)</span>
+interpolates between the two with a single exponent on branch lengths,
+so it describes the <em>mix</em> but not how much variance each mode
+contributes. A sum keeps both modes and gives each its own rate:
+Brownian motion for the gradual part, and a branch-wise kernel in which
+every branch adds the same variance, whatever its length, for the
+speciational part.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">k_punct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_edge.html">k_edge</a></span><span class="op">(</span><span class="st">"pow(len, 0)"</span>, name <span class="op">=</span> <span class="st">"punct"</span><span class="op">)</span>    <span class="co"># one unit of variance per branch</span></span>
+<span><span class="va">k_punct</span></span>
+<span><span class="co">#&gt; phylogp kernel: edge("pow(len, 0)") </span></span>
+<span><span class="co">#&gt;   punct1     edge("pow(len, 0)")          parameters: sigma</span></span></code></pre></div>
+<p>The two parts give very different correlation structures. Under the
+speciational part, two species are similar if few branching events
+separate them, not if they diverged recently:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">2</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/kernel_plot.html">kernel_plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr</span>, main <span class="op">=</span> <span class="st">"Gradual (BM)"</span>, show_tree <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/kernel_plot.html">kernel_plot</a></span><span class="op">(</span><span class="va">k_punct</span>, <span class="va">tr</span>, main <span class="op">=</span> <span class="st">"Speciational"</span>, show_tree <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/kernel_plot.html">kernel_plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_punct</span>, <span class="va">tr</span>, main <span class="op">=</span> <span class="st">"Sum"</span>,</span>
+<span>            pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, punct1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>            show_tree <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="kernel-design_files/figure-html/punct-plot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>We simulate under the sum, with a speciational standard deviation of
+0.25 per branch, and compare it with Brownian motion and with κ:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pars_punct</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, punct1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">y1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_punct</span>, <span class="va">tr200</span>, pars <span class="op">=</span> <span class="va">pars_punct</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span><span class="va">fits1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span>                    <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y1</span><span class="op">)</span>,</span>
+<span>              <span class="st">"kappa"</span>                 <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_kappa</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y1</span><span class="op">)</span>,</span>
+<span>              <span class="st">"gradual + speciational"</span> <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_punct</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">delta_aic</span><span class="op">(</span><span class="va">fits1</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                     BM                  kappa gradual + speciational </span></span>
+<span><span class="co">#&gt;                    4.8                    3.4                    0.0</span></span>
+<span><span class="fu">estimates</span><span class="op">(</span><span class="va">fits1</span><span class="op">[[</span><span class="st">"gradual + speciational"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  (Intercept)    bm1_sigma punct1_sigma white1_sigma </span></span>
+<span><span class="co">#&gt;        0.271        0.981        0.237        0.000</span></span></code></pre></div>
+<p>The sum fits best and recovers both rates (true values 1 and 0.25). κ
+fits better than Brownian motion, but its estimate is a compromise
+between the two modes rather than a measure of either. One caution: the
+speciational variance on a <em>tip</em> branch is the same for every
+species, so it cannot be told apart from <code><a href="../reference/classical-kernels.html">k_white()</a></code>; the
+information about speciational change comes from the internal branches.
+Speciation events whose descendants all went extinct are missing from
+the tree, so the speciational rate refers to the branching events that
+remain.</p>
+</div>
+<div class="section level3">
+<h3 id="bounded-fluctuations-around-a-drifting-average">Bounded fluctuations around a drifting average<a class="anchor" aria-label="anchor" href="#bounded-fluctuations-around-a-drifting-average"></a>
+</h3>
+<p>Over short times traits often fluctuate within limits, but over long
+times they wander: the “million-year wait” for large changes <span class="citation">(<a href="#ref-uyeda2011">Uyeda et al.
+2011</a>)</span>. An Ornstein–Uhlenbeck component describes the bounded
+fluctuations, and a Brownian component the slow drift that carries the
+average with it. The sum is close in spirit to an OU process whose
+optimum itself evolves <span class="citation">(<a href="#ref-hansen2008">Hansen et al. 2008</a>)</span>; in
+Gaussian-process terms it is a sum of a short-range and a long-range
+kernel.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pars_oubm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ou1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">8</span><span class="op">)</span>, bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">y2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr200</span>, pars <span class="op">=</span> <span class="va">pars_oubm</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span><span class="va">fits2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span>      <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y2</span><span class="op">)</span>,</span>
+<span>              <span class="st">"OU"</span>      <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y2</span><span class="op">)</span>,</span>
+<span>              <span class="st">"OU + BM"</span> <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">delta_aic</span><span class="op">(</span><span class="va">fits2</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      BM      OU OU + BM </span></span>
+<span><span class="co">#&gt;    25.0     6.5     0.0</span></span>
+<span><span class="fu">estimates</span><span class="op">(</span><span class="va">fits2</span><span class="op">[[</span><span class="st">"OU + BM"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  (Intercept)    ou1_sigma    ou1_alpha    bm1_sigma white1_sigma </span></span>
+<span><span class="co">#&gt;        0.131        2.174        9.603        0.563        0.000</span></span></code></pre></div>
+<p>OU alone fits much better than BM alone, because most of the
+variation is bounded, but the sum is better still. On its own, OU has to
+explain the long-range similarity as well, which it does with a weaker
+pull towards the optimum (smaller α) than the true one.</p>
+</div>
+<div class="section level3">
+<h3 id="an-early-burst-that-levels-off">An early burst that levels off<a class="anchor" aria-label="anchor" href="#an-early-burst-that-levels-off"></a>
+</h3>
+<p>The early-burst model lets the rate of evolution decline
+exponentially from the root <span class="citation">(<a href="#ref-harmon2010"><span class="nocase">Harmon et al.</span>
+2010</a>)</span>, so the rate tends to zero towards the present. Adding
+Brownian motion gives a burst that settles to a background rate,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>σ</mi><mrow><mi mathvariant="normal">E</mi><mi mathvariant="normal">B</mi></mrow><mn>2</mn></msubsup><msup><mi>e</mi><mrow><mi>r</mi><mi>t</mi></mrow></msup><mo>+</mo><msubsup><mi>σ</mi><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">M</mi></mrow><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\sigma^2_{\mathrm{EB}} e^{rt} + \sigma^2_{\mathrm{BM}}</annotation></semantics></math>,
+which is often the more plausible biology.</p>
+<p>We simulate eight data sets in which the rate falls steeply and then
+settles at a background rate, and fit early burst alone and the sum to
+each. Rather than the parameters, which trade off against each other (a
+steeper, higher burst and a gentler, lower one give similar rates over
+most of the tree), we compare the rate curves they imply:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pars_ebbm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eb1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">4</span>, rate <span class="op">=</span> <span class="op">-</span><span class="fl">10</span><span class="op">)</span>, bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rate_curve</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">t</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">eb</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="st">"eb1_sigma"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="fl">0</span> <span class="kw">else</span> <span class="va">p</span><span class="op">[[</span><span class="st">"eb1_sigma"</span><span class="op">]</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">p</span><span class="op">[[</span><span class="st">"eb1_rate"</span><span class="op">]</span><span class="op">]</span> <span class="op">*</span> <span class="va">t</span><span class="op">)</span></span>
+<span>  <span class="va">bm</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="st">"bm1_sigma"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="fl">0</span> <span class="kw">else</span> <span class="va">p</span><span class="op">[[</span><span class="st">"bm1_sigma"</span><span class="op">]</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span></span>
+<span>  <span class="va">eb</span> <span class="op">+</span> <span class="va">bm</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">pars_ebbm</span>, <span class="va">eb1</span><span class="op">$</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eb1</span><span class="op">$</span><span class="va">rate</span> <span class="op">*</span> <span class="va">t</span><span class="op">)</span> <span class="op">+</span> <span class="va">bm1</span><span class="op">$</span><span class="va">sigma</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">200</span> <span class="op">+</span> <span class="va">i</span><span class="op">)</span></span>
+<span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr200</span>, pars <span class="op">=</span> <span class="va">pars_ebbm</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eb <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y</span><span class="op">)</span>, sum <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="co"># AIC of early burst alone minus AIC of the sum: positive values favour the sum</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">sims</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">eb</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">sum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] -0.6 -1.1 -1.9 -0.6  1.1  1.3  4.0 -1.8</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4.5</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">m</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"eb"</span>, <span class="st">"sum"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">truth</span>, type <span class="op">=</span> <span class="st">"n"</span>, log <span class="op">=</span> <span class="st">"y"</span>, las <span class="op">=</span> <span class="fl">1</span>, bty <span class="op">=</span> <span class="st">"l"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">40</span><span class="op">)</span>,</span>
+<span>       xlab <span class="op">=</span> <span class="st">"time from the root"</span>, ylab <span class="op">=</span> <span class="st">"rate of evolution (log scale)"</span>,</span>
+<span>       main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>eb <span class="op">=</span> <span class="st">"Early burst"</span>, sum <span class="op">=</span> <span class="st">"Early burst + BM"</span><span class="op">)</span><span class="op">[</span><span class="va">m</span><span class="op">]</span>, font.main <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">s</span> <span class="kw">in</span> <span class="va">sims</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">t</span>, <span class="fu">rate_curve</span><span class="op">(</span><span class="fu">estimates</span><span class="op">(</span><span class="va">s</span><span class="op">[[</span><span class="va">m</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="va">t</span><span class="op">)</span>,</span>
+<span>                        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="va">cols</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">0.5</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">truth</span>, lwd <span class="op">=</span> <span class="fl">2.5</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"truth"</span>, <span class="st">"estimates"</span><span class="op">)</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">1</span><span class="op">]</span>, lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>       lwd <span class="op">=</span> <span class="fl">2</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="kernel-design_files/figure-html/eb-bm-plot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>Early burst alone has to bring the rate towards zero by the present,
+so it bends the curve in the same way every time: it starts too low,
+declines too slowly, and keeps falling instead of levelling off at the
+background rate. The sum’s curves scatter around the truth instead. But
+AIC prefers the sum in only a few of the data sets: with 200 living
+species, a burst that levels off and a gentler burst that does not are
+hard to tell apart, because few branches inform the early part of the
+tree. This is a case where a sensible model is weakly identified, and
+the plain early burst would be preferred most of the time even though it
+is wrong. Fossil tips, or <code><a href="../reference/k_rate_time.html">k_rate_time()</a></code> as a flexible check
+on the shape of the curve, give more information.</p>
+</div>
+<div class="section level3">
+<h3 id="phylogeny-plus-environmental-similarity">Phylogeny plus environmental similarity<a class="anchor" aria-label="anchor" href="#phylogeny-plus-environmental-similarity"></a>
+</h3>
+<p><code><a href="../reference/k_dist.html">k_dist()</a></code> accepts any distance between species, not only
+geography. With a distance in climate space,
+<code>k_bm() + k_dist(D) + k_white()</code> asks whether species living
+in similar climates resemble each other beyond what their shared
+ancestry explains, a niche analogue of the phylogeny + space models of
+<span class="citation">Freckleton and Jetz (<a href="#ref-freckleton2009">2009</a>)</span>. Here the climate of each
+species is simulated independently of the tree:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
+<span><span class="va">clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>temperature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, precipitation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">clim</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">tr200</span><span class="op">$</span><span class="va">tip.label</span></span>
+<span><span class="va">D_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">clim</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">k_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_dist.html">k_dist</a></span><span class="op">(</span>D <span class="op">=</span> <span class="va">D_clim</span>, phi <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span>
+<span><span class="va">pars_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bm1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, dist1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.8</span>, ell <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>                  white1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">y4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_clim</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr200</span>, pars <span class="op">=</span> <span class="va">pars_clim</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/kernel_check.html">kernel_check</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_clim</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">tr200</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Kernel check on a 200-tip ultrametric tree</span></span>
+<span><span class="co">#&gt;   [valid  ] bm1        bm() (edge)</span></span>
+<span><span class="co">#&gt;          branch-wise form with non-negative edge variances</span></span>
+<span><span class="co">#&gt;   [valid  ] dist1      dist(D, exponential) (dense)</span></span>
+<span><span class="co">#&gt;          exponential kernel on a user-supplied distance: validity depends on the distance (checked numerically); no failures at 25 parameter values tried</span></span>
+<span><span class="co">#&gt;   [valid  ] white1     white() (white)</span></span>
+<span><span class="co">#&gt;          independent tip variance</span></span>
+<span><span class="co">#&gt; The kernel is a valid covariance on this tree.</span></span>
+<span><span class="va">fits4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM + residual"</span>           <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y4</span><span class="op">)</span>,</span>
+<span>              <span class="st">"BM + climate + residual"</span> <span class="op">=</span> <span class="fu">fit_ml</span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_clim</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">y4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">delta_aic</span><span class="op">(</span><span class="va">fits4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           BM + residual BM + climate + residual </span></span>
+<span><span class="co">#&gt;                   104.1                     0.0</span></span></code></pre></div>
+<p><code><a href="../reference/kernel_check.html">kernel_check()</a></code> confirms that the exponential kernel is
+valid on this distance (Euclidean distances, for which the exponential
+is always valid). The climate component is strongly supported. Because
+the components are independent, their variances add, so the variance of
+a species splits into phylogenetic, climatic and residual parts:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">e</span> <span class="op">&lt;-</span> <span class="fu">estimates</span><span class="op">(</span><span class="va">fits4</span><span class="op">[[</span><span class="st">"BM + climate + residual"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>phylogeny <span class="op">=</span> <span class="va">e</span><span class="op">[[</span><span class="st">"bm1_sigma"</span><span class="op">]</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span>,            <span class="co"># BM variance at the tips (tree height 1)</span></span>
+<span>       climate   <span class="op">=</span> <span class="va">e</span><span class="op">[[</span><span class="st">"dist1_sigma"</span><span class="op">]</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span>,</span>
+<span>       residual  <span class="op">=</span> <span class="va">e</span><span class="op">[[</span><span class="st">"white1_sigma"</span><span class="op">]</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">v</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; phylogeny   climate  residual </span></span>
+<span><span class="co">#&gt;      0.63      0.37      0.00</span></span>
+<span><span class="va">true_v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.8</span><span class="op">^</span><span class="fl">2</span>, <span class="fl">0.2</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">true_v</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">true_v</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.60 0.38 0.02</span></span></code></pre></div>
+<p>The component is dense, so these models use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math>
+linear algebra; a few hundred species are still fast.</p>
+</div>
+<div class="section level3">
+<h3 id="do-the-parts-come-back">Do the parts come back?<a class="anchor" aria-label="anchor" href="#do-the-parts-come-back"></a>
+</h3>
+<p>A good fit of a sum does not guarantee that its parts are
+identifiable. A quick check is to simulate several data sets from the
+sum and see whether the estimates scatter around the true values:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">recover</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">k_true</span>, <span class="va">pars</span>, <span class="va">k_fit</span>, <span class="va">keep</span>, <span class="va">nrep</span> <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nrep</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">+</span> <span class="va">i</span><span class="op">)</span></span>
+<span>    <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kernel_simulate.html">kernel_simulate</a></span><span class="op">(</span><span class="va">k_true</span>, <span class="va">tr200</span>, pars <span class="op">=</span> <span class="va">pars</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span>    <span class="fu">estimates</span><span class="op">(</span><span class="fu">fit_ml</span><span class="op">(</span><span class="va">k_fit</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span></span>
+<span>  <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">r1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/recover.html" class="external-link">recover</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_punct</span>, <span class="va">pars_punct</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="va">k_punct</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>              <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bm1_sigma"</span>, <span class="st">"punct1_sigma"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">r2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/recover.html" class="external-link">recover</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">pars_oubm</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>              <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ou1_sigma"</span>, <span class="st">"ou1_alpha"</span>, <span class="st">"bm1_sigma"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">r1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.25</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/col.html" class="external-link">col</a></span><span class="op">(</span><span class="va">r1</span><span class="op">)</span><span class="op">]</span>, <span class="va">r2</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">8</span>, <span class="fl">0.6</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/col.html" class="external-link">col</a></span><span class="op">(</span><span class="va">r2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">rel</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gradual sigma"</span>, <span class="st">"speciational sigma"</span>, <span class="st">"OU sigma"</span>, <span class="st">"OU alpha"</span>, <span class="st">"drift (BM) sigma"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">9</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/stripchart.html" class="external-link">stripchart</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">rel</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"jitter"</span>, jitter <span class="op">=</span> <span class="fl">0.15</span>, pch <span class="op">=</span> <span class="fl">19</span>, las <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>           col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">cols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, <span class="fl">0.7</span><span class="op">)</span>,</span>
+<span>           xlab <span class="op">=</span> <span class="st">"estimate / true value"</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2.2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fl">1</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gradual + speciational"</span>, <span class="st">"OU + BM"</span><span class="op">)</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>       pch <span class="op">=</span> <span class="fl">19</span>, bty <span class="op">=</span> <span class="st">"n"</span>, cex <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span></span></code></pre></div>
+<p><img src="kernel-design_files/figure-html/recovery-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>The gradual and speciational rates are recovered well; in one data
+set the speciational part was absorbed by the residual, as expected from
+the tip branches. In the OU + BM sum only the OU standard deviation is
+recovered reliably. α and the drift rate are usually underestimated, and
+in one data set the drift vanished altogether: a weaker pull towards the
+optimum lets the OU part take over some of the long-range similarity, so
+the two parts trade off. The sum describes the data well, but its parts
+should be read with this in mind, as for the early burst with a floor
+above. Checks like these are cheap, and worth running before reading
+much into the parameters of any new combination.</p>
+<p>Two kinds of combination are not yet available: products of two
+kernel components, such as phylogeny × space (only
+<code><a href="../reference/k_slope.html">k_slope()</a></code> multiplies a component), and branch-wise kernels
+whose rate depends on a covariate attached to each branch, such as a
+selective regime. Both need new code rather than new combinations.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="is-my-kernel-valid">Is my kernel valid?<a class="anchor" aria-label="anchor" href="#is-my-kernel-valid"></a>
 </h2>
 <p>A kernel must be positive semi-definite on the tips of the tree, or
@@ -352,7 +622,7 @@ Squared-exponential and Matérn kernels can fail.</li>
 <p>The smallest eigenvalue of the kernel matrix tells us directly.
 Below, three trees: ultrametric, ultrametric with some tips shortened to
 make them “fossils”, and a random tree without a clock.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">ultra</span> <span class="op">&lt;-</span> <span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/rlineage.html" class="external-link">rphylo</a></span><span class="op">(</span><span class="fl">60</span>, birth <span class="op">=</span> <span class="fl">1</span>, death <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">fossil</span> <span class="op">&lt;-</span> <span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/rlineage.html" class="external-link">rphylo</a></span><span class="op">(</span><span class="fl">60</span>, birth <span class="op">=</span> <span class="fl">1</span>, death <span class="op">=</span> <span class="fl">0.6</span>, fossils <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># keeps extinct lineages</span></span>
@@ -384,11 +654,11 @@ make them “fossils”, and a random tree without a clock.</p>
 <span>                           <span class="st">"squared exp."</span><span class="op">)</span>, col <span class="op">=</span> <span class="va">cols</span>, lwd <span class="op">=</span> <span class="fl">2.2</span>, bty <span class="op">=</span> <span class="st">"n"</span>, cex <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="kernel-design_files/figure-html/validity-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/kernel_check.html">kernel_check()</a></code> applies these rules for you, and checks
 numerically where validity is not guaranteed:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/kernel_check.html">kernel_check</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/k_dist.html">k_dist</a></span><span class="op">(</span>phi <span class="op">=</span> <span class="st">"sqexp"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">fossil</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Kernel check on a 168-tip non-ultrametric tree</span></span>
 <span><span class="co">#&gt;   [valid  ] bm1        bm() (edge)</span></span>
@@ -423,7 +693,7 @@ model with rate
 With extant species alone the two cannot be told apart, but fossil tips
 separate them. The equivalence has been noted before <span class="citation">(<a href="#ref-ho2014intrinsic">Ho and Ané 2014b</a>;
 <a href="#ref-uyeda2015comparative">Uyeda et al. 2015</a>; <a href="#ref-murrell2018">Murrell 2018</a>)</span>.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">1.5</span></span>
 <span><span class="va">pair</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tree</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">H</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/node.depth.html" class="external-link">node.depth.edgelength</a></span><span class="op">(</span><span class="va">tree</span><span class="op">)</span><span class="op">)</span></span>
@@ -445,7 +715,7 @@ separate them. The equivalence has been noted before <span class="citation">(<a 
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="kernel-design_files/figure-html/equivalence-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/kernel_equivalent.html">kernel_equivalent()</a></code> asks the same question for any pair
 of kernels. For each parameter setting of the first kernel it searches
@@ -454,16 +724,16 @@ distribution, and reports the Kullback–Leibler divergence: the expected
 log-likelihood ratio in favour of the first kernel for one data set
 simulated from it. With the mean unknown (the default), only contrasts
 between species are compared, as in REML.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/kernel_equivalent.html">kernel_equivalent</a></span><span class="op">(</span><span class="fu"><a href="../reference/classical-kernels.html">k_ou</a></span><span class="op">(</span>root <span class="op">=</span> <span class="st">"fixed"</span><span class="op">)</span>, <span class="fu"><a href="../reference/classical-kernels.html">k_eb</a></span><span class="op">(</span>upper <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>, <span class="va">ultra</span>, n_grid <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Can eb() reproduce the tip distribution of ou(root = "fixed")?</span></span>
 <span><span class="co">#&gt; 60 tips, ultrametric tree, unknown (contrasts compared) mean</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  k1.ou1.sigma k1.ou1.alpha       KL k2.eb1.sigma k2.eb1.rate k2_at_bound</span></span>
-<span><span class="co">#&gt;             1       0.0108 1.07e-07     9.51e-01      0.0218       FALSE</span></span>
+<span><span class="co">#&gt;             1       0.0108 1.22e-07     9.51e-01      0.0218       FALSE</span></span>
 <span><span class="co">#&gt;             1       0.1080 1.23e-08     6.06e-01      0.2170       FALSE</span></span>
-<span><span class="co">#&gt;             1       1.0800 2.39e-07     6.73e-03      2.1700       FALSE</span></span>
-<span><span class="co">#&gt;             1      10.8000 1.44e-06     2.08e-22     21.6000       FALSE</span></span>
+<span><span class="co">#&gt;             1       1.0800 1.83e-07     6.73e-03      2.1700       FALSE</span></span>
+<span><span class="co">#&gt;             1      10.8000 1.43e-06     2.07e-22     21.6000       FALSE</span></span>
 <span><span class="co">#&gt;           verdict</span></span>
 <span><span class="co">#&gt;         identical</span></span>
 <span><span class="co">#&gt;         identical</span></span>
@@ -478,7 +748,7 @@ between species are compared, as in REML.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>α</mi></mrow><annotation encoding="application/x-tex">2\alpha</annotation></semantics></math>.
 On the tree with fossil tips the answer depends on how strong selection
 is:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">alphas</span> <span class="op">&lt;-</span> <span class="fl">10</span><span class="op">^</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1.2</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">kl_curve</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tree</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">H</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/node.depth.html" class="external-link">node.depth.edgelength</a></span><span class="op">(</span><span class="va">tree</span><span class="op">)</span><span class="op">)</span></span>
@@ -496,7 +766,7 @@ is:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h <span class="op">=</span> <span class="fl">1</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"grey50"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">kl</span><span class="op">)</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span>, pch <span class="op">=</span> <span class="fl">19</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="kernel-design_files/figure-html/equivalent-curve-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>On the ultrametric tree the two models coincide for every strength of
 selection (KL at numerical zero). With fossil tips they separate once
@@ -516,7 +786,7 @@ matrix: the likelihood is evaluated by a single pass over the edges, and
 leave-one-out densities by two. Even with the pruning loop in plain R,
 and the dense Cholesky in optimised linear-algebra libraries, the
 difference is large beyond a few hundred species:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># average over repeated evaluations, so that fast calls are measurable</span></span>
 <span><span class="va">time_it</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span>, <span class="va">n</span> <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="fu">f</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">[[</span><span class="st">"elapsed"</span><span class="op">]</span><span class="op">]</span> <span class="op">/</span> <span class="va">n</span></span>
 <span><span class="va">sizes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">400</span>, <span class="fl">800</span>, <span class="fl">1600</span>, <span class="fl">3200</span><span class="op">)</span></span>
@@ -536,13 +806,11 @@ difference is large beyond a few hundred species:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="va">sizes</span>, <span class="va">timing</span> <span class="op">*</span> <span class="fl">1000</span>, log <span class="op">=</span> <span class="st">"xy"</span>, type <span class="op">=</span> <span class="st">"b"</span>, pch <span class="op">=</span> <span class="fl">19</span>, yaxt <span class="op">=</span> <span class="st">"n"</span>,</span>
 <span>        lty <span class="op">=</span> <span class="fl">1</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, bty <span class="op">=</span> <span class="st">"l"</span>,</span>
 <span>        xlab <span class="op">=</span> <span class="st">"number of species"</span>, ylab <span class="op">=</span> <span class="st">"time per likelihood (ms)"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in xy.coords(x, y, xlabel, ylabel, log = log, recycle = TRUE): 1 y</span></span>
-<span><span class="co">#&gt; value &lt;= 0 omitted from logarithmic plot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">2</span>, at <span class="op">=</span> <span class="fl">10</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0.1"</span>, <span class="st">"1"</span>, <span class="st">"10"</span>, <span class="st">"100"</span>, <span class="st">"1000"</span><span class="op">)</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pruning, O(N)"</span>, <span class="st">"dense Cholesky, O(N^3)"</span><span class="op">)</span>,</span>
 <span>       col <span class="op">=</span> <span class="va">cols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span>, pch <span class="op">=</span> <span class="fl">19</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="kernel-design_files/figure-html/timing-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>In the compiled Stan programs that <code><a href="../reference/phylo_gp.html">phylo_gp()</a></code> generates,
 the same algorithm keeps each gradient evaluation linear in the number
@@ -557,6 +825,13 @@ practical.</p>
 Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
 <span>“Testing for Phylogenetic Signal in Comparative Data: Behavioral
 Traits Are More Labile.”</span> <em>Evolution</em> 57: 717–45.
+</div>
+<div id="ref-bokma2008" class="csl-entry">
+Bokma, Folmer. 2008. <span>“Detection of <span>‘Punctuated
+Equilibrium’</span> by <span>B</span>ayesian Estimation of Speciation
+and Extinction Rates, Ancestral Character States, and Rates of
+Anagenetic and Cladogenetic Evolution on a Molecular Phylogeny.”</span>
+<em>Evolution</em> 62: 2718–26.
 </div>
 <div id="ref-butler2004" class="csl-entry">
 Butler, Marguerite A., and Aaron A. King. 2004. <span>“Phylogenetic
@@ -604,6 +879,11 @@ Data.”</span> <em>Proceedings of the Royal Society B</em> 276: 21–30.
 <div id="ref-hansen1997" class="csl-entry">
 Hansen, Thomas F. 1997. <span>“Stabilizing Selection and the Comparative
 Analysis of Adaptation.”</span> <em>Evolution</em> 51: 1341–51.
+</div>
+<div id="ref-hansen2008" class="csl-entry">
+Hansen, Thomas F., Jason Pienaar, and Steven Hecht Orzack. 2008.
+<span>“A Comparative Method for Studying Adaptation to a Randomly
+Evolving Environment.”</span> <em>Evolution</em> 62: 1965–77.
 </div>
 <div id="ref-harmon2010" class="csl-entry">
 <span class="nocase">Harmon, Luke J., Jonathan B. Losos, T. Jonathan
@@ -663,6 +943,11 @@ and Evolutionary Rate Estimation with Multilocus Data.”</span>
 Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
 <span>“Comparative Analysis of Principal Components Can Be
 Misleading.”</span> <em>Systematic Biology</em> 64 (4): 677–89. <a href="https://doi.org/10.1093/sysbio/syv019" class="external-link">https://doi.org/10.1093/sysbio/syv019</a>.
+</div>
+<div id="ref-uyeda2011" class="csl-entry">
+Uyeda, Josef C., Thomas F. Hansen, Stevan J. Arnold, and Jason Pienaar.
+2011. <span>“The Million-Year Wait for Macroevolutionary Bursts.”</span>
+<em>Proceedings of the National Academy of Sciences</em> 108: 15908–13.
 </div>
 <div id="ref-venditti2011" class="csl-entry">
 Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. <span>“Multiple

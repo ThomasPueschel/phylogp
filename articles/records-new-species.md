@@ -88,10 +88,10 @@ f_se
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean     sd     q5   q95 rhat ess_bulk
-#> 1  (Intercept) 1.246 0.4623 0.4633 2.027    1     2746
-#> 2    bm1_sigma 0.931 0.1092 0.7618 1.122    1     2088
-#> 3 white1_sigma 0.156 0.0591 0.0453 0.249    1     1048
-#> 4 within_sigma 0.170 0.0181 0.1410 0.200    1     2828
+#> 1  (Intercept) 1.233 0.4693 0.4758 1.994    1     2707
+#> 2    bm1_sigma 0.923 0.1060 0.7592 1.106    1     2610
+#> 3 white1_sigma 0.162 0.0565 0.0635 0.253    1     1796
+#> 4 within_sigma 0.170 0.0175 0.1425 0.200    1     3512
 ```
 
 The model without standard errors has no way to tell sampling error from
@@ -102,8 +102,8 @@ real differences among populations, so it puts both into `within_sigma`:
 pick <- function(f) summary(f)[summary(f)$parameter == "within_sigma", c("mean", "q5", "q95")]
 rbind("with se" = pick(f_se), "without se" = pick(f_nose), truth = c(0.15, NA, NA))
 #>                 mean        q5       q95
-#> with se    0.1697338 0.1410148 0.2002318
-#> without se 0.2817487 0.2593231 0.3052752
+#> with se    0.1704489 0.1424911 0.1999330
+#> without se 0.2820301 0.2604329 0.3057984
 #> truth      0.1500000        NA        NA
 ```
 
@@ -166,8 +166,8 @@ f_vary  <- phylo_gp(brain ~ body, ind, tr,
 loo::loo_compare(list("constant slope" = loo(f_const),
                       "evolving slope" = loo(f_vary)))
 #>           model elpd_diff se_diff p_worse diag_diff      diag_elpd
-#>  evolving slope       0.0     0.0      NA           3 k_psis > 0.7
-#>  constant slope     -76.1    15.0    1.00
+#>  evolving slope       0.0     0.0      NA           1 k_psis > 0.7
+#>  constant slope     -76.2    14.9    1.00
 ```
 
 Leave-one-out leaves out a whole species, all its records at once, so
@@ -206,7 +206,7 @@ par(op)
 c(correlation = cor(truth, tips$mean),
   coverage_90 = mean(tips$q5 < truth & truth < tips$q95))
 #> correlation coverage_90 
-#>   0.9214576   0.8600000
+#>   0.9215724   0.8600000
 ```
 
 The slopes along the tree are recovered well. Each species contributes
@@ -313,10 +313,10 @@ p$width <- p$q95 - p$q5
 p$covered <- p$q5 < p$truth & p$truth < p$q95
 aggregate(cbind(width, covered) ~ model + fast, data = p, FUN = mean)
 #>     model  fast    width   covered
-#> 1      BM FALSE 1.576434 1.0000000
-#> 2 relaxed FALSE 1.453974 1.0000000
-#> 3      BM  TRUE 1.190170 0.8333333
-#> 4 relaxed  TRUE 1.402737 0.8333333
+#> 1      BM FALSE 1.571729 1.0000000
+#> 2 relaxed FALSE 1.453174 1.0000000
+#> 3      BM  TRUE 1.173089 0.8333333
+#> 4 relaxed  TRUE 1.404508 0.8333333
 ```
 
 Brownian motion fits one rate to the whole tree, a compromise between

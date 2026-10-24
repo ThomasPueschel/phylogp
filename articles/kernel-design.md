@@ -2,8 +2,9 @@
 
 In `phylogp` a model of trait evolution *is* its kernel: the covariance
 it implies between species. This vignette shows how to look at kernels,
-build new ones, and check that they are valid before fitting anything.
-Apart from one optional fit, nothing here needs Stan.
+build new ones, combine them into new models, and check that they are
+valid before fitting anything. The fits need Stan; everything else does
+not.
 
 ``` r
 
@@ -234,6 +235,326 @@ fit
 #> log-likelihood: 153.24276
 ```
 
+## New models from old parts
+
+A sum of kernels is a model in which several independent processes act
+on the trait at once. Several sums that `phylogp` fits directly
+correspond to hypotheses that standard comparative software either
+cannot fit or only approximates with a single process. This section
+works through four of them. Each asks the same questions: what does the
+sum say, does it fit better than its parts, and can its parts be told
+apart?
+
+The fits use maximum likelihood on a tree of 200 species, so each takes
+a few seconds; with `method = "sample"` the same kernels are fitted in a
+Bayesian way. Models are compared by AIC.
+
+``` r
+
+set.seed(21)
+tr200 <- ape::rphylo(200, birth = 1, death = 0)
+tr200$edge.length <- tr200$edge.length / max(ape::node.depth.edgelength(tr200))
+
+fit_ml <- function(kernel, y) {
+  phylo_gp(y ~ 1, data.frame(y = y), tr200, kernel, method = "optimize", seed = 1)
+}
+delta_aic <- function(fits) {
+  a <- sapply(fits, function(f) AIC(logLik(f)))
+  round(a - min(a), 1)
+}
+estimates <- function(f) {
+  s <- summary(f)
+  stats::setNames(round(s$estimate, 3), s$parameter)
+}
+```
+
+### Gradual and speciational change together
+
+Change can accumulate with time along branches (gradual) or happen at
+speciation (cladogenetic, or punctuated) ([Bokma 2008](#ref-bokma2008)).
+Pagel’s κ ([Pagel 1999](#ref-pagel1999)) interpolates between the two
+with a single exponent on branch lengths, so it describes the *mix* but
+not how much variance each mode contributes. A sum keeps both modes and
+gives each its own rate: Brownian motion for the gradual part, and a
+branch-wise kernel in which every branch adds the same variance,
+whatever its length, for the speciational part.
+
+``` r
+
+k_punct <- k_edge("pow(len, 0)", name = "punct")    # one unit of variance per branch
+k_punct
+#> phylogp kernel: edge("pow(len, 0)") 
+#>   punct1     edge("pow(len, 0)")          parameters: sigma
+```
+
+The two parts give very different correlation structures. Under the
+speciational part, two species are similar if few branching events
+separate them, not if they diverged recently:
+
+``` r
+
+op <- par(mfrow = c(1, 3), mar = c(0.5, 0.5, 2, 0.5))
+kernel_plot(k_bm(), tr, main = "Gradual (BM)", show_tree = FALSE)
+kernel_plot(k_punct, tr, main = "Speciational", show_tree = FALSE)
+kernel_plot(k_bm() + k_punct, tr, main = "Sum",
+            pars = list(bm1 = list(sigma = 1), punct1 = list(sigma = 0.25)),
+            show_tree = FALSE)
+```
+
+![](kernel-design_files/figure-html/punct-plot-1.png)
+
+``` r
+
+par(op)
+```
+
+We simulate under the sum, with a speciational standard deviation of
+0.25 per branch, and compare it with Brownian motion and with κ:
+
+``` r
+
+pars_punct <- list(bm1 = list(sigma = 1), punct1 = list(sigma = 0.25))
+y1 <- kernel_simulate(k_bm() + k_punct, tr200, pars = pars_punct)[, 1]
+fits1 <- list("BM"                    = fit_ml(k_bm() + k_white(), y1),
+              "kappa"                 = fit_ml(k_kappa() + k_white(), y1),
+              "gradual + speciational" = fit_ml(k_bm() + k_punct + k_white(), y1))
+delta_aic(fits1)
+#>                     BM                  kappa gradual + speciational 
+#>                    4.8                    3.4                    0.0
+estimates(fits1[["gradual + speciational"]])
+#>  (Intercept)    bm1_sigma punct1_sigma white1_sigma 
+#>        0.271        0.981        0.237        0.000
+```
+
+The sum fits best and recovers both rates (true values 1 and 0.25). κ
+fits better than Brownian motion, but its estimate is a compromise
+between the two modes rather than a measure of either. One caution: the
+speciational variance on a *tip* branch is the same for every species,
+so it cannot be told apart from
+[`k_white()`](https://thomaspueschel.github.io/phylogp/reference/classical-kernels.md);
+the information about speciational change comes from the internal
+branches. Speciation events whose descendants all went extinct are
+missing from the tree, so the speciational rate refers to the branching
+events that remain.
+
+### Bounded fluctuations around a drifting average
+
+Over short times traits often fluctuate within limits, but over long
+times they wander: the “million-year wait” for large changes ([Uyeda et
+al. 2011](#ref-uyeda2011)). An Ornstein–Uhlenbeck component describes
+the bounded fluctuations, and a Brownian component the slow drift that
+carries the average with it. The sum is close in spirit to an OU process
+whose optimum itself evolves ([Hansen et al. 2008](#ref-hansen2008)); in
+Gaussian-process terms it is a sum of a short-range and a long-range
+kernel.
+
+``` r
+
+pars_oubm <- list(ou1 = list(sigma = 2, alpha = 8), bm1 = list(sigma = 0.6))
+y2 <- kernel_simulate(k_ou() + k_bm(), tr200, pars = pars_oubm)[, 1]
+fits2 <- list("BM"      = fit_ml(k_bm() + k_white(), y2),
+              "OU"      = fit_ml(k_ou() + k_white(), y2),
+              "OU + BM" = fit_ml(k_ou() + k_bm() + k_white(), y2))
+delta_aic(fits2)
+#>      BM      OU OU + BM 
+#>    25.0     6.5     0.0
+estimates(fits2[["OU + BM"]])
+#>  (Intercept)    ou1_sigma    ou1_alpha    bm1_sigma white1_sigma 
+#>        0.131        2.174        9.603        0.563        0.000
+```
+
+OU alone fits much better than BM alone, because most of the variation
+is bounded, but the sum is better still. On its own, OU has to explain
+the long-range similarity as well, which it does with a weaker pull
+towards the optimum (smaller α) than the true one.
+
+### An early burst that levels off
+
+The early-burst model lets the rate of evolution decline exponentially
+from the root ([Harmon et al. 2010](#ref-harmon2010)), so the rate tends
+to zero towards the present. Adding Brownian motion gives a burst that
+settles to a background rate,
+$`\sigma^2_{\mathrm{EB}} e^{rt} + \sigma^2_{\mathrm{BM}}`$, which is
+often the more plausible biology.
+
+We simulate eight data sets in which the rate falls steeply and then
+settles at a background rate, and fit early burst alone and the sum to
+each. Rather than the parameters, which trade off against each other (a
+steeper, higher burst and a gentler, lower one give similar rates over
+most of the tree), we compare the rate curves they imply:
+
+``` r
+
+pars_ebbm <- list(eb1 = list(sigma = 4, rate = -10), bm1 = list(sigma = 0.8))
+rate_curve <- function(p, t) {
+  eb <- if (is.na(p["eb1_sigma"])) 0 else p[["eb1_sigma"]]^2 * exp(p[["eb1_rate"]] * t)
+  bm <- if (is.na(p["bm1_sigma"])) 0 else p[["bm1_sigma"]]^2
+  eb + bm
+}
+t <- seq(0, 1, length.out = 100)
+truth <- with(pars_ebbm, eb1$sigma^2 * exp(eb1$rate * t) + bm1$sigma^2)
+sims <- lapply(1:8, function(i) {
+  set.seed(200 + i)
+  y <- kernel_simulate(k_eb() + k_bm(), tr200, pars = pars_ebbm)[, 1]
+  list(eb = fit_ml(k_eb() + k_white(), y), sum = fit_ml(k_eb() + k_bm() + k_white(), y))
+})
+# AIC of early burst alone minus AIC of the sum: positive values favour the sum
+round(sapply(sims, function(s) AIC(logLik(s$eb)) - AIC(logLik(s$sum))), 1)
+#> [1] -0.6 -1.1 -1.9 -0.6  1.1  1.3  4.0 -1.8
+```
+
+``` r
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4.5, 2, 1))
+for (m in c("eb", "sum")) {
+  plot(t, truth, type = "n", log = "y", las = 1, bty = "l", ylim = c(0.2, 40),
+       xlab = "time from the root", ylab = "rate of evolution (log scale)",
+       main = c(eb = "Early burst", sum = "Early burst + BM")[m], font.main = 1)
+  for (s in sims) lines(t, rate_curve(estimates(s[[m]]), t),
+                        col = adjustcolor(cols[1], 0.5), lwd = 1.5)
+  lines(t, truth, lwd = 2.5, lty = 2, col = cols[2])
+}
+legend("topright", c("truth", "estimates"), col = cols[2:1], lty = c(2, 1),
+       lwd = 2, bty = "n")
+```
+
+![](kernel-design_files/figure-html/eb-bm-plot-1.png)
+
+``` r
+
+par(op)
+```
+
+Early burst alone has to bring the rate towards zero by the present, so
+it bends the curve in the same way every time: it starts too low,
+declines too slowly, and keeps falling instead of levelling off at the
+background rate. The sum’s curves scatter around the truth instead. But
+AIC prefers the sum in only a few of the data sets: with 200 living
+species, a burst that levels off and a gentler burst that does not are
+hard to tell apart, because few branches inform the early part of the
+tree. This is a case where a sensible model is weakly identified, and
+the plain early burst would be preferred most of the time even though it
+is wrong. Fossil tips, or
+[`k_rate_time()`](https://thomaspueschel.github.io/phylogp/reference/k_rate_time.md)
+as a flexible check on the shape of the curve, give more information.
+
+### Phylogeny plus environmental similarity
+
+[`k_dist()`](https://thomaspueschel.github.io/phylogp/reference/k_dist.md)
+accepts any distance between species, not only geography. With a
+distance in climate space, `k_bm() + k_dist(D) + k_white()` asks whether
+species living in similar climates resemble each other beyond what their
+shared ancestry explains, a niche analogue of the phylogeny + space
+models of Freckleton and Jetz ([2009](#ref-freckleton2009)). Here the
+climate of each species is simulated independently of the tree:
+
+``` r
+
+set.seed(4)
+clim <- cbind(temperature = runif(200, -1, 1), precipitation = runif(200, -1, 1))
+rownames(clim) <- tr200$tip.label
+D_clim <- as.matrix(dist(clim))
+k_clim <- k_dist(D = D_clim, phi = "exponential")
+pars_clim <- list(bm1 = list(sigma = 1), dist1 = list(sigma = 0.8, ell = 0.5),
+                  white1 = list(sigma = 0.2))
+y4 <- kernel_simulate(k_bm() + k_clim + k_white(), tr200, pars = pars_clim)[, 1]
+
+kernel_check(k_bm() + k_clim + k_white(), tr200)
+#> Kernel check on a 200-tip ultrametric tree
+#>   [valid  ] bm1        bm() (edge)
+#>          branch-wise form with non-negative edge variances
+#>   [valid  ] dist1      dist(D, exponential) (dense)
+#>          exponential kernel on a user-supplied distance: validity depends on the distance (checked numerically); no failures at 25 parameter values tried
+#>   [valid  ] white1     white() (white)
+#>          independent tip variance
+#> The kernel is a valid covariance on this tree.
+fits4 <- list("BM + residual"           = fit_ml(k_bm() + k_white(), y4),
+              "BM + climate + residual" = fit_ml(k_bm() + k_clim + k_white(), y4))
+delta_aic(fits4)
+#>           BM + residual BM + climate + residual 
+#>                   104.1                     0.0
+```
+
+[`kernel_check()`](https://thomaspueschel.github.io/phylogp/reference/kernel_check.md)
+confirms that the exponential kernel is valid on this distance
+(Euclidean distances, for which the exponential is always valid). The
+climate component is strongly supported. Because the components are
+independent, their variances add, so the variance of a species splits
+into phylogenetic, climatic and residual parts:
+
+``` r
+
+e <- estimates(fits4[["BM + climate + residual"]])
+v <- c(phylogeny = e[["bm1_sigma"]]^2,            # BM variance at the tips (tree height 1)
+       climate   = e[["dist1_sigma"]]^2,
+       residual  = e[["white1_sigma"]]^2)
+round(v / sum(v), 2)
+#> phylogeny   climate  residual 
+#>      0.63      0.37      0.00
+true_v <- c(1, 0.8^2, 0.2^2)
+round(true_v / sum(true_v), 2)
+#> [1] 0.60 0.38 0.02
+```
+
+The component is dense, so these models use $`O(N^3)`$ linear algebra; a
+few hundred species are still fast.
+
+### Do the parts come back?
+
+A good fit of a sum does not guarantee that its parts are identifiable.
+A quick check is to simulate several data sets from the sum and see
+whether the estimates scatter around the true values:
+
+``` r
+
+recover <- function(k_true, pars, k_fit, keep, nrep = 10) {
+  t(sapply(seq_len(nrep), function(i) {
+    set.seed(100 + i)
+    y <- kernel_simulate(k_true, tr200, pars = pars)[, 1]
+    estimates(fit_ml(k_fit, y))[keep]
+  }))
+}
+r1 <- recover(k_bm() + k_punct, pars_punct, k_bm() + k_punct + k_white(),
+              c("bm1_sigma", "punct1_sigma"))
+r2 <- recover(k_ou() + k_bm(), pars_oubm, k_ou() + k_bm() + k_white(),
+              c("ou1_sigma", "ou1_alpha", "bm1_sigma"))
+rel <- cbind(r1 / c(1, 0.25)[col(r1)], r2 / c(2, 8, 0.6)[col(r2)])
+colnames(rel) <- c("gradual sigma", "speciational sigma", "OU sigma", "OU alpha", "drift (BM) sigma")
+
+op <- par(mar = c(4, 9, 1, 1))
+stripchart(as.data.frame(rel), method = "jitter", jitter = 0.15, pch = 19, las = 1,
+           col = adjustcolor(rep(cols[c(1, 2)], c(2, 3)), 0.7),
+           xlab = "estimate / true value", xlim = c(0, 2.2))
+abline(v = 1, lty = 2, col = "grey40")
+legend("topright", c("gradual + speciational", "OU + BM"), col = cols[1:2],
+       pch = 19, bty = "n", cex = 0.85)
+```
+
+![](kernel-design_files/figure-html/recovery-1.png)
+
+``` r
+
+par(op)
+```
+
+The gradual and speciational rates are recovered well; in one data set
+the speciational part was absorbed by the residual, as expected from the
+tip branches. In the OU + BM sum only the OU standard deviation is
+recovered reliably. α and the drift rate are usually underestimated, and
+in one data set the drift vanished altogether: a weaker pull towards the
+optimum lets the OU part take over some of the long-range similarity, so
+the two parts trade off. The sum describes the data well, but its parts
+should be read with this in mind, as for the early burst with a floor
+above. Checks like these are cheap, and worth running before reading
+much into the parameters of any new combination.
+
+Two kinds of combination are not yet available: products of two kernel
+components, such as phylogeny × space (only
+[`k_slope()`](https://thomaspueschel.github.io/phylogp/reference/k_slope.md)
+multiplies a component), and branch-wise kernels whose rate depends on a
+covariate attached to each branch, such as a selective regime. Both need
+new code rather than new combinations.
+
 ## Is my kernel valid?
 
 A kernel must be positive semi-definite on the tips of the tree, or it
@@ -384,10 +705,10 @@ kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), ultra, n_grid = 4)
 #> 60 tips, ultrametric tree, unknown (contrasts compared) mean
 #> 
 #>  k1.ou1.sigma k1.ou1.alpha       KL k2.eb1.sigma k2.eb1.rate k2_at_bound
-#>             1       0.0108 1.07e-07     9.51e-01      0.0218       FALSE
+#>             1       0.0108 1.22e-07     9.51e-01      0.0218       FALSE
 #>             1       0.1080 1.23e-08     6.06e-01      0.2170       FALSE
-#>             1       1.0800 2.39e-07     6.73e-03      2.1700       FALSE
-#>             1      10.8000 1.44e-06     2.08e-22     21.6000       FALSE
+#>             1       1.0800 1.83e-07     6.73e-03      2.1700       FALSE
+#>             1      10.8000 1.43e-06     2.07e-22     21.6000       FALSE
 #>           verdict
 #>         identical
 #>         identical
@@ -467,8 +788,6 @@ op <- par(mar = c(4.5, 5, 1, 1), mgp = c(3.2, 0.7, 0))
 matplot(sizes, timing * 1000, log = "xy", type = "b", pch = 19, yaxt = "n",
         lty = 1, lwd = 2, col = cols[c(1, 2)], bty = "l",
         xlab = "number of species", ylab = "time per likelihood (ms)")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log = log, recycle = TRUE): 1 y
-#> value <= 0 omitted from logarithmic plot
 axis(2, at = 10^(-1:3), labels = c("0.1", "1", "10", "100", "1000"), las = 1)
 legend("topleft", c("pruning, O(N)", "dense Cholesky, O(N^3)"),
        col = cols[c(1, 2)], lwd = 2, pch = 19, bty = "n")
@@ -492,6 +811,11 @@ latent rates practical.
 Blomberg, Simon P., Theodore Garland, and Anthony R. Ives. 2003.
 “Testing for Phylogenetic Signal in Comparative Data: Behavioral Traits
 Are More Labile.” *Evolution* 57: 717–45.
+
+Bokma, Folmer. 2008. “Detection of ‘Punctuated Equilibrium’ by Bayesian
+Estimation of Speciation and Extinction Rates, Ancestral Character
+States, and Rates of Anagenetic and Cladogenetic Evolution on a
+Molecular Phylogeny.” *Evolution* 62: 2718–26.
 
 Butler, Marguerite A., and Aaron A. King. 2004. “Phylogenetic
 Comparative Analysis: A Modeling Approach for Adaptive Evolution.” *The
@@ -528,6 +852,10 @@ Disentangling Phylogenetic and Spatial Signals in Comparative Data.”
 
 Hansen, Thomas F. 1997. “Stabilizing Selection and the Comparative
 Analysis of Adaptation.” *Evolution* 51: 1341–51.
+
+Hansen, Thomas F., Jason Pienaar, and Steven Hecht Orzack. 2008. “A
+Comparative Method for Studying Adaptation to a Randomly Evolving
+Environment.” *Evolution* 62: 1965–77.
 
 Harmon, Luke J., Jonathan B. Losos, T. Jonathan Davies, et al. 2010.
 “Early Bursts of Body Size and Shape Evolution Are Rare in Comparative
@@ -572,6 +900,10 @@ Uyeda, Josef C., Daniel S. Caetano, and Matthew W. Pennell. 2015.
 “Comparative Analysis of Principal Components Can Be Misleading.”
 *Systematic Biology* 64 (4): 677–89.
 <https://doi.org/10.1093/sysbio/syv019>.
+
+Uyeda, Josef C., Thomas F. Hansen, Stevan J. Arnold, and Jason Pienaar.
+2011. “The Million-Year Wait for Macroevolutionary Bursts.” *Proceedings
+of the National Academy of Sciences* 108: 15908–13.
 
 Venditti, Chris, Andrew Meade, and Mark Pagel. 2011. “Multiple Routes to
 Mammalian Diversity.” *Nature* 479: 393–96.

@@ -25,6 +25,10 @@
   the result is in the new “What works with what” article.
 - New vignette, “Several records per species, known errors and new
   species”, with worked examples of these three features.
+- “Designing kernels” has a new section, “New models from old parts”,
+  with four sums of kernels: gradual plus speciational change, OU plus
+  BM, an early burst that levels off, and phylogeny plus climate
+  similarity, each with a check of whether its parts can be recovered.
 - Bug fix: [`loo()`](https://mc-stan.org/loo/reference/loo.html) for
   fits across a sample of trees
   ([`phylo_gp_trees()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp_trees.md))

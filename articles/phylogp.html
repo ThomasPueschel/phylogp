@@ -260,12 +260,12 @@ residual).</p>
 <span><span class="co">#&gt;   Likelihood: pruning (linear time) </span></span>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        parameter   mean     sd     q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1    (Intercept) -0.152 0.7114 -1.338 0.988    1     6517</span></span>
-<span><span class="co">#&gt; 2           body  0.693 0.1063  0.523 0.866    1     8007</span></span>
-<span><span class="co">#&gt; 3 relaxed1_sigma  1.476 0.4628  0.858 2.294    1     3927</span></span>
-<span><span class="co">#&gt; 4   relaxed1_tau  1.160 0.3570  0.658 1.823    1     2185</span></span>
-<span><span class="co">#&gt; 5   white1_sigma  0.107 0.0473  0.030 0.192    1     2794</span></span></code></pre></div>
+<span><span class="co">#&gt;        parameter   mean     sd      q5   q95 rhat ess_bulk</span></span>
+<span><span class="co">#&gt; 1    (Intercept) -0.141 0.7459 -1.3792 1.070    1     6252</span></span>
+<span><span class="co">#&gt; 2           body  0.694 0.1112  0.5131 0.876    1     6296</span></span>
+<span><span class="co">#&gt; 3 relaxed1_sigma  1.492 0.4689  0.8726 2.340    1     2615</span></span>
+<span><span class="co">#&gt; 4   relaxed1_tau  1.162 0.3519  0.6663 1.791    1     2597</span></span>
+<span><span class="co">#&gt; 5   white1_sigma  0.109 0.0469  0.0356 0.192    1     3758</span></span></code></pre></div>
 <p><code>relaxed1_tau</code>, the standard deviation of log-rate change,
 is clearly above zero: the data favour variable rates.</p>
 <p>Leave-one-out cross-validation <span class="citation">(<a href="#ref-vehtari2017">Vehtari et al. 2017</a>)</span> asks which model
@@ -279,8 +279,8 @@ draws.</p>
 <span>                      <span class="st">"relaxed + residual"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit_relaxed</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="co">#&gt;               model elpd_diff se_diff p_worse diag_diff      diag_elpd</span></span>
-<span><span class="co">#&gt;  relaxed + residual       0.0     0.0      NA           1 k_psis &gt; 0.7</span></span>
-<span><span class="co">#&gt;       BM + residual     -20.9     6.1    1.00</span></span>
+<span><span class="co">#&gt;  relaxed + residual       0.0     0.0      NA           3 k_psis &gt; 0.7</span></span>
+<span><span class="co">#&gt;       BM + residual     -20.6     6.1    1.00</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Diagnostic flags present.</span></span>
 <span><span class="co">#&gt; See ?`loo-glossary` (sections `diag_diff` and `diag_elpd`)</span></span>
