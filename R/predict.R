@@ -77,20 +77,39 @@ condition_tips <- function(ti, kp, r, t2, idx) {
        var = diag(Kp)[idx] - rowSums(A * Kp[idx, o, drop = FALSE]))
 }
 
-# Several observations per species: the within-species error of each species
-# mean (added to the tip variances) and the log density of each species'
-# deviations from its mean, log p(y_i | ybar_i), for one draw.
-within_t2 <- function(fit, row) {
-  if (is.null(fit$repeated)) return(0)
-  unname(row["within_sigma"])^2 / fit$repeated$n
+# Residuals of the fitted species for one draw (minus the latent slope
+# shift), their tip variances from measurement error and, for several
+# observations per species, the log density of each species' rows given its
+# mean, log p(r_i | rbar_i). `kp` holds the kernel parts of the draw and `o`
+# the positions of the fitted species in its tree.
+species_resid <- function(fit, row, beta, kp, o = seq_len(fit$standata$N)) {
+  sd <- fit$standata
+  if (is.null(fit$repeated))
+    return(list(r = sd$y - as.numeric(sd$X %*% beta) - kp$shift[o], t2 = sd$se^2,
+                lp = numeric(sd$N)))
+  r <- sd$y_obs - as.numeric(sd$X_obs %*% beta)
+  L <- kp$layout
+  for (id in L$ids[L$forms == "slope"])        # varying slope of each row
+    r <- r - sd[[paste0(id, "_xs_obs")]] * kp$pars[[id]]$v[o][sd$obs_sp]
+  wp <- within_parts(r, sd$se_obs, sd$obs_sp, sd$N, unname(row["within_sigma"]))
+  list(r = wp$rbar, t2 = sd$se^2 + wp$v, lp = wp$lp)
 }
-within_lp <- function(fit, row, beta) {
-  rp <- fit$repeated
-  if (is.null(rp)) return(rep(0, length(fit$tree$tip.label)))
-  s2 <- unname(row["within_sigma"])^2
-  d <- rp$y_dev - as.numeric(rp$X_dev %*% beta)
-  ss <- as.numeric(rowsum(d^2, rp$species, reorder = TRUE))
-  -0.5 * (rp$n - 1) * log(2 * pi * s2) - 0.5 * log(rp$n) - ss / (2 * s2)
+
+# R copy of the Stan function within_parts() (see within_lp_stan())
+within_parts <- function(r, se_obs, obs_sp, N, s, xs = 0, s2u = 0) {
+  prec <- 1 / (s^2 + se_obs^2)
+  sm <- function(v) as.numeric(rowsum(v, obs_sp, reorder = TRUE))
+  s2u <- rep_len(s2u, N); xs <- rep_len(xs, length(r))
+  A <- sm(prec); B <- sm(prec * xs); C <- sm(prec * xs^2)
+  Hr <- sm(prec * r); Hx <- sm(prec * xs * r)
+  cc <- 1 + s2u * C
+  P <- A - s2u * B^2 / cc
+  rbar <- (Hr - s2u * B * Hx / cc) / P
+  Q <- sm(prec * (r - rbar[obs_sp])^2) - s2u * (Hx - rbar * B)^2 / cc
+  n <- tabulate(obs_sp, N)
+  list(rbar = rbar, v = 1 / P,
+       lp = 0.5 * sm(log(prec)) - 0.5 * log(cc) - 0.5 * Q - 0.5 * (n - 1) * log(2 * pi) -
+         0.5 * log(P))
 }
 
 # Parameter draws of a fit as a matrix (one row per draw)
@@ -123,6 +142,98 @@ draw_pars <- function(L, row, ti) {
     p
   })
   stats::setNames(out, L$ids)
+}
+
+# Species that were not fitted, for kernels with latent values. The nodes of
+# the fitted tree are found in the extended tree (the tree with the new
+# species added) by their sets of fitted tips. New nodes either lie on a
+# fitted edge that the new species split (they lead to a fitted node, their
+# `target`) or on a new branch that leads only to new species (`target` NA).
+node_map <- function(ti_fit, ti_ext) {
+  N <- ti_ext$N; nn <- ti_ext$n_nodes
+  rk <- match(ti_ext$labels, sort(ti_fit$labels))      # NA for new species
+  target <- rep(NA_integer_, nn); cnt <- integer(nn); last <- integer(nn)
+  target[seq_len(N)][!is.na(rk)] <- which(!is.na(rk))
+  mn <- rep(Inf, nn); sz <- integer(nn)                 # smallest rank and size of the fitted clade
+  mn[seq_len(N)][!is.na(rk)] <- rk[!is.na(rk)]; sz[seq_len(N)] <- as.integer(!is.na(rk))
+  settle <- function(c) {
+    if (c <= N) return(target[c])
+    if (cnt[c] >= 2) c else if (cnt[c] == 1) last[c] else NA_integer_
+  }
+  for (e in seq_len(ti_ext$E)) {
+    c <- ti_ext$des[e]; p <- ti_ext$anc[e]
+    target[c] <- settle(c)
+    if (!is.na(target[c])) { cnt[p] <- cnt[p] + 1L; last[p] <- target[c] }
+    mn[p] <- min(mn[p], mn[c]); sz[p] <- sz[p] + sz[c]
+  }
+  target[ti_ext$root] <- settle(ti_ext$root)
+  # the same keys in the fitted tree, where every node is a fitted node
+  mf <- rep(Inf, ti_fit$n_nodes); sf <- integer(ti_fit$n_nodes)
+  mf[seq_len(ti_fit$N)] <- match(ti_fit$labels, sort(ti_fit$labels)); sf[seq_len(ti_fit$N)] <- 1L
+  for (e in seq_len(ti_fit$E)) {
+    c <- ti_fit$des[e]; p <- ti_fit$anc[e]
+    mf[p] <- min(mf[p], mf[c]); sf[p] <- sf[p] + sf[c]
+  }
+  mapped <- which(target == seq_len(nn))
+  fit_node <- rep(NA_integer_, nn)
+  fit_node[mapped] <- match(paste(mn[mapped], sz[mapped]), paste(mf, sf))
+  list(fit_node = fit_node, target = target)
+}
+
+# Values of a Brownian-type process at the nodes of the extended tree, given
+# its values `v` at the fitted nodes and the variances `w` of the extended
+# edges: a Brownian bridge along split fitted edges, Brownian motion on new
+# branches (the conditional prior of the process given the fitted nodes).
+lift_nodes <- function(ti, map, v, w) {
+  nn <- ti$n_nodes; tg <- map$target
+  x <- rep(NA_real_, nn)
+  m <- !is.na(map$fit_node)
+  x[m] <- v[map$fit_node[m]]
+  d2t <- numeric(nn)                       # variance from a node down to its target
+  for (e in seq_len(ti$E)) {
+    c <- ti$des[e]; p <- ti$anc[e]
+    if (!is.na(tg[c]) && !m[p] && isTRUE(tg[p] == tg[c])) d2t[p] <- w[e] + d2t[c]
+  }
+  r <- ti$root
+  if (is.na(x[r])) x[r] <- stats::rnorm(1, x[tg[r]], sqrt(d2t[r]))
+  for (e in rev(seq_len(ti$E))) {
+    c <- ti$des[e]; p <- ti$anc[e]
+    if (!is.na(x[c])) next
+    if (is.na(tg[c])) {
+      x[c] <- stats::rnorm(1, x[p], sqrt(w[e]))
+    } else {
+      a <- w[e]; b <- d2t[c]
+      x[c] <- if (a + b <= 0) x[p] else
+        stats::rnorm(1, x[p] + a / (a + b) * (x[tg[c]] - x[p]), sqrt(a * b / (a + b)))
+    }
+  }
+  x
+}
+
+# Parameters of one draw on the extended tree: latent values at new nodes and
+# new species are drawn from their conditional prior; rate-through-time bins
+# keep the times of the fitted tree.
+lift_pars <- function(L, P, ti_fit, ti_ext, map) {
+  h_ext <- c(0, ti_ext$he)[match(seq_len(ti_ext$n_nodes), c(ti_ext$root, ti_ext$des))]
+  for (j in seq_along(P)) {
+    cmp <- L$kernel$components[[j]]; p <- P[[j]]
+    if (identical(cmp$name, "relaxed"))
+      p$z <- lift_nodes(ti_ext, map, p$z, p$tau^2 * ti_ext$len)
+    if (!is.null(p$v))
+      p$v <- lift_nodes(ti_ext, map, p$v, cmp$base$r_eval(ti_ext, p, form = "edge")$w)
+    if (!is.null(p$lam)) {
+      lam <- p$lam[match(ti_ext$labels, ti_fit$labels)]
+      new <- is.na(lam)
+      lam[new] <- 1 / stats::rgamma(sum(new), 0.5 * cmp$df, 0.5 * cmp$df)
+      p$lam <- lam
+    }
+    if (identical(cmp$name, "ratetime")) {
+      off <- h_ext[which(map$fit_node == ti_fit$root)]
+      p$brk <- off + seq(0, ti_fit$Tmax, length.out = length(p$lograte) + 1)
+    }
+    P[[j]] <- p
+  }
+  P
 }
 
 # Edge coefficients for the OU process itself (rather than its tip kernel),
@@ -161,6 +272,13 @@ summarise_moments <- function(M, V, probs, names, n_rep = 4) {
 #' prediction conditions on all observed species, through the kernel and the
 #' regression part of the model, and integrates over the posterior draws.
 #'
+#' For kernels with latent values, the values a new species needs are drawn
+#' for each posterior draw from their conditional prior given the fitted ones:
+#' relaxed log rates and latent slope deviations by a Brownian bridge along
+#' the fitted branch the species joins and Brownian motion along its own
+#' branch, a Student-t variance multiplier from its inverse-gamma prior; rates
+#' through time keep the time bins of the fitted tree.
+#'
 #' @param object A `phylogp_fit`.
 #' @param newdata Optional data frame with the predictor values of the species
 #'   to predict, named as in the fit (row names or the `species` column). Its
@@ -193,8 +311,6 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
   type <- match.arg(type)
   full <- tree %||% object$tree_full %||% object$tree
   obs_sp <- object$tree$tip.label
-  y_obs <- stats::setNames(object$standata$y, obs_sp)
-  se_obs <- stats::setNames(object$standata$se, obs_sp)
   X_obs <- object$standata$X
   if (is.null(newdata)) {
     targets <- obs_sp
@@ -210,18 +326,17 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
     if (anyNA(X_t)) stop("Missing predictor values in `newdata`.", call. = FALSE)
   }
   new_sp <- setdiff(targets, obs_sp)
-  L <- object$layout
-  if (length(new_sp) && L$latent)
-    stop("Predicting species that were not fitted is not yet available for kernels ",
-         "with latent values (k_relaxed(), k_rate_time(), latent slopes, k_white(df = )).",
-         call. = FALSE)
+  L_fit <- object$layout
+  ti_fit <- tree_info(object$tree)
   kernel <- object$kernel
   if (length(new_sp) && !is.null(newdata)) kernel <- extend_slopes(kernel, newdata, targets)
   ti <- if (length(new_sp)) {
     keep <- union(obs_sp, new_sp)
     tree_info(ape::drop.tip(full, setdiff(full$tip.label, keep)))
-  } else tree_info(object$tree)
-  if (length(new_sp) && abs(ti$Tmax - tree_info(object$tree)$Tmax) > 1e-8 * ti$Tmax)
+  } else ti_fit
+  lift <- length(new_sp) && L_fit$latent
+  if (lift) map <- node_map(ti_fit, ti)
+  if (length(new_sp) && abs(ti$Tmax - ti_fit$Tmax) > 1e-8 * ti$Tmax)
     warning("Adding the new species changes the tree height; kernels that use it ",
             "(delta, early burst, OU) are evaluated on the extended tree.", call. = FALSE)
   L <- kernel_layout(kernel, ti)
@@ -230,14 +345,18 @@ predict.phylogp_fit <- function(object, newdata = NULL, tree = NULL,
   D <- fit_draws(object, ndraws, seed)
   ncoef <- length(object$coef_names)
   M <- V <- matrix(0, nrow(D), length(targets))
+  set.seed(seed)
   for (s in seq_len(nrow(D))) {
     row <- D[s, ]
     beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
-    kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
+    P <- if (lift) lift_pars(L, draw_pars(L_fit, row, ti_fit), ti_fit, ti, map) else
+      draw_pars(L, row, ti)
+    kp <- kernel_parts(L$kernel, ti, P)
+    sr <- species_resid(object, row, beta, kp, o)
     r <- rep(NA_real_, ti$N)
-    r[o] <- y_obs - as.numeric(X_obs %*% beta) - kp$shift[o]
+    r[o] <- sr$r
     t2 <- kp$t2
-    t2[o] <- t2[o] + se_obs^2 + within_t2(object, row)
+    t2[o] <- t2[o] + sr$t2
     cm <- condition_tips(ti, kp, r, t2, t_idx)
     m <- cm$mean + kp$shift[t_idx]; v <- cm$var
     if (type == "response")
@@ -296,7 +415,6 @@ ancestral <- function(object, ndraws = 500, probs = c(0.05, 0.95), tips = FALSE,
     stop("Ancestral states need a kernel that is a process along the tree ",
          "(no dense components such as k_dist()).", call. = FALSE)
   D <- fit_draws(object, ndraws, seed)
-  y <- object$standata$y; se <- object$standata$se
   nodes <- if (tips) seq_len(ti$n_nodes) else (ti$N + 1):ti$n_nodes
   M <- V <- matrix(0, nrow(D), length(nodes))
   for (s in seq_len(nrow(D))) {
@@ -304,12 +422,13 @@ ancestral <- function(object, ndraws = 500, probs = c(0.05, 0.95), tips = FALSE,
     mu <- unname(row["coefs[1]"])
     P <- draw_pars(L, row, ti)
     kp <- kernel_parts(L$kernel, ti, P)
-    t2 <- kp$t2 + se^2 + within_t2(object, row)
+    sr <- species_resid(object, row, mu, kp)
+    t2 <- kp$t2 + sr$t2
     post <- if (any(is_ou)) {
       tr <- ou_transitions(L, P, ti)
-      tree_posterior(ti, y - mu, tr$w, tr$rv, t2, a = tr$a)
+      tree_posterior(ti, sr$r, tr$w, tr$rv, t2, a = tr$a)
     } else {
-      tree_posterior(ti, y - mu, kp$w, kp$rv, t2)
+      tree_posterior(ti, sr$r, kp$w, kp$rv, t2)
     }
     M[s, ] <- mu + post$mean[nodes]
     V[s, ] <- pmax(post$var[nodes], 0)

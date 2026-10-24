@@ -76,3 +76,38 @@ test_that("OU transitions reproduce the OU covariance at all nodes", {
     expect_equal(p$var[keep], d$var[keep], tolerance = 1e-8)
   }
 })
+
+test_that("latent values at added nodes follow their conditional prior", {
+  set.seed(7)
+  full <- ape::rcoal(14)
+  # drop a few species from the fit, including the smaller clade at the root,
+  # so that the root of the extended tree is not a fitted node
+  kids <- full$edge[full$edge[, 1] == ape::Ntip(full) + 1, 2]
+  small <- kids[which.min(vapply(kids, function(k)
+    if (k <= ape::Ntip(full)) 1L else ape::Ntip(ape::extract.clade(full, k)), 1L))]
+  out <- union(full$tip.label[1:2],
+               if (small <= ape::Ntip(full)) full$tip.label[small] else ape::extract.clade(full, small)$tip.label)
+  ti_fit <- tree_info(ape::drop.tip(full, out))
+  ti_ext <- tree_info(full)
+  map <- node_map(ti_fit, ti_ext)
+  # fitted nodes are found again: same fitted tips below them
+  below <- function(tree, node) intersect(ti_fit$labels, ape::extract.clade(tree, node)$tip.label)
+  for (k in which(!is.na(map$fit_node) & seq_len(ti_ext$n_nodes) > ti_ext$N)) {
+    fn <- map$fit_node[k]
+    expect_setequal(below(ti_ext$tree, k),
+                    if (fn <= ti_fit$N) ti_fit$labels[fn] else below(ti_fit$tree, fn))
+  }
+  # Monte Carlo moments against Gaussian conditioning of Brownian motion
+  v <- rnorm(ti_fit$n_nodes)
+  sims <- replicate(4000, lift_nodes(ti_ext, map, v, ti_ext$len))
+  h <- ape::node.depth.edgelength(ti_ext$tree)
+  A <- ape::mrca(ti_ext$tree, full = TRUE)
+  S <- 1e3 + matrix(h[A], nrow(A))   # nearly flat prior on the root
+  m <- which(!is.na(map$fit_node)); u <- which(is.na(map$fit_node))
+  G <- S[u, m] %*% solve(S[m, m])
+  mu <- as.numeric(G %*% v[map$fit_node[m]])
+  vv <- diag(S[u, u] - G %*% S[m, u])
+  expect_lt(max(abs(rowMeans(sims[u, , drop = FALSE]) - mu)), 0.1)
+  expect_equal(apply(sims[u, , drop = FALSE], 1, var), vv, tolerance = 0.15)
+  expect_equal(sims[m, 1], v[map$fit_node[m]])
+})

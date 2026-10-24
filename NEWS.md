@@ -1,5 +1,20 @@
 # phylogp (development version)
 
+* `predict()` now predicts species that were not fitted for every kernel,
+  including those with latent values (`k_relaxed()`, `k_rate_time()`, latent
+  `k_slope()` terms and `k_white(df = )`). The latent values a new species
+  needs are drawn from their conditional prior given the fitted ones (a
+  Brownian bridge along the fitted branch it joins, Brownian motion along its
+  own branch, the prior for a Student-t multiplier).
+* Several rows per species can now be combined with known measurement error
+  (`se`, one value per row): the species means are weighted by
+  `1 / (within_sigma^2 + se^2)`, and the likelihood stays exact and linear.
+* Several rows per species can now be combined with a varying slope
+  (`k_slope(x) * k_bm()`, latent): the slope acts on each row's own `x`, and
+  leave-one-out integrates the left-out species' slope over all its rows in
+  closed form.
+* `data-raw/capabilities.R` checks every kernel against every feature; the
+  result is in the new "What works with what" article.
 * Bug fix: `loo()` for fits across a sample of trees (`phylo_gp_trees()`)
   now runs PSIS-LOO on each tree and averages each species' left-out density
   over trees, so trees are weighted equally, as documented. It used to run a

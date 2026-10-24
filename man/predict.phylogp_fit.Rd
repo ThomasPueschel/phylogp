@@ -49,6 +49,14 @@ trait data (phylogenetic imputation, i.e. kriging on the tree). Each
 prediction conditions on all observed species, through the kernel and the
 regression part of the model, and integrates over the posterior draws.
 }
+\details{
+For kernels with latent values, the values a new species needs are drawn
+for each posterior draw from their conditional prior given the fitted ones:
+relaxed log rates and latent slope deviations by a Brownian bridge along
+the fitted branch the species joins and Brownian motion along its own
+branch, a Student-t variance multiplier from its inverse-gamma prior; rates
+through time keep the time bins of the fitted tree.
+}
 \examples{
 \dontrun{
 fit <- phylo_gp(y ~ x, d, tree, k_bm() + k_white())

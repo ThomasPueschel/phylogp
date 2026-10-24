@@ -10,3 +10,5 @@
 ^pkgdown$
 ^\.claude$
 ^\.zenodo\.json$
+^data-raw$
+^vignettes/articles$

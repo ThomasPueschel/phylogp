@@ -30,6 +30,7 @@ articles:
       - model-tour
       - kernel-design
       - slopes-prediction
+      - articles/capabilities
 
 reference:
   - title: Fitting models

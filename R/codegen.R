@@ -81,12 +81,12 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
     if (L$quad_kind == "gh") c("int<lower=1> n_gh;", "vector[n_gh] gh_x;", "vector[n_gh] gh_w;"),
     if (L$quad_kind == "lam") c("int<lower=1> n_lq;", "vector<lower=0>[n_lq] lq_lam;", "vector<lower=0>[n_lq] lq_w;"),
     if (repeated) c(
-      "// several observations per species: y and X hold species means",
+      "// several observations per species (y and X hold species means)",
       "int<lower=1> M;                       // observations",
-      "vector<lower=1>[N] n_obs;             // observations per species",
       "array[M] int<lower=1, upper=N> obs_sp; // species of each observation",
-      "vector[M] y_dev;                      // y minus its species mean",
-      "matrix[M, P] X_dev;                   // X minus its species means",
+      "vector[M] y_obs;                      // response of each observation",
+      "matrix[M, P] X_obs;                   // design matrix of the observations",
+      "vector<lower=0>[M] se_obs;            // known measurement error of each observation",
       "vector<lower=0, upper=1>[N] within_include; // 0 leaves a species out",
       "real<lower=0> within_sigma_scale;"))
   for (j in seq_along(comps)) {
@@ -96,7 +96,9 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
     for (p in names(cmp$pars))
       data <- c(data, sprintf("real %1$s_%2$s_lb;", id, p),
                 sprintf("real<lower=%1$s_%2$s_lb> %1$s_%2$s_ub;", id, p))
-    data <- c(data, sub_id(cmp$stan_data, id))
+    data <- c(data, sub_id(cmp$stan_data, id),
+              if (repeated && L$forms[j] == "slope")
+                sprintf("vector[M] %s_xs_obs;                // x of each observation, centred", id))
   }
 
   # ---- parameters ----
@@ -114,7 +116,15 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
 
   # ---- kernel assembly (used in model and generated quantities) ----
   asm <- c("vector[E] w = rep_vector(0, E);", "real rv = 0;", "vector[N] t2 = square(se);",
-           if (repeated) "t2 += square(within_sigma) ./ n_obs;  // error of the species means")
+           if (repeated) c(
+             "vector[M] r_obs = y_obs - X_obs * coefs;",
+             sprintf("r_obs -= %1$s_xs_obs .* %1$s_v[obs_sp];  // varying slope of each row",
+                     L$ids[L$forms == "slope"]),
+             "// species means of the residuals, weighted by 1 / (within_sigma^2 + se_obs^2),",
+             "// their error variances and the log density of the rows given the means",
+             "matrix[N, 3] wp = within_parts(r_obs, se_obs, obs_sp, N, within_sigma,",
+             "                               rep_vector(0, M), rep_vector(0, N));",
+             "t2 += wp[, 2];"))
   for (j in seq_along(comps)) {
     cmp <- comps[[j]]; id <- L$ids[j]
     if (L$forms[j] == "white") {
@@ -136,8 +146,8 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
                with_aliases(id, cmp, code, extra = sub_id(cmp$dense_alias, id)))
     }
   }
-  asm <- c(asm, "vector[N] r = y - X * coefs;",
-           unlist(lapply(seq_along(comps), function(j) sub_id(comps[[j]]$stan_shift, L$ids[j]))))
+  asm <- c(asm, if (repeated) "vector[N] r = wp[, 1];" else c("vector[N] r = y - X * coefs;",
+           unlist(lapply(seq_along(comps), function(j) sub_id(comps[[j]]$stan_shift, L$ids[j])))))
 
   # ---- model ----
   lik <- if (L$dense)
@@ -151,7 +161,7 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
                 c(sprintf("%1$s_sigma ~ normal(0, %1$s_sigma_scale);", id),
                   sub_id(comps[[j]]$stan_prior, id))
               })))
-  within <- "within_logdens(y_dev, X_dev, coefs, obs_sp, n_obs, within_sigma)"
+  within <- "wp[, 3]"
   if (repeated) {
     lik <- c(lik, sprintf("target += dot_product(within_include, %s);", within))
     priors <- c(priors, "within_sigma ~ normal(0, within_sigma_scale);")
@@ -164,12 +174,22 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
   # own latent values (its slope or rate on the tip edge) are informed only by
   # y_i, so they are integrated out against their conditional prior: in closed
   # form (latent slopes) or by quadrature (relaxed rates, heavy-tailed residuals).
-  loo <- c(if (L$dense) "matrix[N, 2] mo = gaussian_loo_moments(r, K);" else
-             "matrix[N, 2] mo = tree_loo_moments(r, w, rv, t2, anc, des, n_nodes, root);",
-           "for (i in 1:N) {")
+  loo_head <- if (L$dense) "matrix[N, 2] mo = gaussian_loo_moments(r, K);" else
+    "matrix[N, 2] mo = tree_loo_moments(r, w, rv, t2, anc, des, n_nodes, root);"
   body <- c("int e = tip_edge[i];", "real ri = r[i];",
             if (L$dense) "real vi = mo[i, 2];" else "real vi = mo[i, 2] + t2[i];")
-  for (j in L$closed) {
+  # several rows per species with a varying slope: the left-out species' rows
+  # are scored jointly, with its slope at the tip integrated out (wl)
+  wl <- character()
+  if (repeated && length(L$closed)) {
+    id <- L$ids[L$closed]
+    wl <- c(sprintf("matrix[N, 3] wl = within_parts(r_obs + %1$s_xs_obs .* (%1$s_v[obs_sp] - %1$s_v[anc[tip_edge[obs_sp]]]),", id),
+            sprintf("                               se_obs, obs_sp, N, within_sigma, %1$s_xs_obs,", id),
+            sprintf("                               square(%1$s_sigma) * %1$s_wb[tip_edge]);", id))
+    body <- c(body, "ri = wl[i, 1];", "vi += wl[i, 2] - wp[i, 2];")
+    within <- "wl[, 3]"
+  }
+  for (j in if (length(wl)) integer() else L$closed) {
     tl <- comps[[j]]$tip_loo; id <- L$ids[j]
     body <- c(body, sprintf("ri += %s;", sub_id(tl$r, id)), sprintf("vi += %s;", sub_id(tl$v, id)))
   }
@@ -187,7 +207,7 @@ kernel_stancode <- function(kernel, tree = NULL, repeated = FALSE) {
   } else {
     body <- c(body, "log_lik[i] = normal_lpdf(ri | mo[i, 1], sqrt(vi));")
   }
-  loo <- c(loo, ind(body), "}",
+  loo <- c(loo_head, wl, "for (i in 1:N) {", ind(body), "}",
            if (repeated) sprintf("log_lik += %s;  // leave out all rows of a species", within))
   gq <- c("vector[N] log_lik;", "{", ind(c(asm, loo)), "}")
 
@@ -213,18 +233,42 @@ print.phylogp_stancode <- function(x, ...) {
   invisible(x)
 }
 
-# Stan function: log density of the within-species deviations of each species,
-# log p(y_i | ybar_i) for y_ij ~ N(x_ij b + f_i, s^2), which with the density of
-# the species mean (variance s^2 / n_i) gives the exact likelihood of the rows.
+# Stan function for several observations per species. The residuals of
+# species i are r_ij = g_i + xs_ij u_i + e_ij, with g_i the species value,
+# e_ij ~ N(0, s^2 + se_ij^2) and, optionally, a slope u_i ~ N(0, s2u_i)
+# (s2u = 0: none). The likelihood of the rows given g_i factorises into
+# N(rbar_i | g_i, 1 / P_i), with rbar_i the generalised least-squares mean
+# (Sherman-Morrison for the rank-one slope term), and the rows given rbar_i.
+# Returns, per species, rbar_i, 1 / P_i and log p(r_i | rbar_i). An R copy is
+# within_parts() in predict.R.
 within_lp_stan <- function() c(
-  "vector within_logdens(vector y_dev, matrix X_dev, vector coefs, array[] int obs_sp,",
-  "                 vector n_obs, real s) {",
-  "  int N = rows(n_obs);",
-  "  vector[N] ss = rep_vector(0, N);",
-  "  vector[rows(y_dev)] d = y_dev - X_dev * coefs;",
-  "  for (m in 1:rows(y_dev)) ss[obs_sp[m]] += square(d[m]);",
-  "  return -0.5 * (n_obs - 1) * log(2 * pi() * square(s)) - 0.5 * log(n_obs)",
-  "         - ss / (2 * square(s));",
+  "matrix within_parts(vector r, vector se_obs, array[] int obs_sp, int N, real s,",
+  "                    vector xs, vector s2u) {",
+  "  int M = rows(r);",
+  "  vector[M] prec = inv(square(s) + square(se_obs));",
+  "  vector[N] A = rep_vector(0, N);    // sum prec",
+  "  vector[N] B = rep_vector(0, N);    // sum prec x",
+  "  vector[N] C = rep_vector(0, N);    // sum prec x^2",
+  "  vector[N] Hr = rep_vector(0, N);   // sum prec r",
+  "  vector[N] Hx = rep_vector(0, N);   // sum prec x r",
+  "  vector[N] lp = rep_vector(0, N);",
+  "  vector[N] Q = rep_vector(0, N);",
+  "  vector[N] n = rep_vector(0, N);",
+  "  matrix[N, 3] out;",
+  "  for (m in 1:M) {",
+  "    int i = obs_sp[m];",
+  "    A[i] += prec[m]; B[i] += prec[m] * xs[m]; C[i] += prec[m] * square(xs[m]);",
+  "    Hr[i] += prec[m] * r[m]; Hx[i] += prec[m] * xs[m] * r[m];",
+  "    lp[i] += 0.5 * log(prec[m]); n[i] += 1;",
+  "  }",
+  "  vector[N] c = 1 + s2u .* C;",
+  "  vector[N] P = A - s2u .* square(B) ./ c;",
+  "  out[, 1] = (Hr - s2u .* B .* Hx ./ c) ./ P;",
+  "  out[, 2] = inv(P);",
+  "  for (m in 1:M) Q[obs_sp[m]] += prec[m] * square(r[m] - out[obs_sp[m], 1]);",
+  "  Q -= s2u .* square(Hx - out[, 1] .* B) ./ c;",
+  "  out[, 3] = lp - 0.5 * log(c) - 0.5 * Q - 0.5 * (n - 1) * log(2 * pi()) - 0.5 * log(P);",
+  "  return out;",
   "}")
 
 #' Data for the Stan program of a kernel
@@ -243,9 +287,10 @@ within_lp_stan <- function() c(
 #'   regression coefficients.
 #' @param repeated For several observations per species: `NULL`, or a list
 #'   with `n` (observations per species, in tip order), `species` (tip index
-#'   of each observation), `y_dev` and `X_dev` (deviations of the response
-#'   and of the design matrix from their species means) and `sd_y` (sd of
-#'   the response over observations). `y` and `X` are then species means.
+#'   of each observation), `y` and `X` (response and design matrix of the
+#'   observations), optionally `se` (known measurement error of each
+#'   observation) and `sd_y` (sd of the response over observations). The
+#'   arguments `y` and `X` are then species means, and `se` is not used.
 #' @return A named list.
 #' @export
 kernel_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
@@ -287,12 +332,24 @@ kernel_standata <- function(kernel, tree, y, X = NULL, se = NULL, use_prior = 1,
     if (!is.null(cmp$standata)) d <- c(d, cmp$standata(ti, id, cmp))
   }
   if (!is.null(repeated))
-    d <- c(d, list(M = length(repeated$species), n_obs = as.numeric(repeated$n),
-                   obs_sp = as.integer(repeated$species), y_dev = repeated$y_dev,
-                   X_dev = matrix(repeated$X_dev, ncol = ncol(X)),
+    d <- c(d, slope_obs_data(L, repeated), list(M = length(repeated$species),
+                   obs_sp = as.integer(repeated$species), y_obs = as.numeric(repeated$y),
+                   X_obs = matrix(repeated$X, ncol = ncol(X)),
+                   se_obs = repeated$se %||% rep(0, length(repeated$species)),
                    within_include = rep(1, ti$N),
                    within_sigma_scale = prior_sigma_scale %||% (2 * repeated$sd_y)))
   d
+}
+
+# x of each observation (centred) for varying slopes with several rows per species
+slope_obs_data <- function(L, repeated) {
+  j <- which(L$forms == "slope")
+  if (!length(j)) return(list())
+  stats::setNames(lapply(j, function(k) {
+    sc <- L$kernel$components[[k]]$scale
+    if (is.null(sc$x_obs)) stop("k_slope(): no values of x for the observations.", call. = FALSE)
+    sc$x_obs - sc$center_value
+  }), paste0(L$ids[j], "_xs_obs"))
 }
 
 # Gauss-Hermite nodes and weights (Golub-Welsch) for integrals against exp(-x^2)

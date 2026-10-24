@@ -74,8 +74,14 @@ effect (the \code{(1 | species)} term of a mixed model). The likelihood is
 exact and keeps its linear cost: it factorises into the species means,
 which follow the kernel with an extra tip variance \eqn{\sigma_w^2/n_i},
 and the deviations from those means. Predictors may vary within species.
-Leave-one-out leaves out whole species. Not yet available with varying
-slopes or known measurement error (\code{se}).
+Leave-one-out leaves out whole species. A varying slope
+(\code{k_slope(x) * k_bm()}, latent) then applies to each row's own \code{x}, and
+leave-one-out integrates the left-out species' slope over all its rows.
+
+With \code{se} and several rows per species, \code{se} is the known measurement
+error of each row: \eqn{\epsilon_{ij} \sim N(0, \sigma_w^2 + se_{ij}^2)}.
+The species means are then weighted by \eqn{1/(\sigma_w^2 + se_{ij}^2)},
+and the likelihood stays exact and linear in the number of rows.
 }
 \examples{
 \dontrun{

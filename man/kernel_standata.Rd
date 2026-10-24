@@ -37,9 +37,10 @@ regression coefficients.}
 
 \item{repeated}{For several observations per species: \code{NULL}, or a list
 with \code{n} (observations per species, in tip order), \code{species} (tip index
-of each observation), \code{y_dev} and \code{X_dev} (deviations of the response
-and of the design matrix from their species means) and \code{sd_y} (sd of
-the response over observations). \code{y} and \code{X} are then species means.}
+of each observation), \code{y} and \code{X} (response and design matrix of the
+observations), optionally \code{se} (known measurement error of each
+observation) and \code{sd_y} (sd of the response over observations). The
+arguments \code{y} and \code{X} are then species means, and \code{se} is not used.}
 }
 \value{
 A named list.

@@ -117,7 +117,7 @@ k_rate_time <- function(n_bins = 20, tau_scale = 0.5) {
     r_eval = function(ti, p, form = "edge") {
       f <- p$lograte
       if (is.null(f)) f <- c(0, cumsum(p$tau * stats::rnorm(n_bins - 1)))
-      O <- bin_overlap(ti, length(f))
+      O <- bin_overlap(ti, length(f), p$brk)
       list(w = p$sigma^2 * as.numeric(O %*% exp(f)), rv = 0)
     },
     defaults = function(ti) list(sigma = 1, tau = 0.5),
@@ -127,9 +127,11 @@ k_rate_time <- function(n_bins = 20, tau_scale = 0.5) {
   )
 }
 
-# Time each edge spends in each of M equal bins between the root and Tmax
-bin_overlap <- function(ti, M) {
-  brk <- seq(0, ti$Tmax, length.out = M + 1)
+# Time each edge spends in each of M equal bins between the root and Tmax.
+# Given `brk` (bin limits on another tree, for prediction), the first and last
+# bins extend to cover the whole tree.
+bin_overlap <- function(ti, M, brk = NULL) {
+  brk <- if (is.null(brk)) seq(0, ti$Tmax, length.out = M + 1) else c(-Inf, brk[2:M], Inf)
   O <- vapply(seq_len(M), function(m)
     pmax(0, pmin(ti$he, brk[m + 1]) - pmax(ti$hs, brk[m])), numeric(ti$E))
   matrix(O, ti$E, M)

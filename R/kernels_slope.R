@@ -187,11 +187,23 @@ slope_component <- function(sc, base) {
 }
 
 # Replace column names in k_slope() terms by the data values (named by
-# species) and fix the centring at the fitted species
-resolve_slopes <- function(kernel, data) {
+# species) and fix the centring at the fitted species. With several rows per
+# species (`rows`), the species value is the mean over its rows, the centre is
+# the mean over rows, and the value of each row is kept in `x_obs`.
+resolve_slopes <- function(kernel, data, rows = NULL, species = NULL) {
   kernel$components <- lapply(kernel$components, function(cmp) {
     if (is.null(cmp$scale)) return(cmp)
     sc <- cmp$scale
+    if (!is.null(rows)) {
+      if (!is.character(sc$x) || !sc$x %in% names(rows))
+        stop("With several rows per species, k_slope() needs a column of the data.", call. = FALSE)
+      sc$x_obs <- as.numeric(rows[[sc$x]])
+      m <- tapply(sc$x_obs, as.character(rows[[species]]), mean)
+      sc$x <- stats::setNames(as.numeric(m), names(m))
+      sc$center_value <- if (sc$center) mean(sc$x_obs) else 0
+      cmp$scale <- sc
+      return(cmp)
+    }
     if (is.character(sc$x)) {
       if (!sc$x %in% names(data)) stop("k_slope(): no column ", sc$x, " in the data.", call. = FALSE)
       sc$x <- stats::setNames(data[[sc$x]], rownames(data))

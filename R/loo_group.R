@@ -70,9 +70,10 @@ loo_group <- function(fit, groups, ndraws = 400, ...) {
       row <- D[s, ]
       beta <- unname(row[paste0("coefs[", seq_len(ncoef), "]")])
       kp <- kernel_parts(L$kernel, ti, draw_pars(L, row, ti))
-      r <- y - as.numeric(X %*% beta) - kp$shift
-      t2 <- kp$t2 + se^2 + within_t2(fit, row)
-      wl <- within_lp(fit, row, beta)[idx]
+      sr <- species_resid(fit, row, beta, kp)
+      r <- sr$r
+      t2 <- kp$t2 + sr$t2
+      wl <- sr$lp[idx]
       r_rest <- r
       r_rest[idx] <- NA
       joint <- group_lpd(ti, kp, r, r_rest, t2, idx)

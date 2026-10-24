@@ -37,8 +37,14 @@
 #' exact and keeps its linear cost: it factorises into the species means,
 #' which follow the kernel with an extra tip variance \eqn{\sigma_w^2/n_i},
 #' and the deviations from those means. Predictors may vary within species.
-#' Leave-one-out leaves out whole species. Not yet available with varying
-#' slopes or known measurement error (`se`).
+#' Leave-one-out leaves out whole species. A varying slope
+#' (`k_slope(x) * k_bm()`, latent) then applies to each row's own `x`, and
+#' leave-one-out integrates the left-out species' slope over all its rows.
+#'
+#' With `se` and several rows per species, `se` is the known measurement
+#' error of each row: \eqn{\epsilon_{ij} \sim N(0, \sigma_w^2 + se_{ij}^2)}.
+#' The species means are then weighted by \eqn{1/(\sigma_w^2 + se_{ij}^2)},
+#' and the likelihood stays exact and linear in the number of rows.
 #' @return An object of class `phylogp_fit`.
 #' @examples
 #' \dontrun{
@@ -71,10 +77,14 @@ phylo_gp <- function(formula, data, tree, kernel,
   kernel <- as_kernel(kernel)
   check_cmdstanr()
   md <- match_data(formula, data, tree, species, c(se, slope_columns(kernel)), se = se)
-  if (!is.null(md$repeated) && any(vapply(kernel$components, function(cmp) !is.null(cmp$scale), TRUE)))
-    stop("Varying slopes (k_slope()) are not yet available with several rows per species.",
-         call. = FALSE)
-  kernel <- resolve_slopes(kernel, md$data)
+  if (!is.null(md$repeated)) {
+    sl <- Filter(function(cmp) !is.null(cmp$scale), kernel$components)
+    if (length(sl) > 1 || any(vapply(sl, function(cmp) !isTRUE(cmp$latent), NA)))
+      stop("With several rows per species, varying slopes are available as one ",
+           "k_slope(x) * k term with a branch-wise k (e.g. k_bm()) and latent = TRUE.",
+           call. = FALSE)
+  }
+  kernel <- resolve_slopes(kernel, md$data, md$repeated$rows, species)
   ti <- tree_info(md$tree)
   L <- kernel_layout(kernel, ti)
   if (method == "optimize" && L$latent)
@@ -142,8 +152,8 @@ compile_phylogp <- function(code) {
 # Match data rows to tips; drop species missing from either, or with NAs.
 # With several rows per species (only through `species`), y and X become
 # species means and `repeated` holds what the within-species part of the
-# likelihood needs: rows per species, deviations from the species means and
-# the species of each row.
+# likelihood needs: rows per species, the species of each row, and the
+# response, design matrix and measurement error (`se`) of each row.
 match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NULL) {
   data <- as.data.frame(data)
   sp <- if (is.null(species)) rownames(data) else as.character(data[[species]])
@@ -181,9 +191,6 @@ match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NUL
                 X = X_rows[o, , drop = FALSE], terms = terms, xlevels = xlevels,
                 se = if (is.null(se)) NULL else data_sp[[se]], repeated = NULL))
   }
-  if (!is.null(se))
-    stop("`se` (known measurement error) cannot be combined with several rows ",
-         "per species; the within-species variance is estimated instead.", call. = FALSE)
   idx <- match(sp_rows, ti$labels)
   n <- tabulate(idx, ti$N)
   y_mean <- as.numeric(rowsum(y_rows, idx, reorder = TRUE)) / n
@@ -193,9 +200,8 @@ match_data <- function(formula, data, tree, species, extra_vars = NULL, se = NUL
   rownames(data_sp) <- ti$labels
   list(tree = ti$tree, data = data_sp, y = y_mean, X = X_mean,
        terms = terms, xlevels = xlevels, se = NULL,
-       repeated = list(n = n, species = idx,
-                       y_dev = as.numeric(y_rows) - y_mean[idx],
-                       X_dev = unname(X_rows - X_mean[idx, , drop = FALSE]),
+       repeated = list(n = n, species = idx, y = as.numeric(y_rows), X = unname(X_rows),
+                       se = if (is.null(se)) NULL else as.numeric(rows[[se]]),
                        sd_y = stats::sd(y_rows), rows = rows))
 }
 
