@@ -467,6 +467,8 @@ op <- par(mar = c(4.5, 5, 1, 1), mgp = c(3.2, 0.7, 0))
 matplot(sizes, timing * 1000, log = "xy", type = "b", pch = 19, yaxt = "n",
         lty = 1, lwd = 2, col = cols[c(1, 2)], bty = "l",
         xlab = "number of species", ylab = "time per likelihood (ms)")
+#> Warning in xy.coords(x, y, xlabel, ylabel, log = log, recycle = TRUE): 1 y
+#> value <= 0 omitted from logarithmic plot
 axis(2, at = 10^(-1:3), labels = c("0.1", "1", "10", "100", "1000"), las = 1)
 legend("topleft", c("pruning, O(N)", "dense Cholesky, O(N^3)"),
        col = cols[c(1, 2)], lwd = 2, pch = 19, bty = "n")

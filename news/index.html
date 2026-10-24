@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-tour.html">A tour of models: from Brownian motion to phylogeny plus geography</a></li>
     <li><a class="dropdown-item" href="../articles/kernel-design.html">Designing kernels</a></li>
     <li><a class="dropdown-item" href="../articles/slopes-prediction.html">Slopes, prediction and robust residuals</a></li>
+    <li><a class="dropdown-item" href="../articles/records-new-species.html">Several records per species, known errors and new species</a></li>
     <li><a class="dropdown-item" href="../articles/capabilities.html">What works with what</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -48,6 +49,7 @@
 <li>Several rows per species can now be combined with a varying slope (<code>k_slope(x) * k_bm()</code>, latent): the slope acts on each row’s own <code>x</code>, and leave-one-out integrates the left-out species’ slope over all its rows in closed form.</li>
 <li>
 <code>data-raw/capabilities.R</code> checks every kernel against every feature; the result is in the new “What works with what” article.</li>
+<li>New vignette, “Several records per species, known errors and new species”, with worked examples of these three features.</li>
 <li>Bug fix: <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> for fits across a sample of trees (<code><a href="../reference/phylo_gp_trees.html">phylo_gp_trees()</a></code>) now runs PSIS-LOO on each tree and averages each species’ left-out density over trees, so trees are weighted equally, as documented. It used to run a single PSIS on the draws of all trees together, which weights each tree by the inverse of its predictive density for the left-out species (a harmonic mean across trees) and so underestimated elpd whenever trees differed in how well they predicted a species. The per-tree results are in <code>attr(, "per_tree")</code>.</li>
 <li>The paper is out as a preprint (EcoEvoRxiv, <a href="doi:10.32942/X2D99V" class="uri">doi:10.32942/X2D99V</a>); <code>citation("phylogp")</code> now gives it, with the software DOI.</li>
 <li>References: the help pages of the kernel components and tools, the vignettes and the README now cite the work each model builds on (Brownian motion, the mixed model, Pagel’s transformations, early burst, OU, relaxed rates, spatial kernels, varying slopes, within-species variation, kernel validity, leave-one-out and prediction).</li>

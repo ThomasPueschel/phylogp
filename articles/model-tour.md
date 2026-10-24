@@ -540,6 +540,10 @@ plot_tree_values(ft, anc$mean[match(ft$edge[, 2], anc$node)],
 - [`vignette("slopes-prediction", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/slopes-prediction.md):
   slopes that evolve along the tree, influential species and robust
   residuals.
+- [`vignette("records-new-species", package = "phylogp")`](https://thomaspueschel.github.io/phylogp/articles/records-new-species.md):
+  several records per species with known standard errors, evolving
+  slopes from individual data, and predicting species without data under
+  variable rates.
 
 ## References
 

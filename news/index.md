@@ -23,6 +23,8 @@
   rows in closed form.
 - `data-raw/capabilities.R` checks every kernel against every feature;
   the result is in the new “What works with what” article.
+- New vignette, “Several records per species, known errors and new
+  species”, with worked examples of these three features.
 - Bug fix: [`loo()`](https://mc-stan.org/loo/reference/loo.html) for
   fits across a sample of trees
   ([`phylo_gp_trees()`](https://thomaspueschel.github.io/phylogp/reference/phylo_gp_trees.md))
