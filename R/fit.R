@@ -268,7 +268,13 @@ logLik.phylogp_fit <- function(object, ...) {
 #' Check the Pareto-k diagnostics: values above 0.7 flag influential species
 #' whose contribution should be recomputed by refitting.
 #'
-#' @param x A `phylogp_fit`.
+#' For a fit across a sample of trees ([phylo_gp_trees()]), PSIS-LOO is run on
+#' each tree and the left-out density of each species is averaged over trees
+#' with equal weights, \eqn{\log \frac{1}{K}\sum_T p_T(y_i \mid y_{-i})}. The
+#' per-tree results are kept in `attr(, "per_tree")`, and each species' Pareto
+#' k is its largest value across trees.
+#'
+#' @param x A `phylogp_fit`, or a `phylogp_trees` object.
 #' @param ... Passed to `loo::loo()`.
 #' @return A `loo` object (Bayesian fits) or a vector of pointwise log
 #'   densities (maximum-likelihood fits).

@@ -1,5 +1,13 @@
 # phylogp (development version)
 
+* Bug fix: `loo()` for fits across a sample of trees (`phylo_gp_trees()`)
+  now runs PSIS-LOO on each tree and averages each species' left-out density
+  over trees, so trees are weighted equally, as documented. It used to run a
+  single PSIS on the draws of all trees together, which weights each tree by
+  the inverse of its predictive density for the left-out species (a harmonic
+  mean across trees) and so underestimated elpd whenever trees differed in how
+  well they predicted a species. The per-tree results are in
+  `attr(, "per_tree")`.
 * The paper is out as a preprint (EcoEvoRxiv, doi:10.32942/X2D99V);
   `citation("phylogp")` now gives it, with the software DOI.
 * References: the help pages of the kernel components and tools, the

@@ -10,7 +10,7 @@
 \method{loo}{phylogp_trees}(x, ...)
 }
 \arguments{
-\item{x}{A \code{phylogp_fit}.}
+\item{x}{A \code{phylogp_fit}, or a \code{phylogp_trees} object.}
 
 \item{...}{Passed to \code{loo::loo()}.}
 }
@@ -25,6 +25,13 @@ generated Stan program computes in linear time for branch-wise kernels.
 For maximum-likelihood fits, the conditional densities at the estimates.
 Check the Pareto-k diagnostics: values above 0.7 flag influential species
 whose contribution should be recomputed by refitting.
+}
+\details{
+For a fit across a sample of trees (\code{\link[=phylo_gp_trees]{phylo_gp_trees()}}), PSIS-LOO is run on
+each tree and the left-out density of each species is averaged over trees
+with equal weights, \eqn{\log \frac{1}{K}\sum_T p_T(y_i \mid y_{-i})}. The
+per-tree results are kept in \code{attr(, "per_tree")}, and each species' Pareto
+k is its largest value across trees.
 }
 \references{
 Sundararajan S., Keerthi S.S. 2001. Predictive approaches for choosing hyperparameters in Gaussian processes. Neural Computation. 13:1103–1118.

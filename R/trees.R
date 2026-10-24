@@ -20,7 +20,7 @@
 #'   `iter_sampling`.
 #' @return An object of class `phylogp_trees` holding the individual fits.
 #'   `summary()` gives pooled estimates and the spread of per-tree estimates;
-#'   `loo()` gives leave-one-out cross-validation for the pooled posterior;
+#'   `loo()` gives leave-one-out cross-validation with trees weighted equally;
 #'   `coef()` gives per-tree estimates.
 #' @references
 #' Villemereuil P. de, Wells J.A., Edwards R.D., Blomberg S.P. 2012. Bayesian models for comparative analysis integrating phylogenetic uncertainty. BMC Evolutionary Biology. 12:102.
@@ -104,23 +104,49 @@ loo.phylogp_trees <- function(x, ...) {
   if (x$method != "sample") stop("loo() needs Bayesian fits.", call. = FALSE)
   common <- Reduce(intersect, lapply(x$fits, function(f) f$tree$tip.label))
   common <- sort(common)
-  ll <- lapply(x$fits, function(f) {
+  # PSIS-LOO on each tree separately. Running PSIS once on the draws of all
+  # trees would weight each tree by the inverse of its predictive density for
+  # the left-out species (a harmonic mean across trees), not equally.
+  per_tree <- lapply(x$fits, function(f) {
     m <- unclass(f$fit$draws("log_lik", format = "draws_array"))
-    m[, , match(common, f$tree$tip.label), drop = FALSE]
+    m <- m[, , match(common, f$tree$tip.label), drop = FALSE]
+    loo::loo(m, r_eff = loo::relative_eff(exp(m)), ...)
   })
-  n_iter <- min(vapply(ll, function(a) dim(a)[1], 0))
-  n_chain <- vapply(ll, function(a) dim(a)[2], 0)
-  # stack the trees as additional chains: iterations x chains x species
-  arr <- array(NA_real_, c(n_iter, sum(n_chain), length(common)))
-  at <- 0
-  for (k in seq_along(ll)) {
-    arr[, at + seq_len(n_chain[k]), ] <- ll[[k]][seq_len(n_iter), , , drop = FALSE]
-    at <- at + n_chain[k]
-  }
-  # relative efficiency within each tree (draws from different trees target
-  # different posteriors, so they are not chains of one sampler)
-  r_eff <- Reduce(`+`, lapply(ll, function(a) loo::relative_eff(exp(a[seq_len(n_iter), , , drop = FALSE])))) / length(ll)
-  out <- loo::loo(arr, r_eff = r_eff, ...)
+  n <- length(common)
+  pw <- function(col) matrix(vapply(per_tree, function(l) unname(l$pointwise[, col]), numeric(n)), n)
+  elpd_t <- pw("elpd_loo")
+  lpd_t <- elpd_t + pw("p_loo")
+  mcse_t <- pw("mcse_elpd_loo")
+  k_t <- pw("influence_pareto_k")
+  # equal weights: the left-out density is the mean over trees of the
+  # per-tree left-out densities
+  lme <- function(a) apply(a, 1, function(v) max(v) + log(mean(exp(v - max(v)))))
+  elpd <- lme(elpd_t)
+  lpd <- lme(lpd_t)
+  w <- exp(elpd_t - elpd) / ncol(elpd_t)
+  mcse <- sqrt(rowSums((w * mcse_t)^2))
+  pareto_k <- apply(k_t, 1, max)
+  pointwise <- cbind(elpd_loo = elpd, mcse_elpd_loo = mcse, p_loo = lpd - elpd,
+                     looic = -2 * elpd, influence_pareto_k = pareto_k)
+  est <- function(v) c(sum(v), sqrt(n * stats::var(v)))
+  estimates <- rbind(elpd_loo = est(elpd), p_loo = est(lpd - elpd), looic = est(-2 * elpd))
+  colnames(estimates) <- c("Estimate", "SE")
+  out <- per_tree[[1]]
+  out$estimates <- estimates
+  out$pointwise <- pointwise
+  out$diagnostics$pareto_k <- pareto_k
+  diag <- function(nm) matrix(vapply(per_tree, function(l) l$diagnostics[[nm]], numeric(n)), n)
+  out$diagnostics$n_eff <- apply(diag("n_eff"), 1, min)
+  out$diagnostics$r_eff <- rowMeans(diag("r_eff"))
+  out$psis_object <- NULL
+  out$elpd_loo <- estimates["elpd_loo", 1]
+  out$p_loo <- estimates["p_loo", 1]
+  out$looic <- estimates["looic", 1]
+  out$se_elpd_loo <- estimates["elpd_loo", 2]
+  out$se_p_loo <- estimates["p_loo", 2]
+  out$se_looic <- estimates["looic", 2]
+  attr(out, "dims") <- c(sum(vapply(per_tree, function(l) attr(l, "dims")[1], 0)), n)
   attr(out, "species") <- common
+  attr(out, "per_tree") <- per_tree
   out
 }

@@ -36,7 +36,7 @@ distribution of maximum-likelihood estimates across trees).}
 \value{
 An object of class \code{phylogp_trees} holding the individual fits.
 \code{summary()} gives pooled estimates and the spread of per-tree estimates;
-\code{loo()} gives leave-one-out cross-validation for the pooled posterior;
+\code{loo()} gives leave-one-out cross-validation with trees weighted equally;
 \code{coef()} gives per-tree estimates.
 }
 \description{
