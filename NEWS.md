@@ -17,6 +17,10 @@
   result is in the new "What works with what" article.
 * New vignette, "Several records per species, known errors and new species",
   with worked examples of these three features.
+* "Designing kernels" has a new section, "New models from old parts", with
+  four sums of kernels: gradual plus speciational change, OU plus BM, an early
+  burst that levels off, and phylogeny plus climate similarity, each with a
+  check of whether its parts can be recovered.
 * Bug fix: `loo()` for fits across a sample of trees (`phylo_gp_trees()`)
   now runs PSIS-LOO on each tree and averages each species' left-out density
   over trees, so trees are weighted equally, as documented. It used to run a
