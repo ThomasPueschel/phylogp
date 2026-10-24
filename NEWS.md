@@ -15,6 +15,8 @@
   closed form.
 * `data-raw/capabilities.R` checks every kernel against every feature; the
   result is in the new "What works with what" article.
+* New vignette, "Several records per species, known errors and new species",
+  with worked examples of these three features.
 * Bug fix: `loo()` for fits across a sample of trees (`phylo_gp_trees()`)
   now runs PSIS-LOO on each tree and averages each species' left-out density
   over trees, so trees are weighted equally, as documented. It used to run a
