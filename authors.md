@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/ThomasPueschel/phylogp/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/ThomasPueschel/phylogp/blob/v0.3.0/inst/CITATION)
 
 Püschel, T. A. (2026). Gaussian processes on phylogenies: a kernel
 framework for building, checking and comparing models of trait
