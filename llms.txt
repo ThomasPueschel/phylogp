@@ -275,8 +275,8 @@ evolution. EcoEvoRxiv.
 and, for the version you used, the software:
 
 Püschel, T. A. 2026. phylogp: phylogenetic comparative models as
-Gaussian processes, version 0.2.0. Zenodo.
-[doi:10.5281/zenodo.23472027](https://doi.org/10.5281/zenodo.23472027)
+Gaussian processes, version 0.3.0. Zenodo.
+[doi:10.5281/zenodo.23889024](https://doi.org/10.5281/zenodo.23889024)
 
 In R, `citation("phylogp")` gives both references, with BibTeX entries.
 
