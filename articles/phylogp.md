@@ -197,11 +197,11 @@ fit_relaxed
 #>   Method:  Bayesian (HMC) 
 #> 
 #>        parameter   mean     sd      q5   q95 rhat ess_bulk
-#> 1    (Intercept) -0.156 0.7500 -1.3932 1.071    1     7723
-#> 2           body  0.694 0.1082  0.5192 0.870    1     8474
-#> 3 relaxed1_sigma  1.482 0.4490  0.8623 2.296    1     3913
-#> 4   relaxed1_tau  1.153 0.3612  0.6520 1.815    1     2500
-#> 5   white1_sigma  0.108 0.0473  0.0332 0.187    1     3324
+#> 1    (Intercept) -0.153 0.7277 -1.3594 1.070    1     8037
+#> 2           body  0.693 0.1087  0.5149 0.873    1     9167
+#> 3 relaxed1_sigma  1.476 0.4529  0.8587 2.262    1     4274
+#> 4   relaxed1_tau  1.164 0.3557  0.6560 1.797    1     2890
+#> 5   white1_sigma  0.107 0.0468  0.0346 0.191    1     4147
 ```
 
 `relaxed1_tau`, the standard deviation of log-rate change, is clearly
@@ -221,7 +221,7 @@ loo::loo_compare(list("BM + residual"      = loo(fit_bm),
 #> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
 #>               model elpd_diff se_diff p_worse diag_diff      diag_elpd
 #>  relaxed + residual       0.0     0.0      NA           2 k_psis > 0.7
-#>       BM + residual     -20.7     6.1    1.00
+#>       BM + residual     -20.4     6.3    1.00
 #> 
 #> Diagnostic flags present.
 #> See ?`loo-glossary` (sections `diag_diff` and `diag_elpd`)

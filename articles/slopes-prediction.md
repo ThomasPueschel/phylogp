@@ -96,11 +96,11 @@ f_vary
 #>   Method:  Bayesian (HMC) 
 #> 
 #>        parameter  mean     sd    q5   q95 rhat ess_bulk
-#> 1    (Intercept) 0.801 0.2128 0.451 1.153 1.00     5915
-#> 2           body 0.942 0.2623 0.504 1.373 1.00     2557
-#> 3      bm1_sigma 0.483 0.0795 0.362 0.625 1.00     1648
-#> 4 slopebm1_sigma 0.580 0.0922 0.437 0.742 1.01      890
-#> 5   white1_sigma 0.200 0.0339 0.147 0.259 1.00     2527
+#> 1    (Intercept) 0.804 0.2168 0.448 1.163    1     6206
+#> 2           body 0.957 0.2522 0.547 1.371    1     2467
+#> 3      bm1_sigma 0.483 0.0800 0.357 0.619    1     1934
+#> 4 slopebm1_sigma 0.577 0.0928 0.434 0.736    1     1288
+#> 5   white1_sigma 0.200 0.0335 0.148 0.258    1     3008
 ```
 
 The slopes are fitted as latent values at the nodes of the tree, so each
@@ -113,10 +113,10 @@ loo_vary <- loo(f_vary)
 loo::loo_compare(list("constant slope"         = loo(f_const),
                       "heteroscedastic control" = loo(f_het),
                       "evolving slope"          = loo_vary))
-#>                    model elpd_diff se_diff p_worse diag_diff      diag_elpd
-#>           evolving slope       0.0     0.0      NA           1 k_psis > 0.7
-#>           constant slope     -19.4     7.1    1.00                         
-#>  heteroscedastic control     -21.3     6.6    1.00           1 k_psis > 0.7
+#>                    model elpd_diff se_diff p_worse diag_diff diag_elpd
+#>           evolving slope       0.0     0.0      NA                    
+#>           constant slope     -19.6     7.0    1.00                    
+#>  heteroscedastic control     -21.4     6.5    1.00
 ```
 
 The evolving slope predicts left-out species much better than both
@@ -137,12 +137,12 @@ the exact value ([Vehtari et al. 2017](#ref-vehtari2017)).
 
 loo_vary_exact <- loo_refit(f_vary, loo = loo_vary)
 attr(loo_vary_exact, "refitted")
-#> [1] "t118"
+#> NULL
 loo::loo_compare(list("constant slope" = loo(f_const),
                       "evolving slope" = loo_vary_exact))
 #>           model elpd_diff se_diff p_worse diag_diff diag_elpd
 #>  evolving slope       0.0     0.0      NA                    
-#>  constant slope     -19.5     7.1    1.00
+#>  constant slope     -19.6     7.0    1.00
 ```
 
 The conclusion stands once the influential species are handled exactly.
@@ -193,7 +193,7 @@ par(op)
 c(correlation = cor(truth, tips$mean),
   coverage_90 = mean(tips$q5 < truth & truth < tips$q95))
 #> correlation coverage_90 
-#>   0.8393912   0.9000000
+#>   0.8380533   0.8916667
 ```
 
 Species-level slopes are shrunk towards those of their relatives, so
@@ -310,11 +310,11 @@ loo::loo_compare(list("Gaussian residuals"  = loo(f_gauss),
                       "Student-t residuals" = loo(f_t)))
 #>                model elpd_diff se_diff p_worse diag_diff diag_elpd
 #>  Student-t residuals       0.0     0.0      NA                    
-#>   Gaussian residuals     -42.3     5.2    1.00
+#>   Gaussian residuals     -42.3     5.3    1.00
 rbind(Gaussian = summary(f_gauss)[2, ], "Student-t" = summary(f_t)[2, ])
 #>           parameter      mean         sd        q5       q95     rhat ess_bulk
-#> Gaussian       body 0.7625714 0.06985812 0.6449417 0.8785471 1.000194 4035.976
-#> Student-t      body 0.7366789 0.04525648 0.6639688 0.8114293 1.001585 6916.998
+#> Gaussian       body 0.7625714 0.06985812 0.6449417 0.8785471 1.000194 4035.962
+#> Student-t      body 0.7363566 0.04536002 0.6603103 0.8094348 1.001775 7337.350
 ```
 
 The posterior variance multipliers point to the outlying species:

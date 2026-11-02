@@ -713,7 +713,7 @@ kernel_equivalent(k_ou(root = "fixed"), k_eb(upper = 50), ultra, n_grid = 4)
 #>             1       0.0108 1.22e-07     9.51e-01      0.0218       FALSE
 #>             1       0.1080 1.23e-08     6.06e-01      0.2170       FALSE
 #>             1       1.0800 1.83e-07     6.73e-03      2.1700       FALSE
-#>             1      10.8000 1.44e-06     2.08e-22     21.6000       FALSE
+#>             1      10.8000 1.52e-06     2.07e-22     21.6000       FALSE
 #>           verdict
 #>         identical
 #>         identical
@@ -793,8 +793,6 @@ op <- par(mar = c(4.5, 5, 1, 1), mgp = c(3.2, 0.7, 0))
 matplot(sizes, timing * 1000, log = "xy", type = "b", pch = 19, yaxt = "n",
         lty = 1, lwd = 2, col = cols[c(1, 2)], bty = "l",
         xlab = "number of species", ylab = "time per likelihood (ms)")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log = log, recycle = TRUE): 1 y
-#> value <= 0 omitted from logarithmic plot
 axis(2, at = 10^(-1:3), labels = c("0.1", "1", "10", "100", "1000"), las = 1)
 legend("topleft", c("pruning, O(N)", "dense Cholesky, O(N^3)"),
        col = cols[c(1, 2)], lwd = 2, pch = 19, bty = "n")

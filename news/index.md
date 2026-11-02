@@ -91,8 +91,7 @@ updating.
   [`predict()`](https://rdrr.io/r/stats/predict.html) includes the
   within-species variation in `type = "response"`, and
   [`ancestral()`](https://thomaspueschel.github.io/phylogp/reference/ancestral.md)
-  works as before. Not yet available with varying slopes or known
-  measurement error (`se`).
+  works as before.
 - `make_stancode()`, `make_standata()` and `stancode()` are renamed
   [`kernel_stancode()`](https://thomaspueschel.github.io/phylogp/reference/kernel_stancode.md)
   and

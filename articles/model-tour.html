@@ -156,16 +156,16 @@ here), is a function of the posterior draws:</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      parameter  mean     sd    q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1  (Intercept) 0.865 0.2395 0.467 1.257    1     3388</span></span>
-<span><span class="co">#&gt; 2         body 0.688 0.0585 0.592 0.784    1     3338</span></span>
-<span><span class="co">#&gt; 3    bm1_sigma 0.531 0.1031 0.363 0.703    1     2024</span></span>
-<span><span class="co">#&gt; 4 white1_sigma 0.320 0.0528 0.235 0.410    1     2109</span></span>
+<span><span class="co">#&gt; 1  (Intercept) 0.867 0.2345 0.482 1.257    1     3593</span></span>
+<span><span class="co">#&gt; 2         body 0.688 0.0600 0.589 0.785    1     3405</span></span>
+<span><span class="co">#&gt; 3    bm1_sigma 0.531 0.1057 0.357 0.705    1     2341</span></span>
+<span><span class="co">#&gt; 4 white1_sigma 0.320 0.0539 0.237 0.412    1     2553</span></span>
 <span></span>
 <span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_df.html" class="external-link">as_draws_df</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="fu">draws</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bm1_sigma"</span>, <span class="st">"white1_sigma"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">draws</span>, <span class="va">bm1_sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="op">(</span><span class="va">bm1_sigma</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">white1_sigma</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">signal</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        5%       50%       95% </span></span>
-<span><span class="co">#&gt; 0.4628468 0.7286151 0.8898902</span></span></code></pre></div>
+<span><span class="co">#&gt; 0.4526599 0.7324438 0.8897449</span></span></code></pre></div>
 <p>The true signal is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.6</mn><mn>2</mn></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msup><mn>0.6</mn><mn>2</mn></msup><mo>+</mo><msup><mn>0.3</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">0.6^2 / (0.6^2 + 0.3^2) = 0.8</annotation></semantics></math>.</p>
 <p><code><a href="../reference/plot_effects.html">plot_effects()</a></code>, like the conditional-effects plots of
@@ -238,10 +238,10 @@ more.</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      parameter  mean     sd    q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1  (Intercept) 0.899 0.2275 0.517 1.273    1     2710</span></span>
-<span><span class="co">#&gt; 2         body 0.719 0.0691 0.608 0.833    1     3047</span></span>
-<span><span class="co">#&gt; 3    bm1_sigma 0.487 0.1278 0.283 0.702    1     1731</span></span>
-<span><span class="co">#&gt; 4 white1_sigma 0.362 0.0739 0.238 0.482    1     1869</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  (Intercept) 0.899 0.2188 0.531 1.254    1     2986</span></span>
+<span><span class="co">#&gt; 2         body 0.718 0.0682 0.604 0.829    1     3158</span></span>
+<span><span class="co">#&gt; 3    bm1_sigma 0.478 0.1290 0.274 0.696    1     1665</span></span>
+<span><span class="co">#&gt; 4 white1_sigma 0.367 0.0727 0.249 0.485    1     1925</span></span></code></pre></div>
 <p>The estimates are close to those from the data without measurement
 error, with somewhat wider intervals.</p>
 </div>
@@ -280,13 +280,13 @@ and the deviation from it estimates both slopes:</p>
 <span><span class="co">#&gt;   Likelihood: pruning (linear time) </span></span>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      parameter  mean     sd    q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1  (Intercept) 0.889 0.2108 0.534 1.230    1     4220</span></span>
-<span><span class="co">#&gt; 2    body_mean 0.671 0.0578 0.576 0.764    1     4545</span></span>
-<span><span class="co">#&gt; 3     body_dev 0.326 0.0381 0.262 0.387    1     4523</span></span>
-<span><span class="co">#&gt; 4    bm1_sigma 0.473 0.1064 0.305 0.654    1     2735</span></span>
-<span><span class="co">#&gt; 5 white1_sigma 0.345 0.0543 0.256 0.434    1     2981</span></span>
-<span><span class="co">#&gt; 6 within_sigma 0.198 0.0087 0.184 0.213    1     4405</span></span></code></pre></div>
+<span><span class="co">#&gt;      parameter  mean      sd    q5   q95 rhat ess_bulk</span></span>
+<span><span class="co">#&gt; 1  (Intercept) 0.887 0.21310 0.537 1.224    1     4401</span></span>
+<span><span class="co">#&gt; 2    body_mean 0.671 0.05803 0.576 0.767    1     5167</span></span>
+<span><span class="co">#&gt; 3     body_dev 0.325 0.03720 0.265 0.386    1     4525</span></span>
+<span><span class="co">#&gt; 4    bm1_sigma 0.475 0.10504 0.305 0.649    1     2911</span></span>
+<span><span class="co">#&gt; 5 white1_sigma 0.344 0.05396 0.257 0.435    1     3263</span></span>
+<span><span class="co">#&gt; 6 within_sigma 0.198 0.00866 0.184 0.213    1     5243</span></span></code></pre></div>
 <p>The two panels of <code><a href="../reference/plot_effects.html">plot_effects()</a></code> show the steep
 relationship among species and the shallower one within species, over
 the individual data:</p>
@@ -462,11 +462,11 @@ independent parts.</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      parameter  mean    sd      q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1  (Intercept) 0.120 0.596 -0.6782 0.953 1.00     1548</span></span>
-<span><span class="co">#&gt; 2    bm1_sigma 0.561 0.109  0.3915 0.744 1.00     2308</span></span>
-<span><span class="co">#&gt; 3  dist1_sigma 0.825 0.325  0.4906 1.437 1.01      902</span></span>
-<span><span class="co">#&gt; 4    dist1_ell 1.707 2.172  0.3697 5.273 1.01      921</span></span>
-<span><span class="co">#&gt; 5 white1_sigma 0.229 0.133  0.0249 0.450 1.01     1649</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  (Intercept) 0.120 0.535 -0.6567 0.950 1.00     1651</span></span>
+<span><span class="co">#&gt; 2    bm1_sigma 0.562 0.111  0.3887 0.757 1.00     2544</span></span>
+<span><span class="co">#&gt; 3  dist1_sigma 0.823 0.307  0.4878 1.460 1.00     1168</span></span>
+<span><span class="co">#&gt; 4    dist1_ell 1.703 1.945  0.3678 5.357 1.00     1060</span></span>
+<span><span class="co">#&gt; 5 white1_sigma 0.231 0.133  0.0261 0.454 1.01     1554</span></span></code></pre></div>
 <p>The spatial component (<code>dist1</code>) is a dense kernel, so this
 model costs
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math>
@@ -482,7 +482,7 @@ cross-validation clearly prefers the model with geography:</p>
 <span>                      <span class="st">"phylogeny + geography"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit6_space</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                  model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
 <span><span class="co">#&gt;  phylogeny + geography       0.0     0.0      NA                    </span></span>
-<span><span class="co">#&gt;         phylogeny only     -16.2     4.8    1.00</span></span></code></pre></div>
+<span><span class="co">#&gt;         phylogeny only     -16.1     4.8    1.00</span></span></code></pre></div>
 <p>The exponential kernel used here is valid for any Euclidean distance
 and for great-circle distances on the sphere <span class="citation">(<a href="#ref-schoenberg1938">Schoenberg 1938</a>; <a href="#ref-gneiting2013">Gneiting 2013</a>)</span>;
 <code><a href="../reference/kernel_check.html">kernel_check()</a></code> tests other choices on the data at hand.</p>
@@ -504,8 +504,8 @@ them. We add five outliers to the data of section 1:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>Gaussian <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit7_gauss</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"q5"</span>, <span class="st">"q95"</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>      <span class="st">"Student-t"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit7_t</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"q5"</span>, <span class="st">"q95"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                mean        q5       q95</span></span>
-<span><span class="co">#&gt; Gaussian  0.7565606 0.6149857 0.8996073</span></span>
-<span><span class="co">#&gt; Student-t 0.7138541 0.6084000 0.8207571</span></span></code></pre></div>
+<span><span class="co">#&gt; Gaussian  0.7520651 0.6053226 0.9040464</span></span>
+<span><span class="co">#&gt; Student-t 0.7129746 0.6089163 0.8170704</span></span></code></pre></div>
 <p>The slope (true value 0.7) and the other parameters are less affected
 by the outliers under the Student-t residual. See
 <code><a href="../articles/slopes-prediction.html">vignette("slopes-prediction", package = "phylogp")</a></code> for more
@@ -527,8 +527,8 @@ kernels the leave-one-out densities are computed in linear time, and
 <span>                      <span class="st">"OU + white"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit1_ou</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       model elpd_diff se_diff p_worse       diag_diff      diag_elpd</span></span>
 <span><span class="co">#&gt;  BM + white       0.0     0.0      NA                               </span></span>
-<span><span class="co">#&gt;  OU + white      -0.4     1.0    0.64 |elpd_diff| &lt; 4 1 k_psis &gt; 0.7</span></span>
-<span><span class="co">#&gt;          BM     -34.6    17.8    0.97                 2 k_psis &gt; 0.7</span></span></code></pre></div>
+<span><span class="co">#&gt;  OU + white      -0.3     1.0    0.63 |elpd_diff| &lt; 4               </span></span>
+<span><span class="co">#&gt;          BM     -34.5    17.8    0.97                 2 k_psis &gt; 0.7</span></span></code></pre></div>
 <p>Pure BM predicts much worse than the models with species-level
 variation, while OU adds nothing to BM plus white noise. The diagnostics
 flag a couple of species whose Pareto
@@ -554,7 +554,7 @@ the group’s joint predictive density; the result can be compared with
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"BM"</span> <span class="op">=</span> <span class="va">lg_bm</span>, <span class="st">"BM + white"</span> <span class="op">=</span> <span class="va">lg_bmw</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
 <span><span class="co">#&gt;  BM + white       0.0     0.0      NA                    </span></span>
-<span><span class="co">#&gt;          BM     -24.9    15.3    0.95   N &lt; 100</span></span></code></pre></div>
+<span><span class="co">#&gt;          BM     -25.3    15.4    0.95   N &lt; 100</span></span></code></pre></div>
 <p>A model whose advantage disappears when whole clades are left out may
 be fitting the relationships within clades rather than the process
 across the tree.</p>
@@ -572,12 +572,12 @@ body size:</p>
 <span>                 <span class="fu"><a href="../reference/classical-kernels.html">k_bm</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/classical-kernels.html">k_white</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit9</span>, newdata <span class="op">=</span> <span class="va">d1</span><span class="op">[</span><span class="va">missing</span>, <span class="op">]</span>, tree <span class="op">=</span> <span class="va">tr</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"species"</span>, <span class="st">"mean"</span>, <span class="st">"q5"</span>, <span class="st">"q95"</span><span class="op">)</span><span class="op">]</span>, true <span class="op">=</span> <span class="va">d1</span><span class="op">[</span><span class="va">missing</span>, <span class="st">"brain"</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   species       mean          q5         q95       true</span></span>
-<span><span class="co">#&gt; 1     t31  2.2864811  1.44262045  3.13920542  2.3543451</span></span>
-<span><span class="co">#&gt; 2     t91  0.7739993 -0.04438332  1.56521309  0.7208392</span></span>
-<span><span class="co">#&gt; 3     t79 -0.7480000 -1.43389414 -0.02008387 -0.3638477</span></span>
-<span><span class="co">#&gt; 4     t48  0.8076072  0.03480368  1.54029013  0.8384882</span></span>
-<span><span class="co">#&gt; 5     t97  0.6835139 -0.14267560  1.44231586  1.3873117</span></span></code></pre></div>
+<span><span class="co">#&gt;   species       mean           q5         q95       true</span></span>
+<span><span class="co">#&gt; 1     t31  2.2930196  1.441580188  3.16012286  2.3543451</span></span>
+<span><span class="co">#&gt; 2     t91  0.7685969 -0.032769321  1.58254358  0.7208392</span></span>
+<span><span class="co">#&gt; 3     t79 -0.7439707 -1.418468117 -0.04323735 -0.3638477</span></span>
+<span><span class="co">#&gt; 4     t48  0.8064297  0.002965273  1.53176772  0.8384882</span></span>
+<span><span class="co">#&gt; 5     t97  0.6786428 -0.141055904  1.44756658  1.3873117</span></span></code></pre></div>
 <p>For intercept-only models of a process along the whole tree,
 <code><a href="../reference/ancestral.html">ancestral()</a></code> reconstructs the trait at the internal nodes
 <span class="citation">(<a href="#ref-schluter1997">Schluter et al.
@@ -589,8 +589,8 @@ and colour the tree by the posterior medians:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">anc</span><span class="op">[</span><span class="va">anc</span><span class="op">$</span><span class="va">node</span> <span class="op">&gt;</span> <span class="va">N</span>, <span class="op">]</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     node      mean        sd          q5      q95</span></span>
 <span><span class="co">#&gt; 101  101 0.5933526 0.5471136 -0.28459322 1.451126</span></span>
-<span><span class="co">#&gt; 102  102 0.7778208 0.4885844 -0.02604715 1.568308</span></span>
-<span><span class="co">#&gt; 103  103 0.3475985 0.4361507 -0.38323913 1.040291</span></span>
+<span><span class="co">#&gt; 102  102 0.7778208 0.4885844 -0.02604714 1.568308</span></span>
+<span><span class="co">#&gt; 103  103 0.3475985 0.4361507 -0.38323928 1.040291</span></span>
 <span><span class="va">ft</span> <span class="op">&lt;-</span> <span class="va">fit_body</span><span class="op">$</span><span class="va">tree</span></span>
 <span><span class="fu"><a href="../reference/plot_tree_values.html">plot_tree_values</a></span><span class="op">(</span><span class="va">ft</span>, <span class="va">anc</span><span class="op">$</span><span class="va">mean</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">ft</span><span class="op">$</span><span class="va">edge</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="va">anc</span><span class="op">$</span><span class="va">node</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>                 main <span class="op">=</span> <span class="st">"Body size along the tree (posterior mean)"</span><span class="op">)</span></span></code></pre></div>

@@ -260,11 +260,11 @@ residual).</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        parameter   mean     sd      q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1    (Intercept) -0.156 0.7500 -1.3932 1.071    1     7723</span></span>
-<span><span class="co">#&gt; 2           body  0.694 0.1082  0.5192 0.870    1     8474</span></span>
-<span><span class="co">#&gt; 3 relaxed1_sigma  1.482 0.4490  0.8623 2.296    1     3913</span></span>
-<span><span class="co">#&gt; 4   relaxed1_tau  1.153 0.3612  0.6520 1.815    1     2500</span></span>
-<span><span class="co">#&gt; 5   white1_sigma  0.108 0.0473  0.0332 0.187    1     3324</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    (Intercept) -0.153 0.7277 -1.3594 1.070    1     8037</span></span>
+<span><span class="co">#&gt; 2           body  0.693 0.1087  0.5149 0.873    1     9167</span></span>
+<span><span class="co">#&gt; 3 relaxed1_sigma  1.476 0.4529  0.8587 2.262    1     4274</span></span>
+<span><span class="co">#&gt; 4   relaxed1_tau  1.164 0.3557  0.6560 1.797    1     2890</span></span>
+<span><span class="co">#&gt; 5   white1_sigma  0.107 0.0468  0.0346 0.191    1     4147</span></span></code></pre></div>
 <p><code>relaxed1_tau</code>, the standard deviation of log-rate change,
 is clearly above zero: the data favour variable rates.</p>
 <p>Leave-one-out cross-validation <span class="citation">(<a href="#ref-vehtari2017">Vehtari et al. 2017</a>)</span> asks which model
@@ -279,7 +279,7 @@ draws.</p>
 <span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="co">#&gt;               model elpd_diff se_diff p_worse diag_diff      diag_elpd</span></span>
 <span><span class="co">#&gt;  relaxed + residual       0.0     0.0      NA           2 k_psis &gt; 0.7</span></span>
-<span><span class="co">#&gt;       BM + residual     -20.7     6.1    1.00</span></span>
+<span><span class="co">#&gt;       BM + residual     -20.4     6.3    1.00</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Diagnostic flags present.</span></span>
 <span><span class="co">#&gt; See ?`loo-glossary` (sections `diag_diff` and `diag_elpd`)</span></span>

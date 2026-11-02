@@ -153,10 +153,10 @@ specimens.</p>
 <span><span class="co">#&gt;   Method:  Bayesian (HMC) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      parameter  mean     sd     q5   q95 rhat ess_bulk</span></span>
-<span><span class="co">#&gt; 1  (Intercept) 1.233 0.4729 0.4573 1.986    1     3366</span></span>
-<span><span class="co">#&gt; 2    bm1_sigma 0.924 0.1092 0.7548 1.114    1     2369</span></span>
-<span><span class="co">#&gt; 3 white1_sigma 0.160 0.0586 0.0568 0.253    1     1444</span></span>
-<span><span class="co">#&gt; 4 within_sigma 0.170 0.0181 0.1420 0.201    1     3182</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  (Intercept) 1.239 0.4643 0.4880 2.033    1     2838</span></span>
+<span><span class="co">#&gt; 2    bm1_sigma 0.927 0.1074 0.7585 1.113    1     1863</span></span>
+<span><span class="co">#&gt; 3 white1_sigma 0.158 0.0583 0.0548 0.252    1     1561</span></span>
+<span><span class="co">#&gt; 4 within_sigma 0.170 0.0184 0.1396 0.200    1     2426</span></span></code></pre></div>
 <p>The model without standard errors has no way to tell sampling error
 from real differences among populations, so it puts both into
 <code>within_sigma</code>:</p>
@@ -164,8 +164,8 @@ from real differences among populations, so it puts both into
 <code class="sourceCode R"><span><span class="va">pick</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">$</span><span class="va">parameter</span> <span class="op">==</span> <span class="st">"within_sigma"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"q5"</span>, <span class="st">"q95"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="st">"with se"</span> <span class="op">=</span> <span class="fu">pick</span><span class="op">(</span><span class="va">f_se</span><span class="op">)</span>, <span class="st">"without se"</span> <span class="op">=</span> <span class="fu">pick</span><span class="op">(</span><span class="va">f_nose</span><span class="op">)</span>, truth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                 mean        q5       q95</span></span>
-<span><span class="co">#&gt; with se    0.1704067 0.1419655 0.2009752</span></span>
-<span><span class="co">#&gt; without se 0.2819942 0.2600738 0.3054994</span></span>
+<span><span class="co">#&gt; with se    0.1702877 0.1396379 0.2004554</span></span>
+<span><span class="co">#&gt; without se 0.2820154 0.2603685 0.3047846</span></span>
 <span><span class="co">#&gt; truth      0.1500000        NA        NA</span></span></code></pre></div>
 <p>With the standard errors, <code>within_sigma</code> is close to the
 true 0.15. Without them it is nearly twice the true value, and it then
@@ -220,7 +220,7 @@ point for the slope deviations.</p>
 <span>                      <span class="st">"evolving slope"</span> <span class="op">=</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">f_vary</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           model elpd_diff se_diff p_worse diag_diff      diag_elpd</span></span>
 <span><span class="co">#&gt;  evolving slope       0.0     0.0      NA           1 k_psis &gt; 0.7</span></span>
-<span><span class="co">#&gt;  constant slope     -76.4    15.0    1.00</span></span></code></pre></div>
+<span><span class="co">#&gt;  constant slope     -76.1    15.0    1.00           1 k_psis &gt; 0.7</span></span></code></pre></div>
 <p>Leave-one-out leaves out a whole species, all its records at once, so
 the comparison asks how well each model predicts a species it has not
 seen. The evolving slope wins clearly. A few species are flagged with
@@ -252,7 +252,7 @@ species and node:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>correlation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">truth</span>, <span class="va">tips</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span>,</span>
 <span>  coverage_90 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">tips</span><span class="op">$</span><span class="va">q5</span> <span class="op">&lt;</span> <span class="va">truth</span> <span class="op">&amp;</span> <span class="va">truth</span> <span class="op">&lt;</span> <span class="va">tips</span><span class="op">$</span><span class="va">q95</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; correlation coverage_90 </span></span>
-<span><span class="co">#&gt;   0.9220243   0.8600000</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.9205429   0.8600000</span></span></code></pre></div>
 <p>The slopes along the tree are recovered well. Each species
 contributes several body sizes, so its own records inform its slope, not
 only its relatives. Species with extreme slopes in clades whose other
@@ -340,10 +340,10 @@ held-out species attach.</p>
 <span><span class="va">p</span><span class="op">$</span><span class="va">covered</span> <span class="op">&lt;-</span> <span class="va">p</span><span class="op">$</span><span class="va">q5</span> <span class="op">&lt;</span> <span class="va">p</span><span class="op">$</span><span class="va">truth</span> <span class="op">&amp;</span> <span class="va">p</span><span class="op">$</span><span class="va">truth</span> <span class="op">&lt;</span> <span class="va">p</span><span class="op">$</span><span class="va">q95</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">width</span>, <span class="va">covered</span><span class="op">)</span> <span class="op">~</span> <span class="va">model</span> <span class="op">+</span> <span class="va">fast</span>, data <span class="op">=</span> <span class="va">p</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     model  fast    width   covered</span></span>
-<span><span class="co">#&gt; 1      BM FALSE 1.557093 1.0000000</span></span>
-<span><span class="co">#&gt; 2 relaxed FALSE 1.468204 1.0000000</span></span>
-<span><span class="co">#&gt; 3      BM  TRUE 1.162425 0.8333333</span></span>
-<span><span class="co">#&gt; 4 relaxed  TRUE 1.405253 0.8333333</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      BM FALSE 1.571598 1.0000000</span></span>
+<span><span class="co">#&gt; 2 relaxed FALSE 1.440661 1.0000000</span></span>
+<span><span class="co">#&gt; 3      BM  TRUE 1.184627 0.8333333</span></span>
+<span><span class="co">#&gt; 4 relaxed  TRUE 1.396644 0.8333333</span></span></code></pre></div>
 <p>Brownian motion fits one rate to the whole tree, a compromise between
 the fast clade and the rest, so its intervals have about the same width
 everywhere. The relaxed-rate kernel makes them wider in the fast clade
