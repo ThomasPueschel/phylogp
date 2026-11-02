@@ -117,7 +117,7 @@ Kernel design tools (`kernel_matrix()`, `kernel_check()`, `kernel_plot()`,
 
 ## Status
 
-Version 0.2.0. Planned: multivariate kernels and
+Version 0.3.0. Planned: multivariate kernels and
 non-Gaussian traits.
 
 ## Background and references

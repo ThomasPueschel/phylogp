@@ -1,7 +1,7 @@
 {
   "title": "phylogp: Phylogenetic Comparative Models as Gaussian Processes",
   "upload_type": "software",
-  "description": "R package that fits phylogenetic comparative models for continuous traits as Gaussian processes on a tree. Models are built by combining kernels (Brownian motion, Pagel's lambda, kappa and delta, early burst, Ornstein-Uhlenbeck, relaxed rates, rate through time, distance-based and user-defined branch-wise kernels); the package writes and fits the corresponding Stan program, with linear-time likelihoods, leave-one-out and leave-clade-out cross-validation, prediction and ancestral-state reconstruction for branch-wise kernels, and tools to check kernel validity and equivalence.",
+  "description": "R package that fits phylogenetic comparative models for continuous traits as Gaussian processes on a tree. Models are built by combining kernels (Brownian motion, Pagel's lambda, kappa and delta, early burst, Ornstein-Uhlenbeck, relaxed rates, rate through time, rates that depend on regimes mapped on the tree, distance-based and user-defined branch-wise kernels); the package writes and fits the corresponding Stan program, with linear-time likelihoods, leave-one-out and leave-clade-out cross-validation, prediction and ancestral-state reconstruction for branch-wise kernels, and tools to check kernel validity and equivalence.",
   "creators": [
     {
       "name": "Püschel, Thomas A.",

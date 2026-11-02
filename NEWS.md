@@ -1,4 +1,7 @@
-# phylogp (development version)
+# phylogp 0.3.0
+
+Note that `make_stancode()`, `make_standata()` and `stancode()` were renamed in
+this version (see below), so code that calls them needs updating.
 
 * New kernel `k_regime()`: Brownian motion whose rate depends on discrete
   regimes (habitat, diet, selective regime) mapped on the tree, as in
