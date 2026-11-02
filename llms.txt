@@ -136,7 +136,7 @@ work without Stan.
 
 ## Status
 
-Version 0.2.0. Planned: multivariate kernels and non-Gaussian traits.
+Version 0.3.0. Planned: multivariate kernels and non-Gaussian traits.
 
 ## Background and references
 

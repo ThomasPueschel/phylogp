@@ -88,10 +88,10 @@ f_se
 #>   Method:  Bayesian (HMC) 
 #> 
 #>      parameter  mean     sd     q5   q95 rhat ess_bulk
-#> 1  (Intercept) 1.233 0.4693 0.4758 1.994    1     2707
-#> 2    bm1_sigma 0.923 0.1060 0.7592 1.106    1     2610
-#> 3 white1_sigma 0.162 0.0565 0.0635 0.253    1     1796
-#> 4 within_sigma 0.170 0.0175 0.1425 0.200    1     3512
+#> 1  (Intercept) 1.233 0.4729 0.4573 1.986    1     3366
+#> 2    bm1_sigma 0.924 0.1092 0.7548 1.114    1     2369
+#> 3 white1_sigma 0.160 0.0586 0.0568 0.253    1     1444
+#> 4 within_sigma 0.170 0.0181 0.1420 0.201    1     3182
 ```
 
 The model without standard errors has no way to tell sampling error from
@@ -102,8 +102,8 @@ real differences among populations, so it puts both into `within_sigma`:
 pick <- function(f) summary(f)[summary(f)$parameter == "within_sigma", c("mean", "q5", "q95")]
 rbind("with se" = pick(f_se), "without se" = pick(f_nose), truth = c(0.15, NA, NA))
 #>                 mean        q5       q95
-#> with se    0.1704489 0.1424911 0.1999330
-#> without se 0.2820301 0.2604329 0.3057984
+#> with se    0.1704067 0.1419655 0.2009752
+#> without se 0.2819942 0.2600738 0.3054994
 #> truth      0.1500000        NA        NA
 ```
 
@@ -167,7 +167,7 @@ loo::loo_compare(list("constant slope" = loo(f_const),
                       "evolving slope" = loo(f_vary)))
 #>           model elpd_diff se_diff p_worse diag_diff      diag_elpd
 #>  evolving slope       0.0     0.0      NA           1 k_psis > 0.7
-#>  constant slope     -76.2    14.9    1.00
+#>  constant slope     -76.4    15.0    1.00
 ```
 
 Leave-one-out leaves out a whole species, all its records at once, so
@@ -206,7 +206,7 @@ par(op)
 c(correlation = cor(truth, tips$mean),
   coverage_90 = mean(tips$q5 < truth & truth < tips$q95))
 #> correlation coverage_90 
-#>   0.9215724   0.8600000
+#>   0.9220243   0.8600000
 ```
 
 The slopes along the tree are recovered well. Each species contributes
@@ -313,10 +313,10 @@ p$width <- p$q95 - p$q5
 p$covered <- p$q5 < p$truth & p$truth < p$q95
 aggregate(cbind(width, covered) ~ model + fast, data = p, FUN = mean)
 #>     model  fast    width   covered
-#> 1      BM FALSE 1.571729 1.0000000
-#> 2 relaxed FALSE 1.453174 1.0000000
-#> 3      BM  TRUE 1.173089 0.8333333
-#> 4 relaxed  TRUE 1.404508 0.8333333
+#> 1      BM FALSE 1.557093 1.0000000
+#> 2 relaxed FALSE 1.468204 1.0000000
+#> 3      BM  TRUE 1.162425 0.8333333
+#> 4 relaxed  TRUE 1.405253 0.8333333
 ```
 
 Brownian motion fits one rate to the whole tree, a compromise between

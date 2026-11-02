@@ -1,6 +1,10 @@
 # Changelog
 
-## phylogp (development version)
+## phylogp 0.3.0
+
+Note that `make_stancode()`, `make_standata()` and `stancode()` were
+renamed in this version (see below), so code that calls them needs
+updating.
 
 - New kernel
   [`k_regime()`](https://thomaspueschel.github.io/phylogp/reference/k_regime.md):
