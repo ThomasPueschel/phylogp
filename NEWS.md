@@ -66,8 +66,7 @@ this version (see below), so code that calls them needs updating.
   deviations from them; predictors may vary within species. Leave-one-out,
   `loo_refit()` and `loo_group()` leave out whole species, `predict()`
   includes the within-species variation in `type = "response"`, and
-  `ancestral()` works as before. Not yet available with varying slopes or
-  known measurement error (`se`).
+  `ancestral()` works as before.
 * `make_stancode()`, `make_standata()` and `stancode()` are renamed
   `kernel_stancode()` and `kernel_standata()`, so that phylogp and brms can be
   loaded together without masking each other's functions.
